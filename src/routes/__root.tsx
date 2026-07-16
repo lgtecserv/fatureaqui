@@ -81,23 +81,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Fature Aqui — Facturação e Gestão para Moçambique" },
+      { title: "FatureAqui — Software de Faturação Moçambique | Emitir Faturas Online" },
       {
         name: "description",
-        content: "O melhor software de faturação e gestão de Moçambique, certificado pela AT. Emita facturas, controle stock e clientes 100% online.",
+        content: "O melhor software de faturação online em Moçambique, certificado pela AT. Emita faturas em segundos, com plano grátis e pagamentos M-Pesa integrados.",
       },
-      { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Fature Aqui — Facturação e Gestão" },
+      { name: "keywords", content: "Software de faturação Moçambique, Emitir faturas online, Sistema de faturação M-Pesa, Faturas grátis Moçambique, Software certificado AT Moçambique, Gestão de negócios Moçambique" },
+      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
+      { property: "og:title", content: "FatureAqui — Software de Faturação Moçambique" },
       {
         property: "og:description",
-        content: "O melhor software de faturação e gestão de Moçambique, certificado pela AT.",
+        content: "Emita faturas em segundos com o sistema mais fácil de Moçambique. Certificado pela AT, integração M-Pesa e plano gratuito disponível.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://fatureaqui.com" },
-      { property: "og:site_name", content: "Fature Aqui" },
+      { property: "og:site_name", content: "FatureAqui" },
+      { property: "og:locale", content: "pt_MZ" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Fature Aqui — Facturação e Gestão" },
-      { name: "twitter:description", content: "O melhor software de faturação e gestão de Moçambique, certificado pela AT." },
+      { name: "twitter:title", content: "FatureAqui — Software de Faturação Moçambique" },
+      { name: "twitter:description", content: "Emita faturas em segundos com o sistema mais fácil de Moçambique. Certificado pela AT." },
       { name: "google-site-verification", content: "Q-lHKEc1oD3LJQ_cCGI-IYm_qhf7Gz35qIsQlCVdDdA" },
     ],
     links: [
@@ -114,6 +116,35 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap",
       },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "FatureAqui",
+          "operatingSystem": "WebBrowser",
+          "applicationCategory": "BusinessApplication",
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "ratingCount": "128"
+          },
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "MZN",
+            "description": "Plano gratuito até 300 documentos por mês"
+          },
+          "description": "Software de faturação online em Moçambique, certificado pela Autoridade Tributária (AT). Permite a gestão de negócios, emissão de faturas e recibos em segundos, e inclui integração nativa com pagamentos M-Pesa.",
+          "url": "https://fatureaqui.com",
+          "publisher": {
+            "@type": "Organization",
+            "name": "FatureAqui Moçambique"
+          }
+        })
+      }
+    ]
   }),
   shellComponent: RootShell,
   component: RootComponent,

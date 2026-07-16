@@ -16,6 +16,7 @@ import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PainelRouteImport } from './routes/painel'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as FuncionalidadesRouteImport } from './routes/funcionalidades'
 import { Route as ContactosRouteImport } from './routes/contactos'
 import { Route as AtualizacoesRouteImport } from './routes/atualizacoes'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -68,6 +69,11 @@ const PainelRoute = PainelRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FuncionalidadesRoute = FuncionalidadesRouteImport.update({
+  id: '/funcionalidades',
+  path: '/funcionalidades',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactosRoute = ContactosRouteImport.update({
@@ -166,6 +172,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/atualizacoes': typeof AtualizacoesRoute
   '/contactos': typeof ContactosRoute
+  '/funcionalidades': typeof FuncionalidadesRoute
   '/login': typeof LoginRoute
   '/painel': typeof PainelRouteWithChildren
   '/privacidade': typeof PrivacidadeRoute
@@ -192,6 +199,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/atualizacoes': typeof AtualizacoesRoute
   '/contactos': typeof ContactosRoute
+  '/funcionalidades': typeof FuncionalidadesRoute
   '/login': typeof LoginRoute
   '/privacidade': typeof PrivacidadeRoute
   '/registro': typeof RegistroRoute
@@ -219,6 +227,7 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/atualizacoes': typeof AtualizacoesRoute
   '/contactos': typeof ContactosRoute
+  '/funcionalidades': typeof FuncionalidadesRoute
   '/login': typeof LoginRoute
   '/painel': typeof PainelRouteWithChildren
   '/privacidade': typeof PrivacidadeRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/atualizacoes'
     | '/contactos'
+    | '/funcionalidades'
     | '/login'
     | '/painel'
     | '/privacidade'
@@ -274,6 +284,7 @@ export interface FileRouteTypes {
     | '/'
     | '/atualizacoes'
     | '/contactos'
+    | '/funcionalidades'
     | '/login'
     | '/privacidade'
     | '/registro'
@@ -300,6 +311,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/atualizacoes'
     | '/contactos'
+    | '/funcionalidades'
     | '/login'
     | '/painel'
     | '/privacidade'
@@ -328,6 +340,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AtualizacoesRoute: typeof AtualizacoesRoute
   ContactosRoute: typeof ContactosRoute
+  FuncionalidadesRoute: typeof FuncionalidadesRoute
   LoginRoute: typeof LoginRoute
   PainelRoute: typeof PainelRouteWithChildren
   PrivacidadeRoute: typeof PrivacidadeRoute
@@ -386,6 +399,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/funcionalidades': {
+      id: '/funcionalidades'
+      path: '/funcionalidades'
+      fullPath: '/funcionalidades'
+      preLoaderRoute: typeof FuncionalidadesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contactos': {
@@ -567,6 +587,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AtualizacoesRoute: AtualizacoesRoute,
   ContactosRoute: ContactosRoute,
+  FuncionalidadesRoute: FuncionalidadesRoute,
   LoginRoute: LoginRoute,
   PainelRoute: PainelRouteWithChildren,
   PrivacidadeRoute: PrivacidadeRoute,
