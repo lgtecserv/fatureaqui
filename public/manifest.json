@@ -1,0 +1,18 @@
+{
+  "name": "FatureAqui Moçambique",
+  "short_name": "FatureAqui",
+  "description": "Software de faturação online em Moçambique com certificação AT.",
+  "start_url": "/painel",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0ea5e9",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

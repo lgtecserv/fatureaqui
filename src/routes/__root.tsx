@@ -103,6 +103,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "google-site-verification", content: "Q-lHKEc1oD3LJQ_cCGI-IYm_qhf7Gz35qIsQlCVdDdA" },
     ],
     links: [
+      { rel: "manifest", href: "/manifest.json" },
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -143,6 +144,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "name": "FatureAqui Moçambique"
           }
         })
+      },
+      {
+        children: `
+          if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+              navigator.serviceWorker.register('/sw.js').catch(error => {
+                console.log('SW registration failed: ', error);
+              });
+            });
+          }
+        `
       }
     ]
   }),

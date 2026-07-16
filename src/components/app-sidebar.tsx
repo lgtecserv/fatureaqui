@@ -34,18 +34,39 @@ const bottomItems = [
   { title: "Definições", url: "/painel/definicoes", icon: Settings },
 ];
 
+import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useOnboarding } from "@/hooks/use-onboarding";
+import { Download } from "lucide-react";
 
-// ... (in the component)
 export function AppSidebar() {
   const currentPath = useRouterState({
     select: (r) => r.location.pathname,
   });
   const { user, signOut } = useAuth();
   const { data: onboarding } = useOnboarding();
+  
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        setDeferredPrompt(null);
+      });
+    }
+  };
 
   const { data: company } = useQuery({
     queryKey: ["company", user?.id],
@@ -136,6 +157,20 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {deferredPrompt && (
+          <SidebarGroup className="mt-auto pb-4">
+            <SidebarGroupContent className="px-2">
+              <button
+                onClick={handleInstallClick}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center"
+              >
+                <Download className="h-4 w-4" />
+                <span className="group-data-[collapsible=icon]:hidden">Instalar App</span>
+              </button>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="border-t border-sidebar-border p-3">
