@@ -1,0 +1,1 @@
+var e=e=>new Intl.NumberFormat(`pt-MZ`,{style:`currency`,currency:`MZN`,currencyDisplay:`code`,minimumFractionDigits:2}).format(e).replace(`MZN`,`MT`),t=e=>new Intl.NumberFormat(`pt-MZ`).format(e);export{t as n,e as t};

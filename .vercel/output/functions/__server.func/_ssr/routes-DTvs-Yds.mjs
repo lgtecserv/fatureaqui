@@ -1,0 +1,508 @@
+import { t as supabase } from "./supabase-BvP6lAhv.mjs";
+import { a as Trigger2, i as Root2, n as Header, r as Item, t as Content2, y as require_jsx_runtime } from "../_libs/@radix-ui/react-accordion+[...].mjs";
+import { J as FileText, _ as ShieldCheck, et as Cloud, ft as ChevronDown, h as Star, mt as ChartColumn, n as X, pt as Check, s as UserPlus, t as Zap, xt as ArrowRight, y as Settings } from "../_libs/lucide-react.mjs";
+import { _ as Link } from "../_libs/@tanstack/react-router+[...].mjs";
+import { n as useQuery } from "../_libs/tanstack__react-query.mjs";
+import { t as Footer } from "./footer-B3lEqg1a.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-DTvs-Yds.js
+var import_jsx_runtime = require_jsx_runtime();
+function FeaturesSection() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+		className: "py-20 bg-card",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "mx-auto max-w-6xl px-6",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "text-center max-w-3xl mx-auto",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					className: "text-3xl font-extrabold text-foreground sm:text-4xl",
+					children: "Tudo o que precisa para gerir o seu negócio."
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "mt-4 text-lg text-muted-foreground",
+					children: "A Fature Aqui oferece as ferramentas essenciais para simplificar a sua faturação, poupar tempo e focar-se no crescimento da sua empresa."
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4",
+				children: [
+					{
+						title: "Certificação AT",
+						description: "Cumprimento rigoroso das normas fiscais da Autoridade Tributária de Moçambique. O seu negócio está sempre legal.",
+						icon: ShieldCheck,
+						color: "text-emerald-600",
+						bg: "bg-emerald-100"
+					},
+					{
+						title: "Emissão em Segundos",
+						description: "Crie faturas, recibos e guias ultra-rápidas. Pare de perder horas em folhas de cálculo do Excel.",
+						icon: Zap,
+						color: "text-amber-600",
+						bg: "bg-amber-100"
+					},
+					{
+						title: "Controlo Total",
+						description: "Dashboard inteligente com relatórios automáticos. Saiba sempre quem lhe deve e qual é a saúde da sua empresa.",
+						icon: ChartColumn,
+						color: "text-blue-600",
+						bg: "bg-blue-100"
+					},
+					{
+						title: "100% Cloud e Seguro",
+						description: "Aceda de qualquer lugar, no computador ou no telemóvel. Os seus dados são guardados em segurança absoluta.",
+						icon: Cloud,
+						color: "text-indigo-600",
+						bg: "bg-indigo-100"
+					}
+				].map((f, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "relative rounded-2xl border border-border p-6 shadow-sm transition-all hover:shadow-md hover:border-primary/20",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: `inline-flex h-12 w-12 items-center justify-center rounded-xl ${f.bg}`,
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(f.icon, { className: `h-6 w-6 ${f.color}` })
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+							className: "mt-5 text-xl font-bold text-foreground",
+							children: f.title
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "mt-3 text-sm text-muted-foreground leading-relaxed",
+							children: f.description
+						})
+					]
+				}, i))
+			})]
+		})
+	});
+}
+function HowItWorksSection() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+		className: "py-24 bg-background",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "mx-auto max-w-6xl px-6",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "text-center max-w-3xl mx-auto mb-16",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					className: "text-3xl font-extrabold text-foreground sm:text-4xl",
+					children: "Simples do início ao fim"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "mt-4 text-lg text-muted-foreground",
+					children: "Desenhámos a Fature Aqui para ser a plataforma mais intuitiva do mercado. Em 3 passos você está pronto para faturar."
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "grid gap-12 md:grid-cols-3 relative",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "hidden md:block absolute top-8 left-[15%] right-[15%] h-[2px] bg-border border-dashed border-2" }), [
+					{
+						num: "01",
+						title: "Crie a sua conta",
+						desc: "Registo gratuito e sem compromisso em menos de 1 minuto.",
+						icon: UserPlus
+					},
+					{
+						num: "02",
+						title: "Configure os dados",
+						desc: "Insira os dados da sua empresa, adicione o logótipo e os seus primeiros clientes.",
+						icon: Settings
+					},
+					{
+						num: "03",
+						title: "Comece a faturar",
+						desc: "Gere faturas profissionais em PDF prontas a enviar para os seus clientes.",
+						icon: FileText
+					}
+				].map((s, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "relative text-center z-10",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-xl ring-4 ring-background",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(s.icon, { className: "h-7 w-7" })
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h3", {
+							className: "mt-6 text-xl font-bold text-foreground",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+								className: "text-primary mr-2 font-black",
+								children: [s.num, "."]
+							}), s.title]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "mt-3 text-muted-foreground px-4",
+							children: s.desc
+						})
+					]
+				}, i))]
+			})]
+		})
+	});
+}
+function TestimonialsSection() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+		className: "py-24 bg-card border-y border-border",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "mx-auto max-w-6xl px-6",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "text-center max-w-3xl mx-auto mb-16",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					className: "text-3xl font-extrabold text-foreground sm:text-4xl",
+					children: "O que os nossos clientes dizem"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "mt-4 text-lg text-muted-foreground",
+					children: "Milhares de empresas em Moçambique confiam no Fature Aqui todos os dias."
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "grid gap-8 md:grid-cols-3",
+				children: [
+					{
+						name: "João Silva",
+						role: "Sócio-Gerente, JS Serviços",
+						content: "Desde que aderimos à Fature Aqui, a nossa gestão financeira transformou-se. A emissão de faturas é tão rápida que até parece mentira. E o melhor de tudo: estamos 100% legais com a AT.",
+						rating: 5
+					},
+					{
+						name: "Ana Macamo",
+						role: "Freelancer",
+						content: "Excelente plataforma! Muito intuitiva e o facto de poder aceder pelo telemóvel e enviar o PDF direto para o cliente salvou-me imenso tempo. Recomendo vivamente a qualquer empreendedor.",
+						rating: 5
+					},
+					{
+						name: "Carlos Tamele",
+						role: "Diretor Comercial, AutoMoc",
+						content: "O sistema de controlo de dívidas e os relatórios automáticos deram-nos uma visão clara do nosso negócio. O suporte técnico também é muito rápido e prestativo.",
+						rating: 5
+					}
+				].map((t, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex flex-col justify-between rounded-2xl border border-border bg-background p-8 shadow-sm",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "flex gap-1 mb-4",
+						children: [...Array(t.rating)].map((_, j) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Star, { className: "h-4 w-4 fill-amber-500 text-amber-500" }, j))
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						className: "text-muted-foreground italic",
+						children: [
+							"\"",
+							t.content,
+							"\""
+						]
+					})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "mt-8 flex items-center gap-3",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft text-primary font-bold",
+							children: t.name.charAt(0)
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+							className: "font-bold text-foreground text-sm",
+							children: t.name
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "text-xs text-muted-foreground",
+							children: t.role
+						})] })]
+					})]
+				}, i))
+			})]
+		})
+	});
+}
+function PricingSection() {
+	const { data: settings } = useQuery({
+		queryKey: ["system-settings-public"],
+		queryFn: async () => {
+			const { data, error } = await supabase.from("system_settings").select("pro_price").eq("id", "00000000-0000-0000-0000-000000000001").single();
+			if (error && error.code !== "PGRST116") throw error;
+			return data;
+		}
+	});
+	const plans = [{
+		name: "Gratuito",
+		price: "0 MT",
+		period: "/mês",
+		description: "Ideal para começar e testar a plataforma.",
+		features: [
+			{
+				name: "Até 5 faturas mensais",
+				included: true
+			},
+			{
+				name: "Até 10 clientes",
+				included: true
+			},
+			{
+				name: "Documentos em PDF",
+				included: true
+			},
+			{
+				name: "Certificação AT",
+				included: true
+			},
+			{
+				name: "Apoio ao cliente prioritário",
+				included: false
+			},
+			{
+				name: "Gestão de inventário",
+				included: false
+			}
+		],
+		cta: "Começar Grátis",
+		popular: false
+	}, {
+		name: "Plano Pro",
+		price: settings?.pro_price ? new Intl.NumberFormat("pt-MZ").format(settings.pro_price) + " MT" : "1.500 MT",
+		period: "/mês",
+		description: "A solução completa para pequenas e médias empresas.",
+		features: [
+			{
+				name: "Faturas ilimitadas",
+				included: true
+			},
+			{
+				name: "Clientes ilimitados",
+				included: true
+			},
+			{
+				name: "Documentos em PDF",
+				included: true
+			},
+			{
+				name: "Certificação AT",
+				included: true
+			},
+			{
+				name: "Apoio ao cliente prioritário",
+				included: true
+			},
+			{
+				name: "Gestão de inventário",
+				included: true
+			}
+		],
+		cta: "Testar o Pro",
+		popular: true
+	}];
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+		className: "py-24 bg-background",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "mx-auto max-w-5xl px-6",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "text-center max-w-3xl mx-auto mb-16",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					className: "text-3xl font-extrabold text-foreground sm:text-4xl",
+					children: "Preços simples e transparentes"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "mt-4 text-lg text-muted-foreground",
+					children: "Escolha o plano que melhor se adapta às necessidades do seu negócio. Cancele ou altere quando quiser."
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "grid gap-8 md:grid-cols-2 max-w-3xl mx-auto",
+				children: plans.map((p, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: `relative flex flex-col rounded-3xl p-8 shadow-xl ${p.popular ? "bg-primary text-primary-foreground ring-4 ring-primary/20" : "bg-card border border-border"}`,
+					children: [
+						p.popular && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "absolute -top-4 left-0 right-0 mx-auto w-fit rounded-full bg-amber-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-sm",
+							children: "Mais Popular"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "mb-6",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+									className: `text-xl font-bold ${p.popular ? "text-primary-foreground" : "text-foreground"}`,
+									children: p.name
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: `mt-2 text-sm ${p.popular ? "text-primary-foreground/80" : "text-muted-foreground"}`,
+									children: p.description
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									className: "mt-6 flex items-baseline gap-1",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "text-4xl font-extrabold tabular-nums tracking-tight",
+										children: p.price
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: `text-sm font-medium ${p.popular ? "text-primary-foreground/70" : "text-muted-foreground"}`,
+										children: p.period
+									})]
+								})
+							]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("ul", {
+							className: "flex-1 space-y-4 mb-8",
+							children: p.features.map((f, j) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("li", {
+								className: "flex items-center gap-3",
+								children: [f.included ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Check, { className: `h-5 w-5 shrink-0 ${p.popular ? "text-primary-foreground" : "text-primary"}` }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: `h-5 w-5 shrink-0 ${p.popular ? "text-primary-foreground/40" : "text-muted-foreground/40"}` }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: `text-sm ${f.included ? p.popular ? "text-primary-foreground" : "text-foreground" : p.popular ? "text-primary-foreground/60" : "text-muted-foreground"}`,
+									children: f.name
+								})]
+							}, j))
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
+							to: "/painel",
+							className: `flex h-12 w-full items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-all hover:opacity-90 ${p.popular ? "bg-white text-primary hover:bg-gray-50" : "bg-primary text-primary-foreground hover:bg-primary/90"}`,
+							children: p.cta
+						})
+					]
+				}, i))
+			})]
+		})
+	});
+}
+function FaqSection() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+		className: "py-24 bg-card border-t border-border",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "mx-auto max-w-3xl px-6",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "text-center mb-16",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					className: "text-3xl font-extrabold text-foreground sm:text-4xl",
+					children: "Perguntas Frequentes"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "mt-4 text-lg text-muted-foreground",
+					children: "Tire todas as suas dúvidas antes de começar."
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root2, {
+				type: "single",
+				collapsible: true,
+				className: "w-full space-y-4",
+				children: [
+					{
+						q: "O Fature Aqui é certificado pela AT?",
+						a: "Sim, a nossa plataforma cumpre rigorosamente todas as normas exigidas pela Autoridade Tributária de Moçambique. Todas as faturas geradas têm validade legal e fiscal."
+					},
+					{
+						q: "Preciso de inserir o cartão de crédito para testar?",
+						a: "Não. O plano gratuito é verdadeiramente gratuito e não lhe pedimos qualquer método de pagamento para começar a faturar."
+					},
+					{
+						q: "O que acontece se eu ultrapassar as 5 faturas no plano grátis?",
+						a: "O sistema irá alertá-lo que atingiu o limite mensal. A partir daí, poderá optar por fazer o upgrade para o Plano Pro para continuar a emitir documentos ilimitados."
+					},
+					{
+						q: "Posso cancelar a minha subscrição a qualquer momento?",
+						a: "Sim. Não exigimos qualquer fidelização. Se não estiver satisfeito ou não precisar mais do sistema, pode cancelar a renovação do seu plano com apenas um clique."
+					},
+					{
+						q: "Os dados da minha empresa estão seguros?",
+						a: "Totalmente. Utilizamos servidores na cloud com encriptação de ponta a ponta e backups diários para garantir que a sua informação financeira está sempre protegida."
+					}
+				].map((faq, i) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Item, {
+					value: `item-${i}`,
+					className: "overflow-hidden rounded-2xl border border-border bg-background transition-shadow focus-within:ring-2 focus-within:ring-primary/20 hover:shadow-sm",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Header, {
+						className: "flex",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Trigger2, {
+							className: "group flex flex-1 items-center justify-between p-6 text-left font-semibold text-foreground transition-all hover:text-primary [&[data-state=open]>svg]:rotate-180",
+							children: [faq.q, /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronDown, { className: "h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300 ease-[cubic-bezier(0.87,_0,_0.13,_1)] group-hover:text-primary" })]
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Content2, {
+						className: "overflow-hidden text-sm text-muted-foreground data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "px-6 pb-6 pt-0 leading-relaxed",
+							children: faq.a
+						})
+					})]
+				}, i))
+			})]
+		})
+	});
+}
+function CtaSection() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("section", {
+		className: "py-24 bg-primary relative overflow-hidden",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "absolute -top-24 -right-24 h-96 w-96 rounded-full bg-white/10 blur-3xl pointer-events-none" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-black/10 blur-2xl pointer-events-none" }),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "mx-auto max-w-4xl px-6 relative z-10 text-center",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+						className: "text-4xl font-black tracking-tight text-white sm:text-5xl",
+						children: "Pronto para modernizar a sua faturação?"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mt-6 text-xl text-primary-foreground/90 max-w-2xl mx-auto",
+						children: "Junte-se a milhares de empreendedores moçambicanos que já abandonaram o Excel. Crie a sua conta gratuita hoje mesmo."
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "mt-10 flex flex-col sm:flex-row items-center justify-center gap-4",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+							to: "/painel",
+							className: "inline-flex h-14 w-full sm:w-auto items-center justify-center gap-2 rounded-full bg-amber-500 px-8 text-base font-bold text-white shadow-xl transition-all hover:bg-amber-600 hover:scale-105 hover:shadow-2xl",
+							children: ["Criar conta grátis agora ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRight, { className: "h-5 w-5" })]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mt-4 text-sm text-primary-foreground/70",
+						children: "Não é necessário cartão de crédito."
+					})
+				]
+			})
+		]
+	});
+}
+function Index() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "min-h-screen bg-background",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
+				className: "mx-auto flex max-w-6xl items-center justify-between px-6 py-6",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+					src: "/logo.png",
+					alt: "FatureAqui",
+					className: "h-16 sm:h-[72px] object-contain"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+					to: "/painel",
+					className: "inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95",
+					children: ["Entrar no painel ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRight, { className: "h-4 w-4" })]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("main", {
+				className: "mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-2 lg:py-20",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary-soft-foreground",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ShieldCheck, { className: "h-3.5 w-3.5" }), " Certificado pela AT"]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", {
+						className: "mt-6 text-4xl font-extrabold leading-[1.05] tracking-tight text-foreground sm:text-5xl lg:text-6xl",
+						children: [
+							"Software de ",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "text-primary",
+								children: "Facturação"
+							}),
+							" e",
+							" ",
+							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "text-primary",
+								children: "Gestão"
+							}),
+							" para Moçambique"
+						]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mt-5 max-w-lg text-base text-muted-foreground",
+						children: "Pare de perder tempo com papelada e Excel. Fature em segundos e controle o seu negócio com clareza total — 100% online e com conformidade AT."
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+						to: "/painel",
+						className: "mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-amber px-7 text-sm font-bold text-amber-foreground shadow-elevated hover:opacity-95",
+						children: ["Ver o painel demo ", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRight, { className: "h-4 w-4" })]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						className: "mt-3 text-xs text-muted-foreground",
+						children: "Sem cartão · Activação imediata"
+					})
+				] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "relative flex items-center justify-center",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("img", {
+						src: "/hero-image.png",
+						alt: "Fature Aqui Software Dashboard",
+						className: "w-full h-auto rounded-3xl border border-border shadow-2xl shadow-primary/20 object-contain"
+					})
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FeaturesSection, {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(HowItWorksSection, {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TestimonialsSection, {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PricingSection, {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FaqSection, {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CtaSection, {}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Footer, {})
+		]
+	});
+}
+//#endregion
+export { Index as component };
