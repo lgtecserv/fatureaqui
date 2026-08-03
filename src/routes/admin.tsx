@@ -1,6 +1,6 @@
 import { Outlet, createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { AdminSidebar } from "@/components/admin-sidebar";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
@@ -42,6 +42,12 @@ function AdminLayout() {
       <div className="flex min-h-screen w-full bg-slate-50">
         <AdminSidebar />
         <SidebarInset className="flex-1 overflow-x-hidden">
+          {/* Mobile Header for Admin */}
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 md:hidden">
+            <SidebarTrigger className="-ml-1" />
+            <div className="w-4" />
+            <h1 className="text-lg font-semibold text-slate-900">Administração</h1>
+          </header>
           <Outlet />
         </SidebarInset>
       </div>

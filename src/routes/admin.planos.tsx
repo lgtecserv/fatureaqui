@@ -98,7 +98,7 @@ function AdminPlanosPage() {
   }
 
   return (
-    <div className="flex-1 p-8">
+    <div className="flex-1 p-4 sm:p-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">Planos & Subscrições</h1>
         <p className="text-slate-500 mt-1">Configure o preço e os métodos de pagamento visíveis para as empresas.</p>

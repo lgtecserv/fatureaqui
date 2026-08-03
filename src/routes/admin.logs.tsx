@@ -68,7 +68,7 @@ function AdminLogsPage() {
   });
 
   return (
-    <div className="flex-1 p-8 h-screen flex flex-col overflow-hidden">
+    <div className="flex-1 p-4 sm:p-8 h-[100dvh] flex flex-col overflow-hidden">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Histórico de Atividade</h1>

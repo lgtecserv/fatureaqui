@@ -96,8 +96,8 @@ function AdminFaturacaoPage() {
   }
 
   return (
-    <div className="flex-1 p-8">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="flex-1 p-4 sm:p-8">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Aprovação de Pagamentos</h1>
           <p className="text-slate-500 mt-1">Verifique os comprovativos enviados e ative o plano Pro (+30 dias).</p>
