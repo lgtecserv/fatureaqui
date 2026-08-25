@@ -5,6 +5,12 @@ import { Footer } from "@/components/landing/footer";
 
 export const Route = createFileRoute("/funcionalidades")({
   component: FuncionalidadesPage,
+  head: () => ({
+    meta: [
+      { title: "Funcionalidades | FatureAqui - Faturação, M-Pesa, Relatórios" },
+      { name: "description", content: "Explore as funcionalidades do FatureAqui: Faturas certificadas pela AT, integração M-Pesa, plano grátis, gestão de clientes e relatórios em tempo real." },
+    ],
+  }),
 });
 
 function FuncionalidadesPage() {

@@ -4,6 +4,12 @@ import { Mail, Phone, MapPin, Send, ArrowRight, Globe, Clock } from "lucide-reac
 
 export const Route = createFileRoute("/contactos")({
   component: ContactosPage,
+  head: () => ({
+    meta: [
+      { title: "Contactos e Suporte | FatureAqui Moçambique" },
+      { name: "description", content: "Fale com a equipa da LG Tecserv. Suporte especializado, informações sobre planos de faturação e contacto direto via telefone ou email em Maputo." },
+    ],
+  }),
 });
 
 function ContactosPage() {

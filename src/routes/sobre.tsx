@@ -4,6 +4,12 @@ import { Building2, Code2, Users, Target, ArrowRight, ShieldCheck, Zap, HeartHan
 
 export const Route = createFileRoute("/sobre")({
   component: SobrePage,
+  head: () => ({
+    meta: [
+      { title: "Sobre Nós | FatureAqui - Software de Faturação Moçambique" },
+      { name: "description", content: "Conheça a história do FatureAqui e a equipa da LG Tecserv por trás do melhor software de faturação online certificado pela AT em Moçambique." },
+    ],
+  }),
 });
 
 function SobrePage() {

@@ -101,12 +101,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "FatureAqui — Software de Faturação Moçambique" },
       { name: "twitter:description", content: "Emita faturas em segundos com o sistema mais fácil de Moçambique. Certificado pela AT." },
+      { name: "twitter:image", content: "https://fatureaqui.com/og-image.png" },
+      { property: "og:image", content: "https://fatureaqui.com/og-image.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "google-site-verification", content: "Q-lHKEc1oD3LJQ_cCGI-IYm_qhf7Gz35qIsQlCVdDdA" },
     ],
     links: [
       { rel: "manifest", href: "/manifest.json" },
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.png", type: "image/png" },
+      { rel: "icon", href: "/favicon.png", type: "image/png", sizes: "192x192" },
+      { rel: "apple-touch-icon", href: "/favicon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       {
         rel: "preconnect",
@@ -167,9 +172,34 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt">
+    <html lang="pt-MZ">
       <head>
         <HeadContent />
+        {/* Google Analytics Placeholder */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-XXXXXXXXXX');
+          `
+        }} />
+        {/* Meta Pixel Placeholder */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', 'XXXXXXXXXXXXXXXX');
+            fbq('track', 'PageView');
+          `
+        }} />
       </head>
       <body>
         {children}

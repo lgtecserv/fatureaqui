@@ -18,10 +18,10 @@ function Index() {
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <img src="/logo.png" alt="FatureAqui" className="h-16 sm:h-[72px] object-contain" />
         <Link
-          to="/painel"
+          to="/registro"
           className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95"
         >
-          Entrar no painel <ArrowRight className="h-4 w-4" />
+          Criar Conta Grátis <ArrowRight className="h-4 w-4" />
         </Link>
       </header>
 
@@ -39,10 +39,10 @@ function Index() {
             com clareza total — 100% online e com conformidade AT.
           </p>
           <Link
-            to="/painel"
+            to="/registro"
             className="mt-8 inline-flex h-12 items-center gap-2 rounded-full bg-amber px-7 text-sm font-bold text-amber-foreground shadow-elevated hover:opacity-95"
           >
-            Ver o painel demo <ArrowRight className="h-4 w-4" />
+            Começar a Faturar Grátis <ArrowRight className="h-4 w-4" />
           </Link>
           <p className="mt-3 text-xs text-muted-foreground">Sem cartão · Activação imediata</p>
         </div>
