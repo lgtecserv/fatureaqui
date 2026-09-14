@@ -17,12 +17,20 @@ function Index() {
     <div className="min-h-screen bg-background">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
         <img src="/logo.png" alt="FatureAqui" className="h-16 sm:h-[72px] object-contain" />
-        <Link
-          to="/registro"
-          className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95"
-        >
-          Criar Conta Grátis <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link to="/docs/api" className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors hidden sm:block">
+            Documentação API
+          </Link>
+          <Link to="/login" className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
+            Fazer Login
+          </Link>
+          <Link
+            to="/registro"
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95"
+          >
+            Criar Conta Grátis <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </header>
 
       <main className="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-2 lg:py-20">

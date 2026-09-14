@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 
 export function PricingSection() {
-  const { data: settings } = useQuery({
+  const { data: settings, isLoading: isSettingsLoading } = useQuery({
     queryKey: ["system-settings-public"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -18,10 +18,11 @@ export function PricingSection() {
     }
   });
 
-  // Formata o preço vindo da base de dados (ex: 1500 -> 1.500 MT)
-  const proPrice = settings?.pro_price 
-    ? new Intl.NumberFormat("pt-MZ").format(settings.pro_price) + " MT"
-    : "1.500 MT"; // Fallback se estiver carregando
+  const proPrice = isSettingsLoading
+    ? "..."
+    : settings?.pro_price 
+      ? new Intl.NumberFormat("pt-MZ").format(settings.pro_price) + " MT"
+      : "499 MT"; // Fallback se não existir na BD
 
   const plans = [
     {

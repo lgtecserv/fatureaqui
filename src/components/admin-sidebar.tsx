@@ -8,6 +8,7 @@ import {
   LifeBuoy,
   Activity,
   LogOut,
+  Mail,
 } from "lucide-react";
 import {
   Sidebar,
@@ -26,6 +27,7 @@ import { useAuth } from "@/hooks/use-auth";
 const adminItems = [
   { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
   { title: "Empresas", url: "/admin/empresas", icon: Building2 },
+  { title: "Marketing", url: "/admin/marketing", icon: Mail },
   { title: "Planos & Subscrições", url: "/admin/planos", icon: Package },
   { title: "Faturação", url: "/admin/faturacao", icon: CreditCard },
   { title: "Configurações", url: "/admin/configuracoes", icon: Settings },

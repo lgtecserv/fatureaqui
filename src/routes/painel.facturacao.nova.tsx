@@ -11,6 +11,7 @@ import type { DocumentType, DocumentItemFormState } from "@/types";
 import { ClientModal } from "@/components/client-modal";
 import { DocumentPreview } from "@/components/document-preview";
 import { SuccessModal } from "@/components/success-modal";
+import { cn } from "@/lib/utils";
 // @ts-ignore
 import domtoimage from "dom-to-image-more";
 import jsPDF from "jspdf";
@@ -104,6 +105,47 @@ function NovaFacturaPage() {
         .eq("company_id", company.id)
         .in("type", ["FT", "VD"])
         .order("created_at", { ascending: false });
+      return data || [];
+    },
+    enabled: !!company,
+  });
+
+  const [warehouseId, setWarehouseId] = useState<string>("");
+
+  // Fetch warehouses
+  const { data: warehouses = [] } = useQuery({
+    queryKey: ["warehouses", company?.id],
+    queryFn: async () => {
+      if (!company) return [];
+      const { data } = await supabase.from("warehouses").select("*").eq("company_id", company.id).eq("is_active", true);
+      
+      // Auto-select default warehouse
+      if (data && data.length > 0 && !warehouseId) {
+        const defaultW = data.find(w => w.is_default) || data[0];
+        setWarehouseId(defaultW.id);
+      }
+      return data || [];
+    },
+    enabled: !!company,
+  });
+
+  // Fetch variants (Products) with stock
+  const { data: variants = [] } = useQuery({
+    queryKey: ["variants_with_stock", company?.id],
+    queryFn: async () => {
+      if (!company) return [];
+      const { data, error } = await supabase
+        .from("product_variants")
+        .select(`
+          id,
+          sku,
+          price,
+          products!inner ( name, type ),
+          stock_inventory ( quantity, warehouse_id )
+        `)
+        .eq("products.company_id", company.id);
+        
+      if (error) throw error;
       return data || [];
     },
     enabled: !!company,
@@ -328,23 +370,21 @@ function NovaFacturaPage() {
         }
       }
 
-      // Generate sequence number (monthly)
+      // Generate sequence number (yearly)
       const dateObj = new Date(date);
       const year = dateObj.getFullYear();
-      const monthStr = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const yearMonthPrefix = `${year}-${monthStr}`;
 
       const { data: lastDoc } = await supabase
         .from("documents")
         .select("sequence")
         .eq("company_id", company.id)
         .eq("type", docType)
-        .like("date", `${yearMonthPrefix}-%`)
+        .eq("year", year)
         .order("sequence", { ascending: false })
         .limit(1);
 
       const sequence = lastDoc?.[0]?.sequence ? lastDoc[0].sequence + 1 : 1;
-      const number = `${docType} ${yearMonthPrefix}/${sequence}`;
+      const number = `${docType} ${year}/${sequence}`;
 
       // Insert document
       const { data: doc, error: docError } = await supabase
@@ -398,6 +438,7 @@ function NovaFacturaPage() {
         return {
           document_id: doc.id,
           type: item.type,
+          variant_id: item.variant_id === 'custom' ? null : (item.variant_id || null),
           description: item.description,
           quantity: qty,
           unit_price: price,
@@ -411,6 +452,11 @@ function NovaFacturaPage() {
 
       const { error: itemsError } = await supabase.from("document_items").insert(docItems);
       if (itemsError) throw itemsError;
+
+      // Se for fatura e tiver warehouseId, processar stock
+      if (["FT", "VD", "FR"].includes(docType) && warehouseId) {
+        await supabase.rpc('process_invoice_stock', { p_document_id: doc.id });
+      }
 
       return doc;
     },
@@ -457,7 +503,7 @@ function NovaFacturaPage() {
             
             {/* Header Options */}
             <div className="rounded-2xl border border-border bg-card p-6 shadow-soft space-y-6">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
                 <div className="space-y-2">
                   <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tipo de Documento</label>
                   <select
@@ -483,6 +529,21 @@ function NovaFacturaPage() {
                     onChange={(e) => setDate(e.target.value)}
                     className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Armazém de Saída</label>
+                  <select
+                    value={warehouseId}
+                    onChange={(e) => setWarehouseId(e.target.value)}
+                    disabled={!["FT", "VD", "FR", "GR"].includes(docType)}
+                    className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
+                  >
+                    <option value="">Não aplica stock</option>
+                    {warehouses.map(w => (
+                      <option key={w.id} value={w.id}>{w.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -597,15 +658,108 @@ function NovaFacturaPage() {
               </div>
               
               <div className="p-5 space-y-4">
+                
+                {/* Headers for Desktop */}
+                <div className={cn(
+                  "hidden sm:grid gap-2 px-1 pb-2 border-b border-border/50",
+                  isTransportDoc ? "grid-cols-[1fr_80px_40px]" : "grid-cols-[1fr_80px_100px_140px_40px]"
+                )}>
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Artigo / Serviço</div>
+                  <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Qtd.</div>
+                  {!isTransportDoc && (
+                    <>
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Preço Unit.</div>
+                      <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Desconto</div>
+                    </>
+                  )}
+                  <div></div>
+                </div>
+
                 {items.map((item) => (
-                  <div key={item.id} className="grid grid-cols-1 sm:grid-cols-[1fr_80px_100px_140px_40px] gap-2 items-start sm:items-center">
-                    <input
-                      type="text"
-                      placeholder="Descrição do produto ou serviço..."
-                      value={item.description}
-                      onChange={(e) => updateItem(item.id, "description", e.target.value)}
-                      className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
+                  <div key={item.id} className={cn(
+                    "grid grid-cols-1 gap-2 items-start sm:items-center",
+                    isTransportDoc ? "sm:grid-cols-[1fr_80px_40px]" : "sm:grid-cols-[1fr_80px_100px_140px_40px]"
+                  )}>
+                    <div className="flex gap-2 relative w-full flex-1">
+                      <select
+                        value={item.type}
+                        onChange={(e) => updateItem(item.id, "type", e.target.value)}
+                        className="h-10 w-24 shrink-0 rounded-lg border border-border bg-muted/50 px-2 text-xs focus:border-primary focus:outline-none"
+                      >
+                        <option value="produto">Produto</option>
+                        <option value="servico">Serviço</option>
+                      </select>
+                      {item.type === "produto" ? (
+                        <div className="w-full flex-1 relative flex gap-2">
+                          {item.variant_id !== "custom" && (
+                            <select
+                              value={item.variant_id || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val === "custom") {
+                                  updateItem(item.id, "variant_id", "custom");
+                                  updateItem(item.id, "description", "");
+                                  return;
+                                }
+                                if (!val) {
+                                  updateItem(item.id, "variant_id", "");
+                                  updateItem(item.id, "description", "");
+                                  return;
+                                }
+                                const matched = variants.find(v => v.id === val);
+                                if (matched) {
+                                  updateItem(item.id, "variant_id", matched.id);
+                                  updateItem(item.id, "description", matched.products?.name || "");
+                                  updateItem(item.id, "unit_price", matched.price.toString());
+                                }
+                              }}
+                              className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
+                            >
+                              <option value="">Selecione um produto...</option>
+                              {variants.map(v => {
+                                const stock = v.stock_inventory?.find((s: any) => s.warehouse_id === warehouseId)?.quantity || 0;
+                                return (
+                                  <option key={v.id} value={v.id}>
+                                    {v.products?.name} {v.sku ? `(${v.sku})` : ''} - Stock: {stock} - {MT(v.price)}
+                                  </option>
+                                );
+                              })}
+                              <option value="custom">+ Digitar manualmente...</option>
+                            </select>
+                          )}
+                          {item.variant_id === "custom" && (
+                            <div className="flex w-full relative">
+                              <input
+                                type="text"
+                                placeholder="Nome do produto..."
+                                value={item.description}
+                                onChange={(e) => updateItem(item.id, "description", e.target.value)}
+                                className="h-10 w-full rounded-l-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  updateItem(item.id, "variant_id", "");
+                                  updateItem(item.id, "description", "");
+                                }}
+                                className="h-10 px-3 bg-muted border border-l-0 border-border rounded-r-lg text-xs hover:bg-muted/80 text-muted-foreground font-bold"
+                                title="Voltar à lista"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <input
+                          type="text"
+                          placeholder="Descrição do serviço..."
+                          value={item.description}
+                          onChange={(e) => updateItem(item.id, "description", e.target.value)}
+                          className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        />
+                      )}
+                    </div>
                     <input
                       type="number"
                       min="0.01"

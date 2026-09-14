@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { CreditCard, Upload, CheckCircle, Banknote, Building2, Loader2, ArrowRight, Clock } from "lucide-react";
+import { CreditCard, Upload, CheckCircle, Banknote, Building2, Loader2, ArrowRight, Clock, CircleAlert } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -19,7 +19,7 @@ function AssinaturaPage() {
   const [file, setFile] = useState<File | null>(null);
   const [notes, setNotes] = useState("");
 
-  const { data: settings } = useQuery({
+  const { data: settings, isLoading: isSettingsLoading } = useQuery({
     queryKey: ["system-settings"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -33,6 +33,16 @@ function AssinaturaPage() {
     }
   });
 
+  const { data: company } = useQuery({
+    queryKey: ["company", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase.from("companies").select("*").eq("user_id", user.id).single();
+      return data;
+    },
+    enabled: !!user
+  });
+
   const { data: subscription, isLoading: isSubLoading } = useQuery({
     queryKey: ["subscription", user?.id],
     queryFn: async () => {
@@ -41,6 +51,8 @@ function AssinaturaPage() {
         .from("subscriptions")
         .select("*")
         .eq("user_id", user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       return data;
     },
@@ -94,14 +106,24 @@ function AssinaturaPage() {
   });
 
   const now = new Date();
-  const validUntil = subscription?.valid_until ? new Date(subscription.valid_until) : null;
-  const isExpired = validUntil ? now > validUntil : false;
+  
+  // Trial expiration logic
+  const trialDays = settings?.trial_days || 30;
+  const trialExpiration = company ? new Date(company.created_at) : new Date();
+  if (company) {
+    trialExpiration.setDate(trialExpiration.getDate() + trialDays);
+  }
 
-  const isPro = (subscription?.status === "ativo" || subscription?.status === "active") && !isExpired;
+  // Pro expiration logic
+  const validUntil = subscription?.valid_until ? new Date(subscription.valid_until) : null;
+  const isProActive = (subscription?.status === "ativo" || subscription?.status === "active") && validUntil && now <= validUntil;
   const isPending = subscription?.status === "pendente";
 
-  const daysLeft = isPro && validUntil ? Math.ceil((validUntil.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-  const canRenew = isPro && daysLeft <= 5;
+  const isExpired = isProActive ? false : (now > trialExpiration);
+  const expirationDate = isProActive ? validUntil : trialExpiration;
+  const daysLeft = expirationDate ? Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
+  const canRenew = isProActive && daysLeft <= 5;
 
   const plans = [
     {
@@ -112,11 +134,11 @@ function AssinaturaPage() {
         "1 tipo de documento", 
         "Suporte por email"
       ],
-      current: !isPro && !isPending,
+      current: !isProActive && !isPending,
     },
     {
       name: "Pro",
-      price: settings?.pro_price ? `${new Intl.NumberFormat("pt-MZ").format(settings.pro_price)} MT/mês` : "1.500 MT/mês",
+      price: isSettingsLoading ? "..." : settings?.pro_price ? `${new Intl.NumberFormat("pt-MZ").format(settings.pro_price)} MT/mês` : "499 MT/mês",
       features: [
         "Documentos ilimitados",
         "Todos os 7 tipos de documento",
@@ -124,8 +146,8 @@ function AssinaturaPage() {
         "Suporte prioritário",
         "Múltiplos utilizadores",
       ],
-      current: isPro,
-      recommended: !isPro,
+      current: isProActive,
+      recommended: !isProActive,
     },
   ];
 
@@ -142,23 +164,27 @@ function AssinaturaPage() {
 
       <div className="mx-auto w-full max-w-4xl space-y-5 p-4 sm:p-6 pb-24">
         {/* Current status */}
-        <div className={`flex items-center gap-3 rounded-2xl border p-5 shadow-soft ${isPending ? 'border-amber-200 bg-amber-50' : 'border-border bg-card'}`}>
-          <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${isPending ? 'bg-amber-100 text-amber-600' : 'bg-primary-soft text-primary-soft-foreground'}`}>
-            {isPending ? <Clock className="h-6 w-6" /> : <CreditCard className="h-6 w-6" />}
+        <div className={`flex items-center gap-3 rounded-2xl border p-5 shadow-soft ${isExpired && !isProActive ? 'border-red-200 bg-red-50' : isPending ? 'border-amber-200 bg-amber-50' : 'border-border bg-card'}`}>
+          <div className={`grid h-12 w-12 shrink-0 place-items-center rounded-xl ${isExpired && !isProActive ? 'bg-red-100 text-red-600' : isPending ? 'bg-amber-100 text-amber-600' : 'bg-primary-soft text-primary-soft-foreground'}`}>
+            {isPending ? <Clock className="h-6 w-6" /> : isExpired && !isProActive ? <CircleAlert className="h-6 w-6" /> : <CreditCard className="h-6 w-6" />}
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-bold text-foreground">
-              Plano actual: <span className={isPending ? 'text-amber-700' : 'text-primary'}>{isPro ? "Pro" : "Gratuito"}</span>
+              Plano actual: <span className={isExpired && !isProActive ? 'text-red-700' : isPending ? 'text-amber-700' : 'text-primary'}>{isProActive ? "Pro" : "Gratuito"}</span>
             </h3>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm text-muted-foreground mt-0.5">
               Status:{" "}
               {isPending ? (
                 <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
                   <Clock className="h-3.5 w-3.5" /> Pendente de Aprovação
                 </span>
+              ) : isExpired && !isProActive ? (
+                <span className="inline-flex items-center gap-1 font-semibold text-red-600">
+                  <CircleAlert className="h-3.5 w-3.5" /> Período de Teste Expirado
+                </span>
               ) : (
                 <span className="inline-flex items-center gap-1 font-semibold text-primary">
-                  <CheckCircle className="h-3.5 w-3.5" /> Activo
+                  <CheckCircle className="h-3.5 w-3.5" /> Activo até {expirationDate?.toLocaleDateString("pt-PT")} ({daysLeft} dias)
                 </span>
               )}
             </p>
@@ -199,7 +225,7 @@ function AssinaturaPage() {
                 ))}
               </ul>
               
-              {plan.name === "Pro" && !isPro && !isPending && (
+              {plan.name === "Pro" && !isProActive && !isPending && (
                 <button
                   onClick={scrollToUpload}
                   className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold shadow-soft hover:opacity-95 transition"
@@ -219,10 +245,12 @@ function AssinaturaPage() {
 
               {plan.current && !canRenew && (
                 <button
-                  className="mt-6 flex h-11 w-full items-center justify-center rounded-full border border-border bg-muted text-sm font-semibold text-muted-foreground transition"
+                  className={`mt-6 flex h-11 w-full items-center justify-center rounded-full border text-sm font-semibold transition ${isExpired && plan.name === "Gratuito" ? 'border-red-200 bg-red-50 text-red-600' : 'border-border bg-muted text-muted-foreground'}`}
                   disabled
                 >
-                  {isPro && plan.name === "Pro" ? `Plano actual (${daysLeft} dias)` : "Plano actual"}
+                  {isProActive && plan.name === "Pro" ? `Plano actual (${daysLeft} dias)` : 
+                   plan.name === "Gratuito" && isExpired ? "Período de teste expirado" :
+                   plan.name === "Gratuito" ? `Plano actual (Expira em ${daysLeft} dias)` : "Plano actual"}
                 </button>
               )}
             </div>
@@ -230,7 +258,7 @@ function AssinaturaPage() {
         </div>
 
         {/* Upload receipt */}
-        {(!isPro || canRenew) && (
+        {(!isProActive || canRenew) && (
           <div ref={uploadSectionRef} className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden mt-8 scroll-mt-24">
           <div className="bg-slate-50 p-6 border-b border-border">
             <h3 className="text-base font-bold text-foreground mb-4">

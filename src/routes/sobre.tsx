@@ -19,12 +19,17 @@ function SobrePage() {
         <Link to="/">
           <img src="/logo.png" alt="FatureAqui" className="h-16 sm:h-[72px] object-contain" />
         </Link>
-        <Link
-          to="/painel"
-          className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95 transition-opacity"
-        >
-          Entrar no painel <ArrowRight className="h-4 w-4" />
-        </Link>
+        <div className="flex items-center gap-6">
+          <Link to="/docs/api" className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors hidden sm:block">
+            Documentação API
+          </Link>
+          <Link
+            to="/painel"
+            className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95 transition-opacity"
+          >
+            Entrar no painel <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
       </header>
       
       <main className="flex-1">

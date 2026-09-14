@@ -23,12 +23,21 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PainelIndexRouteImport } from './routes/painel.index'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as PainelTransferenciasRouteImport } from './routes/painel.transferencias'
 import { Route as PainelSuporteRouteImport } from './routes/painel.suporte'
+import { Route as PainelProdutosRouteImport } from './routes/painel.produtos'
+import { Route as PainelLotesRouteImport } from './routes/painel.lotes'
+import { Route as PainelFornecedoresRouteImport } from './routes/painel.fornecedores'
 import { Route as PainelDefinicoesRouteImport } from './routes/painel.definicoes'
+import { Route as PainelComprasRouteImport } from './routes/painel.compras'
 import { Route as PainelClientesRouteImport } from './routes/painel.clientes'
 import { Route as PainelAssinaturaRouteImport } from './routes/painel.assinatura'
+import { Route as PainelArmazensRouteImport } from './routes/painel.armazens'
+import { Route as PainelApiRouteImport } from './routes/painel.api'
+import { Route as DocsApiRouteImport } from './routes/docs.api'
 import { Route as AdminSuporteRouteImport } from './routes/admin.suporte'
 import { Route as AdminPlanosRouteImport } from './routes/admin.planos'
+import { Route as AdminMarketingRouteImport } from './routes/admin.marketing'
 import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminFaturacaoRouteImport } from './routes/admin.faturacao'
 import { Route as AdminEmpresasRouteImport } from './routes/admin.empresas'
@@ -106,14 +115,39 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const PainelTransferenciasRoute = PainelTransferenciasRouteImport.update({
+  id: '/transferencias',
+  path: '/transferencias',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelSuporteRoute = PainelSuporteRouteImport.update({
   id: '/suporte',
   path: '/suporte',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelProdutosRoute = PainelProdutosRouteImport.update({
+  id: '/produtos',
+  path: '/produtos',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelLotesRoute = PainelLotesRouteImport.update({
+  id: '/lotes',
+  path: '/lotes',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelFornecedoresRoute = PainelFornecedoresRouteImport.update({
+  id: '/fornecedores',
+  path: '/fornecedores',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelDefinicoesRoute = PainelDefinicoesRouteImport.update({
   id: '/definicoes',
   path: '/definicoes',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelComprasRoute = PainelComprasRouteImport.update({
+  id: '/compras',
+  path: '/compras',
   getParentRoute: () => PainelRoute,
 } as any)
 const PainelClientesRoute = PainelClientesRouteImport.update({
@@ -126,6 +160,21 @@ const PainelAssinaturaRoute = PainelAssinaturaRouteImport.update({
   path: '/assinatura',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelArmazensRoute = PainelArmazensRouteImport.update({
+  id: '/armazens',
+  path: '/armazens',
+  getParentRoute: () => PainelRoute,
+} as any)
+const PainelApiRoute = PainelApiRouteImport.update({
+  id: '/api',
+  path: '/api',
+  getParentRoute: () => PainelRoute,
+} as any)
+const DocsApiRoute = DocsApiRouteImport.update({
+  id: '/docs/api',
+  path: '/docs/api',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSuporteRoute = AdminSuporteRouteImport.update({
   id: '/suporte',
   path: '/suporte',
@@ -134,6 +183,11 @@ const AdminSuporteRoute = AdminSuporteRouteImport.update({
 const AdminPlanosRoute = AdminPlanosRouteImport.update({
   id: '/planos',
   path: '/planos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMarketingRoute = AdminMarketingRouteImport.update({
+  id: '/marketing',
+  path: '/marketing',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminLogsRoute = AdminLogsRouteImport.update({
@@ -184,12 +238,21 @@ export interface FileRoutesByFullPath {
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/logs': typeof AdminLogsRoute
+  '/admin/marketing': typeof AdminMarketingRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/admin/suporte': typeof AdminSuporteRoute
+  '/docs/api': typeof DocsApiRoute
+  '/painel/api': typeof PainelApiRoute
+  '/painel/armazens': typeof PainelArmazensRoute
   '/painel/assinatura': typeof PainelAssinaturaRoute
   '/painel/clientes': typeof PainelClientesRoute
+  '/painel/compras': typeof PainelComprasRoute
   '/painel/definicoes': typeof PainelDefinicoesRoute
+  '/painel/fornecedores': typeof PainelFornecedoresRoute
+  '/painel/lotes': typeof PainelLotesRoute
+  '/painel/produtos': typeof PainelProdutosRoute
   '/painel/suporte': typeof PainelSuporteRoute
+  '/painel/transferencias': typeof PainelTransferenciasRoute
   '/admin/': typeof AdminIndexRoute
   '/painel/': typeof PainelIndexRoute
   '/painel/facturacao/nova': typeof PainelFacturacaoNovaRoute
@@ -210,12 +273,21 @@ export interface FileRoutesByTo {
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/logs': typeof AdminLogsRoute
+  '/admin/marketing': typeof AdminMarketingRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/admin/suporte': typeof AdminSuporteRoute
+  '/docs/api': typeof DocsApiRoute
+  '/painel/api': typeof PainelApiRoute
+  '/painel/armazens': typeof PainelArmazensRoute
   '/painel/assinatura': typeof PainelAssinaturaRoute
   '/painel/clientes': typeof PainelClientesRoute
+  '/painel/compras': typeof PainelComprasRoute
   '/painel/definicoes': typeof PainelDefinicoesRoute
+  '/painel/fornecedores': typeof PainelFornecedoresRoute
+  '/painel/lotes': typeof PainelLotesRoute
+  '/painel/produtos': typeof PainelProdutosRoute
   '/painel/suporte': typeof PainelSuporteRoute
+  '/painel/transferencias': typeof PainelTransferenciasRoute
   '/admin': typeof AdminIndexRoute
   '/painel': typeof PainelIndexRoute
   '/painel/facturacao/nova': typeof PainelFacturacaoNovaRoute
@@ -239,12 +311,21 @@ export interface FileRoutesById {
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
   '/admin/logs': typeof AdminLogsRoute
+  '/admin/marketing': typeof AdminMarketingRoute
   '/admin/planos': typeof AdminPlanosRoute
   '/admin/suporte': typeof AdminSuporteRoute
+  '/docs/api': typeof DocsApiRoute
+  '/painel/api': typeof PainelApiRoute
+  '/painel/armazens': typeof PainelArmazensRoute
   '/painel/assinatura': typeof PainelAssinaturaRoute
   '/painel/clientes': typeof PainelClientesRoute
+  '/painel/compras': typeof PainelComprasRoute
   '/painel/definicoes': typeof PainelDefinicoesRoute
+  '/painel/fornecedores': typeof PainelFornecedoresRoute
+  '/painel/lotes': typeof PainelLotesRoute
+  '/painel/produtos': typeof PainelProdutosRoute
   '/painel/suporte': typeof PainelSuporteRoute
+  '/painel/transferencias': typeof PainelTransferenciasRoute
   '/admin/': typeof AdminIndexRoute
   '/painel/': typeof PainelIndexRoute
   '/painel/facturacao/nova': typeof PainelFacturacaoNovaRoute
@@ -269,12 +350,21 @@ export interface FileRouteTypes {
     | '/admin/empresas'
     | '/admin/faturacao'
     | '/admin/logs'
+    | '/admin/marketing'
     | '/admin/planos'
     | '/admin/suporte'
+    | '/docs/api'
+    | '/painel/api'
+    | '/painel/armazens'
     | '/painel/assinatura'
     | '/painel/clientes'
+    | '/painel/compras'
     | '/painel/definicoes'
+    | '/painel/fornecedores'
+    | '/painel/lotes'
+    | '/painel/produtos'
     | '/painel/suporte'
+    | '/painel/transferencias'
     | '/admin/'
     | '/painel/'
     | '/painel/facturacao/nova'
@@ -295,12 +385,21 @@ export interface FileRouteTypes {
     | '/admin/empresas'
     | '/admin/faturacao'
     | '/admin/logs'
+    | '/admin/marketing'
     | '/admin/planos'
     | '/admin/suporte'
+    | '/docs/api'
+    | '/painel/api'
+    | '/painel/armazens'
     | '/painel/assinatura'
     | '/painel/clientes'
+    | '/painel/compras'
     | '/painel/definicoes'
+    | '/painel/fornecedores'
+    | '/painel/lotes'
+    | '/painel/produtos'
     | '/painel/suporte'
+    | '/painel/transferencias'
     | '/admin'
     | '/painel'
     | '/painel/facturacao/nova'
@@ -323,12 +422,21 @@ export interface FileRouteTypes {
     | '/admin/empresas'
     | '/admin/faturacao'
     | '/admin/logs'
+    | '/admin/marketing'
     | '/admin/planos'
     | '/admin/suporte'
+    | '/docs/api'
+    | '/painel/api'
+    | '/painel/armazens'
     | '/painel/assinatura'
     | '/painel/clientes'
+    | '/painel/compras'
     | '/painel/definicoes'
+    | '/painel/fornecedores'
+    | '/painel/lotes'
+    | '/painel/produtos'
     | '/painel/suporte'
+    | '/painel/transferencias'
     | '/admin/'
     | '/painel/'
     | '/painel/facturacao/nova'
@@ -348,6 +456,7 @@ export interface RootRouteChildren {
   RgpdRoute: typeof RgpdRoute
   SobreRoute: typeof SobreRoute
   TermosRoute: typeof TermosRoute
+  DocsApiRoute: typeof DocsApiRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -450,6 +559,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/painel/transferencias': {
+      id: '/painel/transferencias'
+      path: '/transferencias'
+      fullPath: '/painel/transferencias'
+      preLoaderRoute: typeof PainelTransferenciasRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/suporte': {
       id: '/painel/suporte'
       path: '/suporte'
@@ -457,11 +573,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelSuporteRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/produtos': {
+      id: '/painel/produtos'
+      path: '/produtos'
+      fullPath: '/painel/produtos'
+      preLoaderRoute: typeof PainelProdutosRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/lotes': {
+      id: '/painel/lotes'
+      path: '/lotes'
+      fullPath: '/painel/lotes'
+      preLoaderRoute: typeof PainelLotesRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/fornecedores': {
+      id: '/painel/fornecedores'
+      path: '/fornecedores'
+      fullPath: '/painel/fornecedores'
+      preLoaderRoute: typeof PainelFornecedoresRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/definicoes': {
       id: '/painel/definicoes'
       path: '/definicoes'
       fullPath: '/painel/definicoes'
       preLoaderRoute: typeof PainelDefinicoesRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/compras': {
+      id: '/painel/compras'
+      path: '/compras'
+      fullPath: '/painel/compras'
+      preLoaderRoute: typeof PainelComprasRouteImport
       parentRoute: typeof PainelRoute
     }
     '/painel/clientes': {
@@ -478,6 +622,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelAssinaturaRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/armazens': {
+      id: '/painel/armazens'
+      path: '/armazens'
+      fullPath: '/painel/armazens'
+      preLoaderRoute: typeof PainelArmazensRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/painel/api': {
+      id: '/painel/api'
+      path: '/api'
+      fullPath: '/painel/api'
+      preLoaderRoute: typeof PainelApiRouteImport
+      parentRoute: typeof PainelRoute
+    }
+    '/docs/api': {
+      id: '/docs/api'
+      path: '/docs/api'
+      fullPath: '/docs/api'
+      preLoaderRoute: typeof DocsApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/suporte': {
       id: '/admin/suporte'
       path: '/suporte'
@@ -490,6 +655,13 @@ declare module '@tanstack/react-router' {
       path: '/planos'
       fullPath: '/admin/planos'
       preLoaderRoute: typeof AdminPlanosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/marketing': {
+      id: '/admin/marketing'
+      path: '/marketing'
+      fullPath: '/admin/marketing'
+      preLoaderRoute: typeof AdminMarketingRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/logs': {
@@ -542,6 +714,7 @@ interface AdminRouteChildren {
   AdminEmpresasRoute: typeof AdminEmpresasRoute
   AdminFaturacaoRoute: typeof AdminFaturacaoRoute
   AdminLogsRoute: typeof AdminLogsRoute
+  AdminMarketingRoute: typeof AdminMarketingRoute
   AdminPlanosRoute: typeof AdminPlanosRoute
   AdminSuporteRoute: typeof AdminSuporteRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -552,6 +725,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminEmpresasRoute: AdminEmpresasRoute,
   AdminFaturacaoRoute: AdminFaturacaoRoute,
   AdminLogsRoute: AdminLogsRoute,
+  AdminMarketingRoute: AdminMarketingRoute,
   AdminPlanosRoute: AdminPlanosRoute,
   AdminSuporteRoute: AdminSuporteRoute,
   AdminIndexRoute: AdminIndexRoute,
@@ -560,20 +734,34 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface PainelRouteChildren {
+  PainelApiRoute: typeof PainelApiRoute
+  PainelArmazensRoute: typeof PainelArmazensRoute
   PainelAssinaturaRoute: typeof PainelAssinaturaRoute
   PainelClientesRoute: typeof PainelClientesRoute
+  PainelComprasRoute: typeof PainelComprasRoute
   PainelDefinicoesRoute: typeof PainelDefinicoesRoute
+  PainelFornecedoresRoute: typeof PainelFornecedoresRoute
+  PainelLotesRoute: typeof PainelLotesRoute
+  PainelProdutosRoute: typeof PainelProdutosRoute
   PainelSuporteRoute: typeof PainelSuporteRoute
+  PainelTransferenciasRoute: typeof PainelTransferenciasRoute
   PainelIndexRoute: typeof PainelIndexRoute
   PainelFacturacaoNovaRoute: typeof PainelFacturacaoNovaRoute
   PainelFacturacaoIndexRoute: typeof PainelFacturacaoIndexRoute
 }
 
 const PainelRouteChildren: PainelRouteChildren = {
+  PainelApiRoute: PainelApiRoute,
+  PainelArmazensRoute: PainelArmazensRoute,
   PainelAssinaturaRoute: PainelAssinaturaRoute,
   PainelClientesRoute: PainelClientesRoute,
+  PainelComprasRoute: PainelComprasRoute,
   PainelDefinicoesRoute: PainelDefinicoesRoute,
+  PainelFornecedoresRoute: PainelFornecedoresRoute,
+  PainelLotesRoute: PainelLotesRoute,
+  PainelProdutosRoute: PainelProdutosRoute,
   PainelSuporteRoute: PainelSuporteRoute,
+  PainelTransferenciasRoute: PainelTransferenciasRoute,
   PainelIndexRoute: PainelIndexRoute,
   PainelFacturacaoNovaRoute: PainelFacturacaoNovaRoute,
   PainelFacturacaoIndexRoute: PainelFacturacaoIndexRoute,
@@ -595,6 +783,7 @@ const rootRouteChildren: RootRouteChildren = {
   RgpdRoute: RgpdRoute,
   SobreRoute: SobreRoute,
   TermosRoute: TermosRoute,
+  DocsApiRoute: DocsApiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

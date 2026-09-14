@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Footer } from "@/components/landing/footer";
-import { ArrowRight, Fingerprint, Trash2, DownloadCloud, FileX, BookOpen, AlertCircle } from "lucide-react";
+import { ArrowRight, Fingerprint, Trash2, DownloadCloud, FileX, BookOpen, CircleAlert } from "lucide-react";
 
 export const Route = createFileRoute("/rgpd")({
   component: RgpdPage,
@@ -80,7 +80,7 @@ function RgpdPage() {
                   Pode solicitar o encerramento definitivo da sua conta e a eliminação dos seus dados dos nossos servidores através da página de Contactos. 
                 </p>
                 <div className="mt-4 flex items-start gap-3 bg-amber-500/5 p-4 rounded-xl border border-amber-500/20">
-                  <AlertCircle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+                  <CircleAlert className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
                   <p className="text-sm text-foreground/80">
                     <strong>Atenção legal:</strong> Conforme a legislação fiscal vigente em Moçambique, a LG Tecserv poderá ser obrigada a manter registos inalteráveis de faturas previamente emitidas pelo período determinado pela Autoridade Tributária, mesmo após a eliminação da sua conta pessoal.
                   </p>

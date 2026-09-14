@@ -4,74 +4,53 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-interface ClientModalProps {
+interface SupplierModalProps {
   isOpen: boolean;
   onClose: () => void;
   companyId: string;
-  onClientCreated?: (clientId: string) => void;
-  initialData?: any;
+  onSupplierCreated?: (supplierId: string) => void;
 }
 
-export function ClientModal({ isOpen, onClose, companyId, onClientCreated, initialData }: ClientModalProps) {
+export function SupplierModal({ isOpen, onClose, companyId, onSupplierCreated }: SupplierModalProps) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     name: "",
-    company_name: "",
     nuit: "",
     email: "",
     phone: "",
     address: "",
+    city: "",
+    province: "",
+    notes: "",
   });
 
   useEffect(() => {
     if (isOpen) {
-      if (initialData) {
-        setFormData({
-          name: initialData.name || "",
-          company_name: initialData.company_name || "",
-          nuit: initialData.nuit || "",
-          email: initialData.email || "",
-          phone: initialData.phone || "",
-          address: initialData.address || "",
-        });
-      } else {
-        setFormData({ name: "", company_name: "", nuit: "", email: "", phone: "", address: "" });
-      }
+      setFormData({ name: "", nuit: "", email: "", phone: "", address: "", city: "", province: "", notes: "" });
     }
-  }, [isOpen, initialData]);
+  }, [isOpen]);
 
-  const createClient = useMutation({
+  const createSupplier = useMutation({
     mutationFn: async () => {
-      if (!formData.name) throw new Error("O nome do cliente é obrigatório");
-      if (initialData) {
-        const { data, error } = await supabase
-          .from("clients")
-          .update(formData)
-          .eq("id", initialData.id)
-          .select()
-          .single();
-          
-        if (error) throw error;
-        return data;
-      } else {
-        const { data, error } = await supabase
-          .from("clients")
-          .insert([{ ...formData, company_id: companyId }])
-          .select()
-          .single();
-          
-        if (error) throw error;
-        return data;
-      }
+      if (!formData.name) throw new Error("O nome do fornecedor é obrigatório");
+      
+      const { data, error } = await supabase
+        .from("suppliers")
+        .insert([{ ...formData, company_id: companyId }])
+        .select()
+        .single();
+        
+      if (error) throw error;
+      return data;
     },
     onSuccess: (data) => {
-      toast.success(initialData ? "Cliente atualizado com sucesso!" : "Cliente adicionado com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-      if (onClientCreated) onClientCreated(data.id);
+      toast.success("Fornecedor adicionado com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
+      if (onSupplierCreated) onSupplierCreated(data.id);
       onClose();
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao guardar cliente");
+      toast.error(error.message || "Erro ao adicionar fornecedor");
     }
   });
 
@@ -79,9 +58,9 @@ export function ClientModal({ isOpen, onClose, companyId, onClientCreated, initi
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-lg font-bold text-foreground">{initialData ? "Editar Cliente" : "Novo Cliente"}</h2>
+          <h2 className="text-lg font-bold text-foreground">Novo Fornecedor</h2>
           <button onClick={onClose} className="rounded-full p-1.5 hover:bg-muted text-muted-foreground">
             <X className="h-5 w-5" />
           </button>
@@ -89,20 +68,11 @@ export function ClientModal({ isOpen, onClose, companyId, onClientCreated, initi
 
         <div className="space-y-4">
           <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nome do Cliente *</label>
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nome da Empresa / Fornecedor *</label>
             <input 
               type="text" 
               value={formData.name}
               onChange={e => setFormData({ ...formData, name: e.target.value })}
-              className="mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" 
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nome da Empresa</label>
-            <input 
-              type="text" 
-              value={formData.company_name}
-              onChange={e => setFormData({ ...formData, company_name: e.target.value })}
               className="mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" 
             />
           </div>
@@ -144,6 +114,26 @@ export function ClientModal({ isOpen, onClose, companyId, onClientCreated, initi
               className="mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" 
             />
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Cidade</label>
+              <input 
+                type="text" 
+                value={formData.city}
+                onChange={e => setFormData({ ...formData, city: e.target.value })}
+                className="mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" 
+              />
+            </div>
+            <div>
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Província</label>
+              <input 
+                type="text" 
+                value={formData.province}
+                onChange={e => setFormData({ ...formData, province: e.target.value })}
+                className="mt-1.5 h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" 
+              />
+            </div>
+          </div>
         </div>
 
         <div className="mt-8 flex justify-end gap-3">
@@ -154,12 +144,12 @@ export function ClientModal({ isOpen, onClose, companyId, onClientCreated, initi
             Cancelar
           </button>
           <button 
-            onClick={() => createClient.mutate()}
-            disabled={createClient.isPending}
+            onClick={() => createSupplier.mutate()}
+            disabled={createSupplier.isPending}
             className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-95 disabled:opacity-50"
           >
-            {createClient.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            {initialData ? "Atualizar Cliente" : "Salvar Cliente"}
+            {createSupplier.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+            Salvar Fornecedor
           </button>
         </div>
       </div>

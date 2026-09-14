@@ -3,7 +3,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, LayoutDashboard, FileText, Package, Users, Settings, LogOut, ChevronLeft, ChevronRight, Menu, Factory, Warehouse, ShoppingCart, Boxes, ArrowRightLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { differenceInDays } from "date-fns";
 

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Search, Building2, AlertCircle } from "lucide-react";
+import { Loader2, Search, Building2, CircleAlert, FileText, Users, Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
@@ -24,7 +24,12 @@ function AdminEmpresasPage() {
       if (compError) throw compError;
       if (!comps || comps.length === 0) return [];
 
-      const userIds = comps.map(c => c.user_id);
+      const adminEmails = ["lgtecserv@gmail.com", "lgtecserv.com@gmail.com"];
+      const filteredComps = comps.filter(c => !adminEmails.includes(c.email));
+      
+      if (filteredComps.length === 0) return [];
+
+      const userIds = filteredComps.map(c => c.user_id);
 
       const { data: subs, error: subsError } = await supabase
         .from("subscriptions")
@@ -33,11 +38,39 @@ function AdminEmpresasPage() {
 
       if (subsError) throw subsError;
 
-      return comps.map(comp => {
+      const { data: settings } = await supabase
+        .from("system_settings")
+        .select("trial_days")
+        .limit(1)
+        .single();
+      const trialDays = settings?.trial_days || 30;
+
+      // Buscar métricas de atividade em paralelo para todas as empresas
+      const metricsPromises = filteredComps.map(async (comp) => {
+        const [docsRes, prodsRes, clientsRes] = await Promise.all([
+          supabase.from('documents').select('id', { count: 'exact', head: true }).eq('company_id', comp.id),
+          supabase.from('products').select('id', { count: 'exact', head: true }).eq('company_id', comp.id),
+          supabase.from('clients').select('id', { count: 'exact', head: true }).eq('company_id', comp.id)
+        ]);
+
+        return {
+          company_id: comp.id,
+          docsCount: docsRes.count || 0,
+          prodsCount: prodsRes.count || 0,
+          clientsCount: clientsRes.count || 0
+        };
+      });
+
+      const metrics = await Promise.all(metricsPromises);
+
+      return filteredComps.map(comp => {
         const subscription = subs?.find(s => s.user_id === comp.user_id);
+        const metric = metrics.find(m => m.company_id === comp.id);
         return {
           ...comp,
-          subscription
+          subscription,
+          trialDays,
+          metrics: metric
         };
       });
     }
@@ -49,9 +82,15 @@ function AdminEmpresasPage() {
     c.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const isExpired = (validUntil?: string) => {
-    if (!validUntil) return false;
-    return new Date(validUntil) < new Date();
+  const calculateExpiration = (comp: any) => {
+    const isPro = comp.subscription?.plan_type === 'pro' && comp.subscription?.status === 'ativo';
+    if (isPro && comp.subscription?.valid_until) {
+      return new Date(comp.subscription.valid_until);
+    }
+    // Free plan expiration
+    const created = new Date(comp.created_at);
+    created.setDate(created.getDate() + (comp.trialDays || 30));
+    return created;
   };
 
   if (isLoading) {
@@ -99,6 +138,7 @@ function AdminEmpresasPage() {
                   <tr>
                     <th className="px-4 py-3 font-medium">Empresa</th>
                     <th className="px-4 py-3 font-medium">Contacto</th>
+                    <th className="px-4 py-3 font-medium">Atividade</th>
                     <th className="px-4 py-3 font-medium">Plano Atual</th>
                     <th className="px-4 py-3 font-medium">Válido Até (30 Dias)</th>
                     <th className="px-4 py-3 font-medium">Status</th>
@@ -106,7 +146,10 @@ function AdminEmpresasPage() {
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white">
                   {filteredCompanies?.map((comp) => {
-                    const expired = isExpired(comp.subscription?.valid_until);
+                    const expirationDate = calculateExpiration(comp);
+                    const isProActive = comp.subscription?.plan_type === 'pro' && comp.subscription?.status === 'ativo';
+                    const expired = expirationDate < new Date();
+                    const daysLeft = Math.ceil((expirationDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                     
                     return (
                       <tr key={comp.id} className="hover:bg-slate-50">
@@ -130,7 +173,23 @@ function AdminEmpresasPage() {
                           <div className="text-xs text-slate-500">{comp.phone}</div>
                         </td>
                         <td className="px-4 py-4">
-                          {comp.subscription?.plan_type === 'pro' ? (
+                          <div className="flex gap-3 text-xs text-slate-600">
+                            <div className="flex items-center gap-1" title="Documentos emitidos">
+                              <FileText className="h-3.5 w-3.5 text-slate-400" />
+                              <strong className="text-slate-900">{comp.metrics?.docsCount || 0}</strong>
+                            </div>
+                            <div className="flex items-center gap-1" title="Clientes registados">
+                              <Users className="h-3.5 w-3.5 text-slate-400" />
+                              <strong className="text-slate-900">{comp.metrics?.clientsCount || 0}</strong>
+                            </div>
+                            <div className="flex items-center gap-1" title="Produtos/Serviços criados">
+                              <Package className="h-3.5 w-3.5 text-slate-400" />
+                              <strong className="text-slate-900">{comp.metrics?.prodsCount || 0}</strong>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4">
+                          {isProActive ? (
                             <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-xs font-medium text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
                               Pro
                             </span>
@@ -141,14 +200,11 @@ function AdminEmpresasPage() {
                           )}
                         </td>
                         <td className="px-4 py-4 text-slate-600">
-                          {comp.subscription?.valid_until ? (
-                            <span className={expired ? "text-red-600 font-medium flex items-center gap-1.5" : ""}>
-                              {expired && <AlertCircle className="h-3.5 w-3.5" />}
-                              {new Date(comp.subscription.valid_until).toLocaleDateString("pt-PT")}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400">Sem data</span>
-                          )}
+                          <span className={expired ? "text-red-600 font-medium flex items-center gap-1.5" : "text-emerald-600 font-medium"}>
+                            {expired && <CircleAlert className="h-3.5 w-3.5" />}
+                            {expirationDate.toLocaleDateString("pt-PT")}
+                            {!expired && <span className="text-xs text-slate-400 ml-1">({daysLeft}d)</span>}
+                          </span>
                         </td>
                         <td className="px-4 py-4">
                           {comp.subscription?.status === 'pending' ? (
@@ -157,7 +213,7 @@ function AdminEmpresasPage() {
                             </span>
                           ) : expired ? (
                             <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                              Expirado (Cortado)
+                              {isProActive ? "Expirado (Cortado)" : "Teste Expirado"}
                             </span>
                           ) : (
                             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">

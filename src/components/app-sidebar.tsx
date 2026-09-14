@@ -8,7 +8,16 @@ import {
   Shield,
   LifeBuoy,
   LogOut,
+  Code,
+  Lock,
+  Truck,
+  Package,
+  Warehouse,
+  ShoppingCart,
+  Boxes,
+  ArrowRightLeft
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   Sidebar,
   SidebarContent,
@@ -26,10 +35,17 @@ const mainItems = [
   { title: "Dashboard", url: "/painel", icon: LayoutDashboard },
   { title: "Documentos", url: "/painel/facturacao", icon: FileText },
   { title: "Clientes", url: "/painel/clientes", icon: Users },
+  { title: "Produtos", url: "/painel/produtos", icon: Package },
+  { title: "Lotes & Validades", url: "/painel/lotes", icon: Boxes, isBeta: true },
+  { title: "Fornecedores", url: "/painel/fornecedores", icon: Truck, isBeta: true },
+  { title: "Compras", url: "/painel/compras", icon: ShoppingCart, isBeta: true },
+  { title: "Armazéns", url: "/painel/armazens", icon: Warehouse, isBeta: true },
+  { title: "Transferências", url: "/painel/transferencias", icon: ArrowRightLeft, isBeta: true },
 ];
 
 const bottomItems = [
   { title: "Assinatura", url: "/painel/assinatura", icon: CreditCard },
+  { title: "API e Integrações", url: "/painel/api", icon: Code, requiresPro: true },
   { title: "Suporte", url: "/painel/suporte", icon: LifeBuoy },
   { title: "Definições", url: "/painel/definicoes", icon: Settings },
 ];
@@ -88,8 +104,33 @@ export function AppSidebar() {
     enabled: !!user,
   });
 
+  const { data: settings } = useQuery({
+    queryKey: ["system-settings"],
+    queryFn: async () => {
+      const { data } = await supabase.from("system_settings").select("*").limit(1).single();
+      return data;
+    }
+  });
+
+  const now = new Date();
+  const trialDays = settings?.trial_days || 30;
+  const trialExpiration = company ? new Date(company.created_at) : new Date();
+  if (company) {
+    trialExpiration.setDate(trialExpiration.getDate() + trialDays);
+  }
+
+  const validUntil = subscription?.valid_until ? new Date(subscription.valid_until) : null;
+  const isProActive = (subscription?.status === "ativo" || subscription?.status === "active") && validUntil && now <= validUntil;
+  const isPending = subscription?.status === "pendente";
+  
+  const isExpired = isProActive ? false : (now > trialExpiration);
+  const expirationDate = isProActive ? validUntil : trialExpiration;
+  const daysLeft = expirationDate ? Math.ceil((expirationDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+
   const isActive = (path: string) =>
     path === "/painel" ? currentPath === path : currentPath.startsWith(path);
+
+  const isPro = isProActive;
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
@@ -118,9 +159,25 @@ export function AppSidebar() {
                     tooltip={item.title}
                     className="h-10 rounded-lg data-[active=true]:bg-primary-soft data-[active=true]:text-primary-soft-foreground data-[active=true]:font-semibold"
                   >
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                    <Link 
+                      to={item.isBeta ? currentPath : item.url}
+                      onClick={(e) => {
+                        if (item.isBeta) {
+                          e.preventDefault();
+                          toast.info("Funcionalidade em desenvolvimento. Disponível em breve!");
+                        }
+                      }}
+                      className="flex items-center justify-between w-full"
+                    >
+                      <div className="flex items-center gap-2">
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </div>
+                      {item.isBeta && (
+                        <span className="text-[9px] font-bold uppercase tracking-wider bg-amber/20 text-amber-700 px-1.5 py-0.5 rounded-full shrink-0 group-data-[collapsible=icon]:hidden">
+                          Breve
+                        </span>
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -147,9 +204,14 @@ export function AppSidebar() {
                         : ""
                     }`}
                   >
-                    <Link to={item.url}>
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
+                    <Link to={item.url} className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </div>
+                      {item.requiresPro && !isProActive && (
+                        <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                      )}
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -181,9 +243,10 @@ export function AppSidebar() {
           <div className="flex min-w-0 flex-1 flex-col">
             <span className="truncate text-sm font-semibold text-foreground">{user?.user_metadata?.full_name || company?.name || "Utilizador"}</span>
             <span className="truncate text-xs text-muted-foreground">
-              {(subscription?.status === "ativo" || subscription?.status === "active") && subscription?.valid_until && new Date(subscription.valid_until) > new Date() ? "Plano Pro" : 
-               subscription?.status === "pendente" ? "Pendente de Aprovação" : 
-               "Plano Gratuito"}
+              {isProActive ? `Plano Pro (${daysLeft}d restantes)` : 
+               isPending ? "Pendente de Aprovação" : 
+               isExpired ? <span className="text-red-500 font-medium">Teste Expirado</span> :
+               `Plano Gratuito (${daysLeft}d restantes)`}
             </span>
           </div>
           <button

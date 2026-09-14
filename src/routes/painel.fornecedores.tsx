@@ -1,33 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Search, Mail, Phone, Loader2, Users } from "lucide-react";
+import { Plus, Search, Mail, Phone, Loader2, Truck } from "lucide-react";
 import { Topbar } from "@/components/topbar";
-import { MT } from "@/lib/format";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
-import { ClientModal } from "@/components/client-modal";
-import { Edit, Trash2 } from "lucide-react";
+import { SupplierModal } from "@/components/supplier-modal";
+import { toast } from "sonner";
 
-export const Route = createFileRoute("/painel/clientes")({
-  component: ClientesPage,
+export const Route = createFileRoute("/painel/fornecedores")({
+  component: FornecedoresPage,
 });
 
-
 function initials(name: string) {
+  if (!name) return "FN";
   return name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 }
 
-function ClientesPage() {
+function FornecedoresPage() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [companyId, setCompanyId] = useState<string>("");
-  const [clientToEdit, setClientToEdit] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: clients = [], isLoading } = useQuery({
-    queryKey: ["clients", user?.id],
+  const { data: suppliers = [], isLoading } = useQuery({
+    queryKey: ["suppliers", user?.id],
     queryFn: async () => {
       if (!user) return [];
       
@@ -42,7 +39,7 @@ function ClientesPage() {
       setCompanyId(company.id);
 
       const { data, error } = await supabase
-        .from("clients")
+        .from("suppliers")
         .select("*")
         .eq("company_id", company.id)
         .order("name", { ascending: true });
@@ -53,40 +50,30 @@ function ClientesPage() {
     enabled: !!user,
   });
 
-  const deleteClient = useMutation({
-    mutationFn: async (clientId: string) => {
-      const { error } = await supabase.from("clients").delete().eq("id", clientId);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Cliente apagado com sucesso.");
-      queryClient.invalidateQueries({ queryKey: ["clients"] });
-    },
-    onError: (err) => {
-      toast.error(`Erro ao apagar: ${err.message}`);
-    }
-  });
+  const filteredSuppliers = suppliers.filter(s => 
+    s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (s.nuit && s.nuit.includes(searchQuery))
+  );
 
   return (
     <>
       <Topbar
-        title="Clientes"
-        subtitle="Gestão de clientes e histórico de facturação"
+        title="Fornecedores"
+        subtitle="Gestão de fornecedores e compras"
         actions={
           <button 
-            onClick={() => { setClientToEdit(null); setIsModalOpen(true); }}
+            onClick={() => setIsModalOpen(true)}
             className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
           >
-            <Plus className="h-4 w-4" /> Novo cliente
+            <Plus className="h-4 w-4" /> Novo fornecedor
           </button>
         }
       />
 
-      <ClientModal 
+      <SupplierModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         companyId={companyId} 
-        initialData={clientToEdit}
       />
 
       <div className="mx-auto w-full max-w-7xl space-y-5 p-4 sm:p-6">
@@ -94,7 +81,9 @@ function ClientesPage() {
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="search"
-            placeholder="Buscar por nome, NUIT ou contacto…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar por nome ou NUIT..."
             className="h-11 w-full rounded-full border border-border bg-card pl-11 pr-4 text-sm shadow-soft focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
@@ -102,43 +91,35 @@ function ClientesPage() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="mb-4 h-8 w-8 animate-spin" />
-            <p>A carregar clientes...</p>
+            <p>A carregar fornecedores...</p>
           </div>
-        ) : clients.length === 0 ? (
+        ) : suppliers.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
-            <Users className="mb-4 h-10 w-10 opacity-20" />
-            <h3 className="text-lg font-semibold text-foreground">Sem clientes</h3>
-            <p className="mt-1 text-sm">Não encontrou nenhum cliente. Comece por adicionar um.</p>
+            <Truck className="mb-4 h-10 w-10 opacity-20" />
+            <h3 className="text-lg font-semibold text-foreground">Sem fornecedores</h3>
+            <p className="mt-1 text-sm">Ainda não registou nenhum fornecedor.</p>
             <button 
               onClick={() => setIsModalOpen(true)}
               className="mt-4 inline-flex h-9 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
             >
-              <Plus className="h-4 w-4" /> Adicionar Cliente
+              <Plus className="h-4 w-4" /> Adicionar Fornecedor
             </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {clients.map((c) => (
+            {filteredSuppliers.map((s) => (
               <div
-                key={c.id}
-                className="group relative rounded-2xl border border-border bg-card p-5 shadow-soft transition hover:border-primary/40 hover:shadow-elevated"
+                key={s.id}
+                className="group rounded-2xl border border-border bg-card p-5 shadow-soft transition hover:border-primary/40 hover:shadow-elevated"
               >
-                <div className="absolute top-4 right-4 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => { setClientToEdit(c); setIsModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" title="Editar">
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button onClick={() => { if(window.confirm("Tem a certeza que deseja apagar este cliente?")) deleteClient.mutate(c.id); }} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Apagar">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
                 <div className="flex items-start gap-3">
-                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary-soft text-sm font-extrabold text-primary-soft-foreground">
-                    {initials(c.name)}
+                  <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-orange-100 text-sm font-extrabold text-orange-700">
+                    {initials(s.name)}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-base font-bold text-foreground">{c.name}</h3>
+                    <h3 className="truncate text-base font-bold text-foreground">{s.name}</h3>
                     <div className="mt-0.5 font-mono text-xs text-muted-foreground">
-                      NUIT {c.nuit || "—"}
+                      NUIT {s.nuit || "—"}
                     </div>
                   </div>
                 </div>
@@ -146,25 +127,25 @@ function ClientesPage() {
                 <div className="mt-4 space-y-1.5 text-xs text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Phone className="h-3.5 w-3.5" />
-                    <span className="truncate">{c.phone || "—"}</span>
+                    <span className="truncate">{s.phone || "—"}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Mail className="h-3.5 w-3.5" />
-                    <span className="truncate">{c.email || "—"}</span>
+                    <span className="truncate">{s.email || "—"}</span>
                   </div>
                 </div>
 
                 <div className="mt-4 flex items-end justify-between border-t border-border pt-3">
                   <div>
                     <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Total facturado
+                      Localização
                     </div>
-                    <div className="mt-0.5 text-lg font-extrabold tabular text-foreground">
-                      {MT(c.total_invoiced || 0)}
+                    <div className="mt-0.5 text-sm font-medium text-foreground">
+                      {s.city ? `${s.city}${s.province ? `, ${s.province}` : ''}` : '—'}
                     </div>
                   </div>
                   <button className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                    Ver
+                    Ver Perfil
                   </button>
                 </div>
               </div>

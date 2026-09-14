@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fatureaqui-cache-v2';
+const CACHE_NAME = 'fatureaqui-cache-v3';
 const urlsToCache = [
   '/',
   '/favicon.png',
@@ -31,8 +31,20 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  const url = new URL(event.request.url);
+
+  // Skip non-http(s) requests (e.g. chrome-extension://)
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
+  // In development (localhost), always go to network — never serve stale cache
+  if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    return;
+  }
+
   // Use Network-First strategy for HTML navigation requests
-  if (event.request.mode === 'navigate' || event.request.headers.get('accept').includes('text/html')) {
+  if (event.request.mode === 'navigate' || (event.request.headers.get('accept') && event.request.headers.get('accept').includes('text/html'))) {
     event.respondWith(
       fetch(event.request)
         .then(response => {
@@ -48,7 +60,7 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // Use Cache-First for assets like CSS, JS, Images
+  // Use Cache-First for production assets like CSS, JS, Images
   event.respondWith(
     caches.match(event.request)
       .then(response => {

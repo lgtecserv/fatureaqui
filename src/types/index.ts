@@ -213,6 +213,7 @@ export interface DocumentFormState {
 export interface DocumentItemFormState {
   id: string;
   type: ItemType;
+  variant_id?: string;
   description: string;
   quantity: string;
   unit_price: string;

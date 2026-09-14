@@ -27,7 +27,7 @@ function LoginPage() {
     setError("");
     setLoading(true);
 
-    const { error, data } = await signIn(email, password);
+    const { error } = await signIn(email, password);
     if (error) {
       setError(`Erro: ${error.message}`);
       setLoading(false);

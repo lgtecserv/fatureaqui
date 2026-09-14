@@ -37,6 +37,7 @@ export function Footer() {
             <li><Link to="/termos" className="hover:text-primary transition-colors">Termos de Serviço</Link></li>
             <li><Link to="/privacidade" className="hover:text-primary transition-colors">Política de Privacidade</Link></li>
             <li><Link to="/rgpd" className="hover:text-primary transition-colors">RGPD</Link></li>
+            <li><Link to="/docs/api" className="hover:text-primary transition-colors font-medium">Documentação API</Link></li>
           </ul>
         </div>
       </div>
