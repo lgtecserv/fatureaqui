@@ -2,6 +2,7 @@ import { Check, X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import FlameWrap from "@/components/ui/flame-wrap";
 
 export function PricingSection() {
   const { data: settings, isLoading: isSettingsLoading } = useQuery({
@@ -72,63 +73,80 @@ export function PricingSection() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 max-w-3xl mx-auto">
-          {plans.map((p, i) => (
-            <div 
-              key={i} 
-              className={`relative flex flex-col rounded-3xl p-8 shadow-xl ${
-                p.popular ? "bg-primary text-primary-foreground ring-4 ring-primary/20" : "bg-card border border-border"
-              }`}
-            >
-              {p.popular && (
-                <div className="absolute -top-4 left-0 right-0 mx-auto w-fit rounded-full bg-amber-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-sm">
-                  Mais Popular
-                </div>
-              )}
-              
-              <div className="mb-6">
-                <h3 className={`text-xl font-bold ${p.popular ? "text-primary-foreground" : "text-foreground"}`}>
-                  {p.name}
-                </h3>
-                <p className={`mt-2 text-sm ${p.popular ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                  {p.description}
-                </p>
-                <div className="mt-6 flex items-baseline gap-1">
-                  <span className="text-4xl font-extrabold tabular-nums tracking-tight">
-                    {p.price}
-                  </span>
-                  <span className={`text-sm font-medium ${p.popular ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
-                    {p.period}
-                  </span>
-                </div>
-              </div>
-
-              <ul className="flex-1 space-y-4 mb-8">
-                {p.features.map((f, j) => (
-                  <li key={j} className="flex items-center gap-3">
-                    {f.included ? (
-                      <Check className={`h-5 w-5 shrink-0 ${p.popular ? "text-primary-foreground" : "text-primary"}`} />
-                    ) : (
-                      <X className={`h-5 w-5 shrink-0 ${p.popular ? "text-primary-foreground/40" : "text-muted-foreground/40"}`} />
-                    )}
-                    <span className={`text-sm ${f.included ? (p.popular ? "text-primary-foreground" : "text-foreground") : (p.popular ? "text-primary-foreground/60" : "text-muted-foreground")}`}>
-                      {f.name}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              <Link
-                to="/painel"
-                className={`flex h-12 w-full items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-all hover:opacity-90 ${
-                  p.popular 
-                    ? "bg-white text-primary hover:bg-gray-50" 
-                    : "bg-primary text-primary-foreground hover:bg-primary/90"
+          {plans.map((p, i) => {
+            const cardContent = (
+              <div 
+                className={`relative flex flex-col rounded-3xl p-8 h-full shadow-xl ${
+                  p.popular ? "bg-primary text-primary-foreground ring-4 ring-primary/20" : "bg-card border border-border"
                 }`}
               >
-                {p.cta}
-              </Link>
-            </div>
-          ))}
+                {p.popular && (
+                  <div className="absolute -top-4 left-0 right-0 mx-auto w-fit rounded-full bg-amber-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-sm">
+                    Mais Popular
+                  </div>
+                )}
+                
+                <div className="mb-6">
+                  <h3 className={`text-xl font-bold ${p.popular ? "text-primary-foreground" : "text-foreground"}`}>
+                    {p.name}
+                  </h3>
+                  <p className={`mt-2 text-sm ${p.popular ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                    {p.description}
+                  </p>
+                  <div className="mt-6 flex items-baseline gap-1">
+                    <span className="text-4xl font-extrabold tabular-nums tracking-tight">
+                      {p.price}
+                    </span>
+                    <span className={`text-sm font-medium ${p.popular ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                      {p.period}
+                    </span>
+                  </div>
+                </div>
+
+                <ul className="flex-1 space-y-4 mb-8">
+                  {p.features.map((f, j) => (
+                    <li key={j} className="flex items-center gap-3">
+                      {f.included ? (
+                        <Check className={`h-5 w-5 shrink-0 ${p.popular ? "text-primary-foreground" : "text-primary"}`} />
+                      ) : (
+                        <X className={`h-5 w-5 shrink-0 ${p.popular ? "text-primary-foreground/40" : "text-muted-foreground/40"}`} />
+                      )}
+                      <span className={`text-sm ${f.included ? (p.popular ? "text-primary-foreground" : "text-foreground") : (p.popular ? "text-primary-foreground/60" : "text-muted-foreground")}`}>
+                        {f.name}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  to="/painel"
+                  className={`flex h-12 w-full items-center justify-center rounded-xl text-sm font-bold shadow-sm transition-all hover:opacity-90 z-10 ${
+                    p.popular 
+                      ? "bg-white text-primary hover:bg-gray-50" 
+                      : "bg-primary text-primary-foreground hover:bg-primary/90"
+                  }`}
+                >
+                  {p.cta}
+                </Link>
+              </div>
+            );
+
+            return p.popular ? (
+              <FlameWrap
+                key={i}
+                color={[0.05, 0.7, 0.45]} // Tons de esmeralda / verde
+                radius={24} // rounded-3xl is 1.5rem = 24px
+                intensity={0.7}
+                height={150}
+                spread={20}
+                className="h-full"
+              >
+                {cardContent}
+              </FlameWrap>
+            ) : (
+              <div key={i} className="h-full">{cardContent}</div>
+            );
+          })}
         </div>
       </div>
     </section>
