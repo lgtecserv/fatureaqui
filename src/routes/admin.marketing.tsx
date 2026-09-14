@@ -32,8 +32,7 @@ function AdminMarketingPage() {
       if (compError) throw compError;
       if (!comps || comps.length === 0) return [];
 
-      const adminEmails = ["lgtecserv@gmail.com", "lgtecserv.com@gmail.com"];
-      const filteredComps = comps.filter(c => !adminEmails.includes(c.email));
+      const filteredComps = comps; // Removi o bloqueio aos emails de admin para testes
       
       const userIds = filteredComps.map(c => c.user_id);
       const { data: subs, error: subsError } = await supabase
