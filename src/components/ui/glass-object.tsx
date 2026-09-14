@@ -307,29 +307,32 @@ function sniffKind(
 
 function rasterizeImage(blob: Blob): Promise<ImageData> {
   return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(blob);
-    const image = new Image();
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-      const width = image.naturalWidth || 1024;
-      const height = image.naturalHeight || 1024;
-      const ratio = Math.min(1, RASTER_SIZE / Math.max(width, height));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(width * ratio));
-      canvas.height = Math.max(1, Math.round(height * ratio));
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        reject(new Error("2d context unavailable"));
-        return;
-      }
-      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-      resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const url = e.target?.result as string;
+      const image = new Image();
+      image.onload = () => {
+        const width = image.naturalWidth || 1024;
+        const height = image.naturalHeight || 1024;
+        const ratio = Math.min(1, RASTER_SIZE / Math.max(width, height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(width * ratio));
+        canvas.height = Math.max(1, Math.round(height * ratio));
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          reject(new Error("2d context unavailable"));
+          return;
+        }
+        ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(ctx.getImageData(0, 0, canvas.width, canvas.height));
+      };
+      image.onerror = () => {
+        reject(new Error("Could not decode the image"));
+      };
+      image.src = url;
     };
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("Could not decode the image"));
-    };
-    image.src = url;
+    reader.onerror = () => reject(new Error("Could not read blob as data URL"));
+    reader.readAsDataURL(blob);
   });
 }
 
