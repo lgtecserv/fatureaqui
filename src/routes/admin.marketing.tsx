@@ -1,17 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { Loader2, Mail, Send, Users, AlertCircle } from "lucide-react";
+import { Loader2, Mail, Send, Users, AlertCircle, History, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { pt } from "date-fns/locale";
 
 export const Route = createFileRoute("/admin/marketing")({
   component: AdminMarketingPage,
 });
 
 function AdminMarketingPage() {
+  const queryClient = useQueryClient();
   const [subject, setSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
   const [ctaText, setCtaText] = useState("");
@@ -68,6 +71,18 @@ function AdminMarketingPage() {
     }
   });
 
+  const { data: history } = useQuery({
+    queryKey: ["marketing_campaigns_history"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("marketing_campaigns")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    }
+  });
+
   const selectedCompanies = companies?.filter(c => audience === "all" || c.status === audience) || [];
 
   const sendEmailMutation = useMutation({
@@ -96,6 +111,17 @@ function AdminMarketingPage() {
       });
 
       if (error) throw error;
+
+      // Guarda o histórico
+      await supabase.from("marketing_campaigns").insert({
+        subject,
+        html_content: htmlContent, // Save original unformatted text for reuse
+        cta_text: ctaText.trim() || null,
+        cta_link: ctaLink.trim() || null,
+        audience,
+        sent_count: emails.length
+      });
+
       return data;
     },
     onSuccess: () => {
@@ -104,6 +130,7 @@ function AdminMarketingPage() {
       setHtmlContent("");
       setCtaText("");
       setCtaLink("");
+      queryClient.invalidateQueries({ queryKey: ["marketing_campaigns_history"] });
     },
     onError: (err) => {
       toast.error(`Erro ao enviar email: ${err.message}`);
@@ -119,7 +146,7 @@ function AdminMarketingPage() {
   }
 
   return (
-    <div className="flex-1 p-4 sm:p-8 max-w-5xl mx-auto">
+    <div className="flex-1 p-4 sm:p-8 max-w-5xl mx-auto pb-24">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
           <Mail className="h-8 w-8 text-primary" /> Marketing e Comunicação
@@ -190,6 +217,57 @@ function AdminMarketingPage() {
                   {sendEmailMutation.isPending ? "A enviar..." : `Enviar para ${selectedCompanies.length} Empresas`}
                 </button>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Histórico de Campanhas */}
+          <Card>
+            <CardHeader className="pb-3 border-b border-slate-100 mb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <History className="h-5 w-5 text-primary" /> Histórico de Envios
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {history && history.length > 0 ? (
+                <div className="space-y-4">
+                  {history.map((campaign) => (
+                    <div key={campaign.id} className="p-4 border border-slate-200 rounded-lg bg-slate-50/50 hover:bg-slate-50 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <h4 className="font-bold text-slate-900">{campaign.subject}</h4>
+                          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                            <span className="bg-white border rounded px-2 py-0.5 font-medium">{format(new Date(campaign.created_at), "d 'de' MMMM, yyyy 'às' HH:mm", { locale: pt })}</span>
+                            <span className="bg-slate-200/50 rounded px-2 py-0.5">Enviado para {campaign.sent_count} destinatários</span>
+                            {campaign.cta_text && (
+                              <span className="bg-primary/10 text-primary font-medium rounded px-2 py-0.5 flex items-center gap-1">Botão incluído</span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setSubject(campaign.subject);
+                            setHtmlContent(campaign.html_content);
+                            setCtaText(campaign.cta_text || "");
+                            setCtaLink(campaign.cta_link || "");
+                            setAudience(campaign.audience as any);
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                            toast.success("Campanha carregada para reutilização!");
+                          }}
+                          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors w-full sm:w-auto justify-center"
+                        >
+                          <RefreshCw className="h-3 w-3" /> Reutilizar
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-slate-500 text-sm">
+                  Nenhuma campanha enviada até ao momento.
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
