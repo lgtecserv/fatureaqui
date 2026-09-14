@@ -14,6 +14,8 @@ export const Route = createFileRoute("/admin/marketing")({
 function AdminMarketingPage() {
   const [subject, setSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
+  const [ctaText, setCtaText] = useState("");
+  const [ctaLink, setCtaLink] = useState("");
   const [audience, setAudience] = useState<"all" | "active" | "expired" | "trial">("all");
 
   const { data: companies, isLoading: isLoadingCompanies } = useQuery({
@@ -78,13 +80,18 @@ function AdminMarketingPage() {
       }
 
       const emails = selectedCompanies.map(c => c.email);
+      
+      // Preserve line breaks for plain text formatting
+      const formattedHtml = htmlContent.replace(/\n/g, '<br />');
 
       // Envia os emails através da Supabase Edge Function
       const { data, error } = await supabase.functions.invoke("send-marketing-email", {
         body: { 
           emails, 
           subject, 
-          htmlContent 
+          htmlContent: formattedHtml,
+          ctaText: ctaText.trim() || undefined,
+          ctaLink: ctaLink.trim() || undefined
         },
       });
 
@@ -95,6 +102,8 @@ function AdminMarketingPage() {
       toast.success("Campanha de email enviada com sucesso para " + selectedCompanies.length + " destinatários!");
       setSubject("");
       setHtmlContent("");
+      setCtaText("");
+      setCtaLink("");
     },
     onError: (err) => {
       toast.error(`Erro ao enviar email: ${err.message}`);
@@ -140,14 +149,35 @@ function AdminMarketingPage() {
                 <label className="text-sm font-semibold text-slate-700">Mensagem (Suporta HTML)</label>
                 <div className="mt-1.5 bg-yellow-50 text-yellow-800 text-xs p-3 rounded-lg border border-yellow-200 mb-2 flex items-start gap-2">
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                  <p>O cabeçalho com a identidade visual (Logo do FatureAqui) e o rodapé serão adicionados automaticamente pela Edge Function. Escreva aqui apenas o corpo principal da mensagem (pode usar tags HTML como &lt;b&gt;, &lt;br&gt;, &lt;a&gt;, etc).</p>
+                  <p>O cabeçalho e o rodapé serão adicionados automaticamente. As quebras de linha que escrever aqui serão respeitadas no email final.</p>
                 </div>
                 <textarea 
                   placeholder="Escreva a sua mensagem aqui..."
                   value={htmlContent}
                   onChange={(e) => setHtmlContent(e.target.value)}
-                  className="w-full min-h-[300px] p-4 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-mono bg-slate-50"
+                  className="w-full min-h-[300px] p-4 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-sans bg-slate-50"
                 />
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Botão: Texto (Opcional)</label>
+                  <Input 
+                    placeholder="Ex: Aceder à Plataforma" 
+                    value={ctaText}
+                    onChange={(e) => setCtaText(e.target.value)}
+                    className="mt-1.5"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-slate-700">Botão: Link (Opcional)</label>
+                  <Input 
+                    placeholder="Ex: https://fatureaqui.com/painel" 
+                    value={ctaLink}
+                    onChange={(e) => setCtaLink(e.target.value)}
+                    className="mt-1.5"
+                  />
+                </div>
               </div>
 
               <div className="flex justify-end pt-4">
