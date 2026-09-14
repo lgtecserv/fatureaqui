@@ -57,6 +57,17 @@ function PainelLayout() {
           secondary_color: "#1E2A38"
         }).select().single();
         company = newCompany;
+        
+        if (company) {
+          // Enviar email de boas-vindas diretamente pelo cliente
+          supabase.functions.invoke('send-marketing-email', {
+            body: {
+              emails: [company.email],
+              subject: 'Bem-vindo ao FatureAqui!',
+              htmlContent: `<p>Olá ${company.name},</p><p>Bem-vindo ao FatureAqui! A sua conta foi criada com sucesso e o seu período de teste grátis já começou.</p><p>Explore a plataforma e qualquer dúvida responda a este email.</p>`
+            }
+          }).catch(console.error);
+        }
       }
 
       // Set colors
