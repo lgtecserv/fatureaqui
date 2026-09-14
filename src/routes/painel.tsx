@@ -64,7 +64,9 @@ function PainelLayout() {
             body: {
               emails: [company.email],
               subject: 'Bem-vindo ao FatureAqui!',
-              htmlContent: `<p>Olá ${company.name},</p><p>Bem-vindo ao FatureAqui! A sua conta foi criada com sucesso e o seu período de teste grátis já começou.</p><p>Explore a plataforma e qualquer dúvida responda a este email.</p>`
+              htmlContent: `<p>Olá <strong>${company.name}</strong>,</p><p>Bem-vindo ao FatureAqui! A sua conta foi criada com sucesso e o seu período de teste grátis já começou.</p><p>Estamos muito felizes por ter a sua empresa connosco. Explore a plataforma e qualquer dúvida, basta responder a este email.</p>`,
+              ctaText: 'Aceder à Plataforma',
+              ctaLink: 'https://www.fatureaqui.com/painel'
             }
           }).catch(console.error);
         }
