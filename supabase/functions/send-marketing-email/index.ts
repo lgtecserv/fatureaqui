@@ -63,13 +63,13 @@ serve(async (req) => {
             <td class="content" style="padding: 40px 32px; font-size: 16px; color: #334155; line-height: 1.6;">
               ${htmlContent}
               
-              ${ctaText && ctaLink ? \`
+              ${ctaText && ctaLink ? `
               <div class="button-container" style="text-align: center; margin-top: 36px; margin-bottom: 16px;">
-                <a href="\${ctaLink}" class="button" style="display: inline-block; background-color: #02664D; color: #ffffff; font-weight: bold; font-size: 16px; text-decoration: none; padding: 14px 32px; border-radius: 8px;">
-                  \${ctaText}
+                <a href="${ctaLink}" class="button" style="display: inline-block; background-color: #02664D; color: #ffffff; font-weight: bold; font-size: 16px; text-decoration: none; padding: 14px 32px; border-radius: 8px;">
+                  ${ctaText}
                 </a>
               </div>
-              \` : ''}
+              ` : ''}
             </td>
           </tr>
           <!-- Footer -->
