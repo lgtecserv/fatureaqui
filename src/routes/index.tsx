@@ -7,6 +7,7 @@ import { PricingSection } from "@/components/landing/pricing-section";
 import { FaqSection } from "@/components/landing/faq-section";
 import { CtaSection } from "@/components/landing/cta-section";
 import { Footer } from "@/components/landing/footer";
+import GlassObject from "@/components/ui/glass-object";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -55,11 +56,15 @@ function Index() {
           <p className="mt-3 text-xs text-muted-foreground">Sem cartão · Activação imediata</p>
         </div>
 
-        <div className="relative flex items-center justify-center">
-          <img 
+        <div className="relative flex items-center justify-center min-h-[400px]">
+          <GlassObject 
             src="/hero-image.png" 
-            alt="Fature Aqui Software Dashboard" 
-            className="w-full h-auto rounded-3xl border border-border shadow-2xl shadow-primary/20 object-contain"
+            className="w-full h-full min-h-[400px] lg:min-h-[500px]"
+            autoRotate={true}
+            autoRotateSpeed={0.5}
+            orbit={true}
+            highlight="#ffffff"
+            floatIntensity={0.5}
           />
         </div>
       </main>
