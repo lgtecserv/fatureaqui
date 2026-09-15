@@ -4,12 +4,15 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
 function AdminLayout() {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
 
@@ -42,11 +45,13 @@ function AdminLayout() {
       <div className="flex min-h-screen w-full bg-slate-50">
         <AdminSidebar />
         <SidebarInset className="flex-1 overflow-x-hidden">
-          {/* Mobile Header for Admin */}
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4 md:hidden">
-            <SidebarTrigger className="-ml-1" />
-            <div className="w-4" />
-            <h1 className="text-lg font-semibold text-slate-900">Administração</h1>
+          <header className="flex h-16 shrink-0 items-center justify-between border-b bg-white px-4 md:hidden">
+            <div className="flex items-center gap-2">
+              <SidebarTrigger className="-ml-1" />
+              <div className="w-4" />
+              <h1 className="text-lg font-semibold text-slate-900">{t("admin.title")}</h1>
+            </div>
+            <LanguageSwitcher />
           </header>
           <Outlet />
         </SidebarInset>

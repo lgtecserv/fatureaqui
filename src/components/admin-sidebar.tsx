@@ -23,19 +23,21 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/hooks/use-auth";
-
-const adminItems = [
-  { title: "Dashboard", url: "/admin", icon: LayoutDashboard },
-  { title: "Empresas", url: "/admin/empresas", icon: Building2 },
-  { title: "Marketing", url: "/admin/marketing", icon: Mail },
-  { title: "Planos & Subscrições", url: "/admin/planos", icon: Package },
-  { title: "Faturação", url: "/admin/faturacao", icon: CreditCard },
-  { title: "Configurações", url: "/admin/configuracoes", icon: Settings },
-  { title: "Suporte", url: "/admin/suporte", icon: LifeBuoy },
-  { title: "Logs de Sistema", url: "/admin/logs", icon: Activity },
-];
+import { useTranslation } from "react-i18next";
 
 export function AdminSidebar() {
+  const { t } = useTranslation();
+  
+  const adminItems = [
+    { title: t("admin.nav_dashboard"), url: "/admin", icon: LayoutDashboard },
+    { title: t("admin.nav_companies"), url: "/admin/empresas", icon: Building2 },
+    { title: t("admin.nav_marketing"), url: "/admin/marketing", icon: Mail },
+    { title: t("admin.nav_plans"), url: "/admin/planos", icon: Package },
+    { title: t("admin.nav_billing"), url: "/admin/faturacao", icon: CreditCard },
+    { title: t("admin.nav_settings"), url: "/admin/configuracoes", icon: Settings },
+    { title: t("admin.nav_support"), url: "/admin/suporte", icon: LifeBuoy },
+    { title: t("admin.nav_logs"), url: "/admin/logs", icon: Activity },
+  ];
   const { user, signOut } = useAuth();
   const location = useLocation();
   const currentPath = location.pathname;
@@ -61,7 +63,7 @@ export function AdminSidebar() {
 
       <SidebarContent className="px-1 mt-4">
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">ADMINISTRAÇÃO</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t("admin.group_admin")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {adminItems.map((item) => (
@@ -96,7 +98,7 @@ export function AdminSidebar() {
           <button 
             onClick={() => signOut()}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground group-data-[collapsible=icon]:hidden"
-            title="Sair"
+            title={t("admin.logout_tooltip")}
           >
             <LogOut className="h-4 w-4" />
           </button>

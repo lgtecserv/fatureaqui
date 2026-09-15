@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Topbar } from "@/components/topbar";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -127,9 +127,9 @@ function ApiPage() {
             <p className="mb-8 max-w-md text-muted-foreground">
               A criação de Chaves de API e integrações com sistemas externos (como E-commerces e ERPs) está disponível apenas no plano Pro.
             </p>
-            <button className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-8 font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
+            <Link to="/painel/assinatura" className="inline-flex h-11 items-center justify-center rounded-full bg-primary px-8 font-semibold text-primary-foreground transition-colors hover:bg-primary/90">
               Fazer Upgrade para Pro
-            </button>
+            </Link>
           </div>
         </div>
       </>

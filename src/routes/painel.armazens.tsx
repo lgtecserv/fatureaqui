@@ -7,12 +7,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { WarehouseModal } from "@/components/warehouse-modal";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel/armazens")({
   component: ArmazensPage,
 });
 
 function ArmazensPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [companyId, setCompanyId] = useState<string>("");
@@ -52,14 +54,14 @@ function ArmazensPage() {
   return (
     <>
       <Topbar
-        title="Armazéns e Locais"
-        subtitle="Gestão multi-armazém de stock"
+        title={t("warehouses.title")}
+        subtitle={t("warehouses.subtitle")}
         actions={
           <button 
             onClick={() => setIsModalOpen(true)}
             className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
           >
-            <Plus className="h-4 w-4" /> Novo Armazém
+            <Plus className="h-4 w-4" /> {t("warehouses.new_warehouse")}
           </button>
         }
       />
@@ -77,7 +79,7 @@ function ArmazensPage() {
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar locais..."
+            placeholder={t("warehouses.search")}
             className="h-11 w-full rounded-full border border-border bg-card pl-11 pr-4 text-sm shadow-soft focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
@@ -85,18 +87,18 @@ function ArmazensPage() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="mb-4 h-8 w-8 animate-spin" />
-            <p>A carregar locais...</p>
+            <p>{t("warehouses.loading")}</p>
           </div>
         ) : warehouses.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
             <Warehouse className="mb-4 h-10 w-10 opacity-20" />
-            <h3 className="text-lg font-semibold text-foreground">Sem Armazéns</h3>
-            <p className="mt-1 text-sm">Não tem locais de stock configurados. Comece por criar a loja sede.</p>
+            <h3 className="text-lg font-semibold text-foreground">{t("warehouses.empty")}</h3>
+            <p className="mt-1 text-sm">{t("warehouses.empty_desc")}</p>
             <button 
               onClick={() => setIsModalOpen(true)}
               className="mt-4 inline-flex h-9 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
             >
-              <Plus className="h-4 w-4" /> Criar Primeiro Local
+              <Plus className="h-4 w-4" /> {t("warehouses.create_first")}
             </button>
           </div>
         ) : (
@@ -110,7 +112,7 @@ function ArmazensPage() {
               >
                 {w.is_default && (
                   <span className="absolute -top-3 right-4 rounded-full bg-primary px-3 py-1 text-[10px] font-bold tracking-wider text-primary-foreground uppercase shadow-sm">
-                    Principal
+                    {t("warehouses.main")}
                   </span>
                 )}
                 <div className="flex items-start gap-3">
@@ -121,7 +123,7 @@ function ArmazensPage() {
                     <h3 className="truncate text-base font-bold text-foreground">{w.name}</h3>
                     <div className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <MapPin className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{w.location || "Sem morada configurada"}</span>
+                      <span className="truncate">{w.location || t("warehouses.no_address")}</span>
                     </div>
                   </div>
                 </div>
@@ -130,15 +132,15 @@ function ArmazensPage() {
                   <button 
                     className="text-sm font-semibold text-primary hover:underline"
                     onClick={() => {
-                      toast.info("A funcionalidade de visualização de saldo por artigo está a ser desenvolvida.");
+                      toast.info(t("warehouses.view_items_dev"));
                     }}
                   >
-                    Ver Artigos
+                    {t("warehouses.view_items")}
                   </button>
                   <div className="flex gap-2">
                     <button 
                       onClick={() => {
-                        toast.info("Edição de armazéns ficará disponível na próxima atualização.");
+                        toast.info(t("warehouses.edit_dev"));
                       }}
                       className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                     >
@@ -147,12 +149,12 @@ function ArmazensPage() {
                     {!w.is_default && (
                       <button 
                         onClick={async () => {
-                          if (confirm(`Tem a certeza que deseja apagar o armazém "${w.name}"?`)) {
+                          if (confirm(t("warehouses.delete_confirm", { name: w.name }))) {
                             const { error } = await supabase.from("warehouses").delete().eq("id", w.id);
                             if (error) {
-                              toast.error("Erro ao apagar armazém. Verifique se tem stock associado.");
+                              toast.error(t("warehouses.delete_error"));
                             } else {
-                              toast.success("Armazém apagado com sucesso.");
+                              toast.success(t("warehouses.delete_success"));
                               // Reload data would go here if we extracted useQuery properly, 
                               // but for now a simple reload or invalidate via UI will do.
                               window.location.reload();

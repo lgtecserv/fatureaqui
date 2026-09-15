@@ -5,12 +5,14 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
 import { Boxes, AlertTriangle } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel/lotes")({
   component: LotesPage,
 });
 
 function LotesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
 
   const { data: batches = [], isLoading } = useQuery({
@@ -45,8 +47,8 @@ function LotesPage() {
   return (
     <div className="pb-20">
       <Topbar
-        title="Lotes e Validades"
-        subtitle="Controle os seus lotes de produtos e prazos de validade."
+        title={t("batches.title")}
+        subtitle={t("batches.subtitle")}
       />
 
       <div className="mx-auto w-full max-w-7xl p-4 sm:p-6 space-y-6">
@@ -56,8 +58,8 @@ function LotesPage() {
         ) : batches.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
             <Boxes className="mb-4 h-10 w-10 opacity-20" />
-            <h3 className="text-lg font-semibold text-foreground">Nenhum lote registado</h3>
-            <p className="mt-1 text-sm">Os lotes que criar ao dar entrada de stock aparecerão aqui.</p>
+            <h3 className="text-lg font-semibold text-foreground">{t("batches.empty")}</h3>
+            <p className="mt-1 text-sm">{t("batches.empty_desc")}</p>
           </div>
         ) : (
           <div className="bg-card rounded-2xl border border-border shadow-soft overflow-hidden">
@@ -65,11 +67,11 @@ function LotesPage() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-muted/50 text-muted-foreground font-medium border-b border-border">
                   <tr>
-                    <th className="px-6 py-4">Lote</th>
-                    <th className="px-6 py-4">Produto</th>
-                    <th className="px-6 py-4">Fabricação</th>
-                    <th className="px-6 py-4">Validade</th>
-                    <th className="px-6 py-4">Distribuição de Stock</th>
+                    <th className="px-6 py-4">{t("batches.table_batch")}</th>
+                    <th className="px-6 py-4">{t("batches.table_product")}</th>
+                    <th className="px-6 py-4">{t("batches.table_manufacture")}</th>
+                    <th className="px-6 py-4">{t("batches.table_expiry")}</th>
+                    <th className="px-6 py-4">{t("batches.table_stock")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -105,11 +107,11 @@ function LotesPage() {
                             {b.stock_inventory?.map((st: any, idx: number) => (
                               <div key={idx} className="flex justify-between text-xs">
                                 <span className="text-muted-foreground">{st.warehouses?.name}:</span>
-                                <span className="font-semibold text-foreground">{st.quantity} un</span>
+                                <span className="font-semibold text-foreground">{st.quantity} {t("batches.unit")}</span>
                               </div>
                             ))}
                             {(!b.stock_inventory || b.stock_inventory.length === 0) && (
-                              <span className="text-xs text-muted-foreground">Sem stock</span>
+                              <span className="text-xs text-muted-foreground">{t("batches.no_stock")}</span>
                             )}
                           </div>
                         </td>

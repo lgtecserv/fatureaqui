@@ -5,12 +5,14 @@ import { Loader2, Search, Building2, CircleAlert, FileText, Users, Package } fro
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/admin/empresas")({
   component: AdminEmpresasPage,
 });
 
 function AdminEmpresasPage() {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
 
   const { data: companies, isLoading } = useQuery({
@@ -105,14 +107,14 @@ function AdminEmpresasPage() {
     <div className="flex-1 p-4 sm:p-8">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Gestão de Empresas</h1>
-          <p className="text-slate-500 mt-1">Controlo de inquilinos e estado das subscrições.</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t("admin.mgmt_companies")}</h1>
+          <p className="text-slate-500 mt-1">{t("admin.mgmt_companies_sub")}</p>
         </div>
         
         <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input 
-            placeholder="Procurar por nome, NUIT ou email..." 
+            placeholder={t("admin.search_companies")} 
             className="pl-9 bg-white"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -122,26 +124,26 @@ function AdminEmpresasPage() {
       
       <Card>
         <CardHeader>
-          <CardTitle>Empresas Registadas ({companies?.length || 0})</CardTitle>
-          <CardDescription>Lista de todas as empresas que utilizam o FatureAqui.</CardDescription>
+          <CardTitle>{t("admin.registered_companies", { count: companies?.length || 0 })}</CardTitle>
+          <CardDescription>{t("admin.registered_companies_desc")}</CardDescription>
         </CardHeader>
         <CardContent>
           {filteredCompanies?.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-slate-500">
               <Building2 className="mb-4 h-12 w-12 text-slate-300" />
-              <p className="text-lg font-medium text-slate-900">Nenhuma empresa encontrada</p>
+              <p className="text-lg font-medium text-slate-900">{t("admin.no_companies_found")}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead className="bg-slate-50 text-slate-500">
                   <tr>
-                    <th className="px-4 py-3 font-medium">Empresa</th>
-                    <th className="px-4 py-3 font-medium">Contacto</th>
-                    <th className="px-4 py-3 font-medium">Atividade</th>
-                    <th className="px-4 py-3 font-medium">Plano Atual</th>
-                    <th className="px-4 py-3 font-medium">Válido Até (30 Dias)</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
+                    <th className="px-4 py-3 font-medium">{t("admin.company")}</th>
+                    <th className="px-4 py-3 font-medium">{t("admin.contact")}</th>
+                    <th className="px-4 py-3 font-medium">{t("admin.activity")}</th>
+                    <th className="px-4 py-3 font-medium">{t("admin.current_plan")}</th>
+                    <th className="px-4 py-3 font-medium">{t("admin.valid_until")}</th>
+                    <th className="px-4 py-3 font-medium">{t("admin.status")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 bg-white">
@@ -174,15 +176,15 @@ function AdminEmpresasPage() {
                         </td>
                         <td className="px-4 py-4">
                           <div className="flex gap-3 text-xs text-slate-600">
-                            <div className="flex items-center gap-1" title="Documentos emitidos">
+                            <div className="flex items-center gap-1" title={t("admin.docs_issued")}>
                               <FileText className="h-3.5 w-3.5 text-slate-400" />
                               <strong className="text-slate-900">{comp.metrics?.docsCount || 0}</strong>
                             </div>
-                            <div className="flex items-center gap-1" title="Clientes registados">
+                            <div className="flex items-center gap-1" title={t("admin.clients_reg")}>
                               <Users className="h-3.5 w-3.5 text-slate-400" />
                               <strong className="text-slate-900">{comp.metrics?.clientsCount || 0}</strong>
                             </div>
-                            <div className="flex items-center gap-1" title="Produtos/Serviços criados">
+                            <div className="flex items-center gap-1" title={t("admin.prods_created")}>
                               <Package className="h-3.5 w-3.5 text-slate-400" />
                               <strong className="text-slate-900">{comp.metrics?.prodsCount || 0}</strong>
                             </div>
@@ -209,15 +211,15 @@ function AdminEmpresasPage() {
                         <td className="px-4 py-4">
                           {comp.subscription?.status === 'pending' ? (
                             <span className="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">
-                              Aguardando Pagamento
+                              {t("admin.awaiting_payment")}
                             </span>
                           ) : expired ? (
                             <span className="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                              {isProActive ? "Expirado (Cortado)" : "Teste Expirado"}
+                              {isProActive ? t("admin.expired_cut") : t("admin.trial_expired")}
                             </span>
                           ) : (
                             <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
-                              Ativo
+                              {t("admin.active")}
                             </span>
                           )}
                         </td>

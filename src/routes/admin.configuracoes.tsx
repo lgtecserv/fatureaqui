@@ -7,15 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/admin/configuracoes")({
   component: AdminConfiguracoesPage,
 });
 
 function AdminConfiguracoesPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     app_name: "FatureAqui",
@@ -75,10 +76,10 @@ function AdminConfiguracoesPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["system-settings-global"] });
-      toast.success("Configurações globais guardadas com sucesso!");
+      toast.success(t("admin.save_success"));
     },
     onError: () => {
-      toast.error("Erro ao guardar. Verifique se executou a migração SQL no Supabase.");
+      toast.error(t("admin.save_error"));
     }
   });
 
@@ -114,17 +115,17 @@ function AdminConfiguracoesPage() {
   return (
     <div className="flex-1 p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Configurações Globais</h1>
-        <p className="text-slate-500 mt-1">Gerencie informações da plataforma, limites do plano gratuito e segurança.</p>
+        <h1 className="text-3xl font-bold text-slate-900">{t("admin.settings_title")}</h1>
+        <p className="text-slate-500 mt-1">{t("admin.settings_sub")}</p>
       </div>
       
       <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl">
         <Tabs defaultValue="geral" className="w-full">
           <TabsList className="mb-8 bg-slate-100 p-1">
-            <TabsTrigger value="geral" className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">Geral</TabsTrigger>
-            <TabsTrigger value="limites" className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">Limites & Planos</TabsTrigger>
-            <TabsTrigger value="faturacao" className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">Impostos & Moeda</TabsTrigger>
-            <TabsTrigger value="legal" className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">Legal & Segurança</TabsTrigger>
+            <TabsTrigger value="geral" className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">{t("admin.tab_general")}</TabsTrigger>
+            <TabsTrigger value="limites" className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">{t("admin.tab_limits")}</TabsTrigger>
+            <TabsTrigger value="faturacao" className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">{t("admin.tab_billing")}</TabsTrigger>
+            <TabsTrigger value="legal" className="data-[state=active]:bg-white data-[state=active]:text-primary data-[state=active]:shadow-sm px-6">{t("admin.tab_legal")}</TabsTrigger>
           </TabsList>
           
           <TabsContent value="geral" className="mt-0">
@@ -132,13 +133,13 @@ function AdminConfiguracoesPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Globe className="h-5 w-5 text-primary" />
-                  Informações da Plataforma
+                  {t("admin.platform_info")}
                 </CardTitle>
-                <CardDescription>Dados públicos que podem aparecer para os clientes das empresas.</CardDescription>
+                <CardDescription>{t("admin.platform_info_desc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-2 max-w-md">
-                  <Label htmlFor="app_name">Nome da Aplicação</Label>
+                  <Label htmlFor="app_name">{t("admin.app_name")}</Label>
                   <Input 
                     id="app_name" 
                     name="app_name" 
@@ -149,7 +150,7 @@ function AdminConfiguracoesPage() {
                 </div>
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="grid gap-2">
-                    <Label htmlFor="support_email">Email de Suporte</Label>
+                    <Label htmlFor="support_email">{t("admin.support_email")}</Label>
                     <Input 
                       id="support_email" 
                       name="support_email" 
@@ -160,7 +161,7 @@ function AdminConfiguracoesPage() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="support_phone">Telefone de Suporte</Label>
+                    <Label htmlFor="support_phone">{t("admin.support_phone")}</Label>
                     <Input 
                       id="support_phone" 
                       name="support_phone" 
@@ -179,14 +180,14 @@ function AdminConfiguracoesPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
-                  Limites do Plano Gratuito
+                  {t("admin.free_plan_limits")}
                 </CardTitle>
-                <CardDescription>Defina os limites para empresas que não têm o plano Pro ativo.</CardDescription>
+                <CardDescription>{t("admin.free_plan_limits_desc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2 max-w-2xl">
                   <div className="grid gap-2">
-                    <Label htmlFor="free_plan_docs_limit">Nº Máximo de Documentos / Mês</Label>
+                    <Label htmlFor="free_plan_docs_limit">{t("admin.max_docs")}</Label>
                     <Input 
                       id="free_plan_docs_limit" 
                       name="free_plan_docs_limit" 
@@ -195,10 +196,10 @@ function AdminConfiguracoesPage() {
                       value={formData.free_plan_docs_limit} 
                       onChange={handleChange}
                     />
-                    <p className="text-xs text-muted-foreground">Coloque 0 para ilimitado.</p>
+                    <p className="text-xs text-muted-foreground">{t("admin.zero_unlimited")}</p>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="trial_days">Dias de Período de Teste (Trial)</Label>
+                    <Label htmlFor="trial_days">{t("admin.trial_days")}</Label>
                     <Input 
                       id="trial_days" 
                       name="trial_days" 
@@ -207,7 +208,7 @@ function AdminConfiguracoesPage() {
                       value={formData.trial_days} 
                       onChange={handleChange} 
                     />
-                    <p className="text-xs text-muted-foreground">Dias de plano Pro gratuitos ao registar.</p>
+                    <p className="text-xs text-muted-foreground">{t("admin.trial_days_desc")}</p>
                   </div>
                 </div>
               </CardContent>
@@ -219,14 +220,14 @@ function AdminConfiguracoesPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Percent className="h-5 w-5 text-primary" />
-                  Impostos e Moeda Padrão
+                  {t("admin.taxes_currency")}
                 </CardTitle>
-                <CardDescription>Valores base aplicados quando uma nova empresa é criada.</CardDescription>
+                <CardDescription>{t("admin.taxes_currency_desc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2 max-w-2xl">
                   <div className="grid gap-2">
-                    <Label htmlFor="default_tax_rate">Taxa de IVA Padrão (%)</Label>
+                    <Label htmlFor="default_tax_rate">{t("admin.default_tax_rate")}</Label>
                     <Input 
                       id="default_tax_rate" 
                       name="default_tax_rate" 
@@ -238,7 +239,7 @@ function AdminConfiguracoesPage() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="currency">Moeda Base</Label>
+                    <Label htmlFor="currency">{t("admin.base_currency")}</Label>
                     <Input 
                       id="currency" 
                       name="currency" 
@@ -257,13 +258,13 @@ function AdminConfiguracoesPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Scale className="h-5 w-5 text-primary" />
-                  Links Legais
+                  {t("admin.legal_links")}
                 </CardTitle>
-                <CardDescription>Links para as páginas legais da sua empresa.</CardDescription>
+                <CardDescription>{t("admin.legal_links_desc")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="terms_url">URL dos Termos de Serviço</Label>
+                  <Label htmlFor="terms_url">{t("admin.terms_url")}</Label>
                   <Input 
                     id="terms_url" 
                     name="terms_url" 
@@ -274,7 +275,7 @@ function AdminConfiguracoesPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="privacy_url">URL da Política de Privacidade</Label>
+                  <Label htmlFor="privacy_url">{t("admin.privacy_url")}</Label>
                   <Input 
                     id="privacy_url" 
                     name="privacy_url" 
@@ -291,18 +292,18 @@ function AdminConfiguracoesPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-red-600">
                   <ShieldCheck className="h-5 w-5" />
-                  Modo de Segurança / Manutenção
+                  {t("admin.maintenance_mode")}
                 </CardTitle>
                 <CardDescription className="text-red-600/80">
-                  Bloqueie temporariamente o acesso de todas as empresas ao sistema (para atualizações).
+                  {t("admin.maintenance_mode_desc")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between rounded-lg border border-red-200 bg-white p-4">
                   <div className="space-y-0.5">
-                    <Label className="text-base font-semibold">Ativar Modo de Manutenção</Label>
+                    <Label className="text-base font-semibold">{t("admin.enable_maintenance")}</Label>
                     <p className="text-sm text-slate-500">
-                      O Super Admin continuará a ter acesso, mas as empresas verão uma página de manutenção.
+                      {t("admin.maintenance_notice")}
                     </p>
                   </div>
                   <Switch 
@@ -322,7 +323,7 @@ function AdminConfiguracoesPage() {
             ) : (
               <Save className="h-4 w-4" />
             )}
-            {updateMutation.isPending ? "A Guardar..." : "Guardar Configurações"}
+            {updateMutation.isPending ? t("admin.saving") : t("admin.save_settings")}
           </Button>
         </div>
       </form>

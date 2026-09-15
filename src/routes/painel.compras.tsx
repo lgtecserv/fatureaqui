@@ -7,12 +7,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { MT } from "@/lib/format";
 import { PurchaseModal } from "@/components/purchase-modal";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel/compras")({
   component: ComprasPage,
 });
 
 function ComprasPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -55,10 +57,10 @@ function ComprasPage() {
 
   const getStatusBadge = (status: string) => {
     switch(status) {
-      case 'draft': return <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">Rascunho</span>;
-      case 'sent': return <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-600">Enviada</span>;
-      case 'received': return <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">Recebida (Stock)</span>;
-      case 'cancelled': return <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-600">Cancelada</span>;
+      case 'draft': return <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">{t("purchases.status_draft")}</span>;
+      case 'sent': return <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-600">{t("purchases.status_sent")}</span>;
+      case 'received': return <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-600">{t("purchases.status_received")}</span>;
+      case 'cancelled': return <span className="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-semibold text-red-600">{t("purchases.status_cancelled")}</span>;
       default: return <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-600">{status}</span>;
     }
   };
@@ -66,14 +68,14 @@ function ComprasPage() {
   return (
     <>
       <Topbar
-        title="Notas de Encomenda"
-        subtitle="Gestão de compras a fornecedores e receção de mercadoria"
+        title={t("purchases.title")}
+        subtitle={t("purchases.subtitle")}
         actions={
           <button 
             onClick={() => setIsModalOpen(true)}
             className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
           >
-            <Plus className="h-4 w-4" /> Registar Compra
+            <Plus className="h-4 w-4" /> {t("purchases.new_purchase")}
           </button>
         }
       />
@@ -90,7 +92,7 @@ function ComprasPage() {
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por número ou fornecedor..."
+            placeholder={t("purchases.search")}
             className="h-11 w-full rounded-full border border-border bg-card pl-11 pr-4 text-sm shadow-soft focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
@@ -98,15 +100,15 @@ function ComprasPage() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="mb-4 h-8 w-8 animate-spin" />
-            <p>A carregar encomendas...</p>
+            <p>{t("purchases.loading")}</p>
           </div>
         ) : purchaseOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
             <ShoppingCart className="mb-4 h-10 w-10 opacity-20" />
-            <h3 className="text-lg font-semibold text-foreground">Sem Encomendas</h3>
-            <p className="mt-1 text-sm">Não há registo de compras a fornecedores.</p>
+            <h3 className="text-lg font-semibold text-foreground">{t("purchases.empty")}</h3>
+            <p className="mt-1 text-sm">{t("purchases.empty_desc")}</p>
             <button className="mt-4 inline-flex h-9 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95">
-              <Plus className="h-4 w-4" /> Registar Compra
+              <Plus className="h-4 w-4" /> {t("purchases.new_purchase")}
             </button>
           </div>
         ) : (
@@ -115,26 +117,26 @@ function ComprasPage() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-muted/50 text-muted-foreground font-medium border-b border-border">
                   <tr>
-                    <th className="px-6 py-4">Data / Número</th>
-                    <th className="px-6 py-4">Fornecedor</th>
-                    <th className="px-6 py-4">Armazém Destino</th>
-                    <th className="px-6 py-4">Estado</th>
-                    <th className="px-6 py-4 text-right">Total</th>
-                    <th className="px-6 py-4 text-right">Ações</th>
+                    <th className="px-6 py-4">{t("purchases.table_date_num")}</th>
+                    <th className="px-6 py-4">{t("purchases.table_supplier")}</th>
+                    <th className="px-6 py-4">{t("purchases.table_warehouse")}</th>
+                    <th className="px-6 py-4">{t("purchases.table_status")}</th>
+                    <th className="px-6 py-4 text-right">{t("purchases.table_total")}</th>
+                    <th className="px-6 py-4 text-right">{t("purchases.table_actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
                   {filteredOrders.map((po) => (
                     <tr key={po.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-semibold text-foreground">{po.order_number || "Sem nº"}</div>
+                        <div className="font-semibold text-foreground">{po.order_number || t("purchases.no_num")}</div>
                         <div className="text-xs text-muted-foreground mt-0.5">{new Date(po.order_date).toLocaleDateString()}</div>
                       </td>
                       <td className="px-6 py-4 font-medium">
-                        {po.suppliers?.name || "Fornecedor Removido"}
+                        {po.suppliers?.name || t("purchases.removed_supplier")}
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
-                        {po.warehouses?.name || "Não definido"}
+                        {po.warehouses?.name || t("purchases.no_warehouse")}
                       </td>
                       <td className="px-6 py-4">
                         {getStatusBadge(po.status)}

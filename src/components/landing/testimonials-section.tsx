@@ -1,23 +1,25 @@
 import { Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function TestimonialsSection() {
+  const { t } = useTranslation();
   const testimonials = [
     {
       name: "João Silva",
-      role: "Sócio-Gerente, JS Serviços",
-      content: "Desde que aderimos à Fature Aqui, a nossa gestão financeira transformou-se. A emissão de faturas é tão rápida que até parece mentira. E o melhor de tudo: estamos 100% legais com a AT.",
+      role: t("testimonials.items.1.role"),
+      content: t("testimonials.items.1.content"),
       rating: 5,
     },
     {
       name: "Ana Macamo",
-      role: "Freelancer",
-      content: "Excelente plataforma! Muito intuitiva e o facto de poder aceder pelo telemóvel e enviar o PDF direto para o cliente salvou-me imenso tempo. Recomendo vivamente a qualquer empreendedor.",
+      role: t("testimonials.items.2.role"),
+      content: t("testimonials.items.2.content"),
       rating: 5,
     },
     {
       name: "Carlos Tamele",
-      role: "Diretor Comercial, AutoMoc",
-      content: "O sistema de controlo de dívidas e os relatórios automáticos deram-nos uma visão clara do nosso negócio. O suporte técnico também é muito rápido e prestativo.",
+      role: t("testimonials.items.3.role"),
+      content: t("testimonials.items.3.content"),
       rating: 5,
     },
   ];
@@ -27,10 +29,10 @@ export function TestimonialsSection() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl">
-            O que os nossos clientes dizem
+            {t("testimonials.title")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Milhares de empresas em Moçambique confiam no Fature Aqui todos os dias.
+            {t("testimonials.subtitle")}
           </p>
         </div>
 

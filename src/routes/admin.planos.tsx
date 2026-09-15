@@ -5,15 +5,16 @@ import { Loader2, Save, CreditCard, Building2, Banknote } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/admin/planos")({
   component: AdminPlanosPage,
 });
 
 function AdminPlanosPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     pro_price: 499.00,
@@ -69,10 +70,10 @@ function AdminPlanosPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["system-settings"] });
-      toast.success("Configurações atualizadas com sucesso!");
+      toast.success(t("admin.update_success"));
     },
     onError: () => {
-      toast.error("Erro ao atualizar as configurações. Verifique as suas permissões.");
+      toast.error(t("admin.update_error"));
     }
   });
 
@@ -100,8 +101,8 @@ function AdminPlanosPage() {
   return (
     <div className="flex-1 p-4 sm:p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Planos & Subscrições</h1>
-        <p className="text-slate-500 mt-1">Configure o preço e os métodos de pagamento visíveis para as empresas.</p>
+        <h1 className="text-3xl font-bold text-slate-900">{t("admin.plans_title")}</h1>
+        <p className="text-slate-500 mt-1">{t("admin.plans_sub")}</p>
       </div>
       
       <form onSubmit={handleSubmit} className="grid gap-6 md:grid-cols-2">
@@ -110,14 +111,14 @@ function AdminPlanosPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <CreditCard className="h-5 w-5 text-primary" />
-                Regras do Plano Pro
+                {t("admin.pro_plan_rules")}
               </CardTitle>
-              <CardDescription>O valor base para utilização do sistema sem limites.</CardDescription>
+              <CardDescription>{t("admin.pro_plan_desc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="pro_price">Preço Mensal (MT)</Label>
+                  <Label htmlFor="pro_price">{t("admin.monthly_price")}</Label>
                   <Input 
                     id="pro_price" 
                     name="pro_price" 
@@ -127,7 +128,7 @@ function AdminPlanosPage() {
                     onChange={handleChange}
                     required
                   />
-                  <p className="text-xs text-muted-foreground">O cálculo automático do MRR usará este valor.</p>
+                  <p className="text-xs text-muted-foreground">{t("admin.mrr_calc_note")}</p>
                 </div>
               </div>
             </CardContent>
@@ -137,14 +138,14 @@ function AdminPlanosPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Banknote className="h-5 w-5 text-primary" />
-                Dados do M-Pesa
+                {t("admin.mpesa_data")}
               </CardTitle>
-              <CardDescription>Esta informação aparecerá na página de pagamento do cliente.</CardDescription>
+              <CardDescription>{t("admin.payment_info_desc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="mpesa_number">Número de Telemóvel (M-Pesa)</Label>
+                  <Label htmlFor="mpesa_number">{t("admin.mpesa_number")}</Label>
                   <Input 
                     id="mpesa_number" 
                     name="mpesa_number" 
@@ -154,7 +155,7 @@ function AdminPlanosPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="mpesa_name">Nome Titular (M-Pesa)</Label>
+                  <Label htmlFor="mpesa_name">{t("admin.mpesa_name")}</Label>
                   <Input 
                     id="mpesa_name" 
                     name="mpesa_name" 
@@ -171,14 +172,14 @@ function AdminPlanosPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Banknote className="h-5 w-5 text-red-600" />
-                Dados do e-Mola
+                {t("admin.emola_data")}
               </CardTitle>
-              <CardDescription>Esta informação aparecerá na página de pagamento do cliente.</CardDescription>
+              <CardDescription>{t("admin.payment_info_desc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="emola_number">Número de Telemóvel (e-Mola)</Label>
+                  <Label htmlFor="emola_number">{t("admin.emola_number")}</Label>
                   <Input 
                     id="emola_number" 
                     name="emola_number" 
@@ -188,7 +189,7 @@ function AdminPlanosPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="emola_name">Nome Titular (e-Mola)</Label>
+                  <Label htmlFor="emola_name">{t("admin.emola_name")}</Label>
                   <Input 
                     id="emola_name" 
                     name="emola_name" 
@@ -207,14 +208,14 @@ function AdminPlanosPage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-primary" />
-                Transferência Bancária
+                {t("admin.bank_transfer")}
               </CardTitle>
-              <CardDescription>Dados bancários para envio de comprovativos.</CardDescription>
+              <CardDescription>{t("admin.bank_data_desc")}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="bank_name">Nome do Banco</Label>
+                  <Label htmlFor="bank_name">{t("admin.bank_name")}</Label>
                   <Input 
                     id="bank_name" 
                     name="bank_name" 
@@ -224,7 +225,7 @@ function AdminPlanosPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="bank_account">Número da Conta</Label>
+                  <Label htmlFor="bank_account">{t("admin.bank_account")}</Label>
                   <Input 
                     id="bank_account" 
                     name="bank_account" 
@@ -234,7 +235,7 @@ function AdminPlanosPage() {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="bank_nib">NIB</Label>
+                  <Label htmlFor="bank_nib">{t("admin.bank_nib")}</Label>
                   <Input 
                     id="bank_nib" 
                     name="bank_nib" 
@@ -254,7 +255,7 @@ function AdminPlanosPage() {
               ) : (
                 <Save className="h-4 w-4" />
               )}
-              {updateMutation.isPending ? "A Guardar..." : "Guardar Configurações"}
+              {updateMutation.isPending ? t("admin.saving") : t("admin.save_settings")}
             </Button>
           </div>
         </div>

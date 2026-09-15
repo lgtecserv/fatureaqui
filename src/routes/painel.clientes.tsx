@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { ClientModal } from "@/components/client-modal";
 import { Edit, Trash2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel/clientes")({
   component: ClientesPage,
@@ -20,6 +21,7 @@ function initials(name: string) {
 }
 
 function ClientesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,25 +61,25 @@ function ClientesPage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Cliente apagado com sucesso.");
+      toast.success(t("clients.delete_success"));
       queryClient.invalidateQueries({ queryKey: ["clients"] });
     },
     onError: (err) => {
-      toast.error(`Erro ao apagar: ${err.message}`);
+      toast.error(`${t("clients.delete_error")} ${err.message}`);
     }
   });
 
   return (
     <>
       <Topbar
-        title="Clientes"
-        subtitle="Gestão de clientes e histórico de facturação"
+        title={t("clients.title")}
+        subtitle={t("clients.subtitle")}
         actions={
           <button 
             onClick={() => { setClientToEdit(null); setIsModalOpen(true); }}
             className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
           >
-            <Plus className="h-4 w-4" /> Novo cliente
+            <Plus className="h-4 w-4" /> {t("clients.new_client")}
           </button>
         }
       />
@@ -94,7 +96,7 @@ function ClientesPage() {
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
             type="search"
-            placeholder="Buscar por nome, NUIT ou contacto…"
+            placeholder={t("clients.search_placeholder")}
             className="h-11 w-full rounded-full border border-border bg-card pl-11 pr-4 text-sm shadow-soft focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
@@ -102,18 +104,18 @@ function ClientesPage() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="mb-4 h-8 w-8 animate-spin" />
-            <p>A carregar clientes...</p>
+            <p>{t("clients.loading")}</p>
           </div>
         ) : clients.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
             <Users className="mb-4 h-10 w-10 opacity-20" />
-            <h3 className="text-lg font-semibold text-foreground">Sem clientes</h3>
-            <p className="mt-1 text-sm">Não encontrou nenhum cliente. Comece por adicionar um.</p>
+            <h3 className="text-lg font-semibold text-foreground">{t("clients.no_clients")}</h3>
+            <p className="mt-1 text-sm">{t("clients.no_clients_desc")}</p>
             <button 
               onClick={() => setIsModalOpen(true)}
               className="mt-4 inline-flex h-9 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
             >
-              <Plus className="h-4 w-4" /> Adicionar Cliente
+              <Plus className="h-4 w-4" /> {t("clients.add_client")}
             </button>
           </div>
         ) : (
@@ -127,7 +129,7 @@ function ClientesPage() {
                   <button onClick={() => { setClientToEdit(c); setIsModalOpen(true); }} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md transition-colors" title="Editar">
                     <Edit className="h-4 w-4" />
                   </button>
-                  <button onClick={() => { if(window.confirm("Tem a certeza que deseja apagar este cliente?")) deleteClient.mutate(c.id); }} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Apagar">
+                  <button onClick={() => { if(window.confirm(t("clients.delete_confirm"))) deleteClient.mutate(c.id); }} className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Apagar">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
@@ -157,14 +159,14 @@ function ClientesPage() {
                 <div className="mt-4 flex items-end justify-between border-t border-border pt-3">
                   <div>
                     <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Total facturado
+                      {t("clients.total_invoiced")}
                     </div>
                     <div className="mt-0.5 text-lg font-extrabold tabular text-foreground">
                       {MT(c.total_invoiced || 0)}
                     </div>
                   </div>
                   <button className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                    Ver
+                    {t("clients.view")}
                   </button>
                 </div>
               </div>

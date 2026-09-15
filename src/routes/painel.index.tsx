@@ -26,8 +26,10 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
 import type { Document } from "@/types";
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
+import { WhatsappBanner } from "@/components/whatsapp-banner";
 
 export const Route = createFileRoute("/painel/")({
   component: DashboardPage,
@@ -44,6 +46,7 @@ function statusStyle(s: string) {
 }
 
 function DashboardPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -95,10 +98,10 @@ function DashboardPage() {
     .reduce((sum, d) => sum + (d.total || 0), 0);
 
   const kpis = [
-    { label: "Facturação do mês", value: MT(facturacaoMes), delta: 0, positive: true, icon: Wallet },
-    { label: "Facturas emitidas", value: num(faturasEmitidas), delta: 0, positive: true, icon: FileText },
-    { label: "Clientes activos", value: num(uniqueClients), delta: 0, positive: true, icon: Users },
-    { label: "Em dívida", value: MT(emDivida), delta: 0, positive: false, icon: CircleDot },
+    { label: t("dashboard.sales_month"), value: MT(facturacaoMes), delta: 0, positive: true, icon: Wallet },
+    { label: t("dashboard.invoices_issued"), value: num(faturasEmitidas), delta: 0, positive: true, icon: FileText },
+    { label: t("dashboard.active_clients"), value: num(uniqueClients), delta: 0, positive: true, icon: Users },
+    { label: t("dashboard.debt"), value: MT(emDivida), delta: 0, positive: false, icon: CircleDot },
   ];
 
   const recentInvoices = documents.slice(0, 5);
@@ -122,31 +125,32 @@ function DashboardPage() {
   return (
     <>
       <Topbar
-        title="Dashboard"
-        subtitle="Aqui está o resumo do seu negócio hoje"
+        title={t("dashboard.title")}
+        subtitle={t("dashboard.subtitle")}
         actions={
           <Link
             to="/painel/facturacao/nova"
             className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
           >
-            <Plus className="h-4 w-4" /> Nova factura
+            <Plus className="h-4 w-4" /> {t("dashboard.new_invoice")}
           </Link>
         }
       />
 
       <div className="mx-auto w-full max-w-7xl space-y-6 p-4 sm:p-6">
+        <WhatsappBanner />
         <OnboardingChecklist />
 
         {/* Banda superior estilo Mozeconomia */}
         <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-soft">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-            <ShieldCheck className="h-3.5 w-3.5" /> Certificado pela AT
+            <ShieldCheck className="h-3.5 w-3.5" /> {t("dashboard.certified")}
           </span>
           <span className="inline-flex items-center gap-1.5 rounded-full bg-primary-soft px-3 py-1 text-xs font-semibold text-primary-soft-foreground">
-            ERP 100% Online
+            {t("dashboard.online")}
           </span>
           <span className="ml-auto text-xs text-muted-foreground">
-            Último envio à AT: hoje às 09:14
+            {t("dashboard.last_sent")} 09:14
           </span>
         </div>
 
@@ -179,7 +183,7 @@ function DashboardPage() {
                     {k.positive ? "+" : "-"}
                     {k.delta}%
                   </span>
-                  <span className="text-muted-foreground">vs mês anterior</span>
+                  <span className="text-muted-foreground">{t("dashboard.vs_last_month")}</span>
                 </div>
               )}
             </div>
@@ -191,14 +195,14 @@ function DashboardPage() {
         <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h3 className="text-base font-bold text-foreground">Vendas do ano</h3>
-                <p className="text-xs text-muted-foreground">Facturação mensal em milhares de MT</p>
+                <h3 className="text-base font-bold text-foreground">{t("dashboard.sales_year")}</h3>
+                <p className="text-xs text-muted-foreground">{t("dashboard.sales_year_sub")}</p>
               </div>
               <div className="flex gap-1 rounded-full bg-muted p-1 text-xs font-semibold">
-                <button className="rounded-full px-3 py-1 text-muted-foreground">Semana</button>
-                <button className="rounded-full px-3 py-1 text-muted-foreground">Mês</button>
+                <button className="rounded-full px-3 py-1 text-muted-foreground">{t("dashboard.week")}</button>
+                <button className="rounded-full px-3 py-1 text-muted-foreground">{t("dashboard.month")}</button>
                 <button className="rounded-full bg-card px-3 py-1 text-foreground shadow-soft">
-                  Ano
+                  {t("dashboard.year")}
                 </button>
               </div>
             </div>
@@ -249,21 +253,21 @@ function DashboardPage() {
         <div className="rounded-2xl border border-border bg-card shadow-soft">
           <div className="flex items-center justify-between border-b border-border p-5">
             <div>
-              <h3 className="text-base font-bold text-foreground">Últimas facturas</h3>
-              <p className="text-xs text-muted-foreground">Movimento das últimas 24 horas</p>
+              <h3 className="text-base font-bold text-foreground">{t("dashboard.latest_invoices")}</h3>
+              <p className="text-xs text-muted-foreground">{t("dashboard.latest_invoices_sub")}</p>
             </div>
             <button className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">
-              Ver tudo <ArrowUpRight className="h-3.5 w-3.5" />
+              {t("dashboard.see_all")} <ArrowUpRight className="h-3.5 w-3.5" />
             </button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  <th className="px-5 py-3">Nº Factura</th>
-                  <th className="px-5 py-3">Cliente</th>
-                  <th className="px-5 py-3 text-right">Valor</th>
-                  <th className="px-5 py-3">Estado</th>
+                  <th className="px-5 py-3">{t("dashboard.invoice_no")}</th>
+                  <th className="px-5 py-3">{t("dashboard.client")}</th>
+                  <th className="px-5 py-3 text-right">{t("dashboard.value")}</th>
+                  <th className="px-5 py-3">{t("dashboard.status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -272,14 +276,14 @@ function DashboardPage() {
                     <td colSpan={4} className="px-5 py-8 text-center text-muted-foreground">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        <span>A carregar faturas...</span>
+                        <span>{t("dashboard.loading")}</span>
                       </div>
                     </td>
                   </tr>
                 ) : recentInvoices.length === 0 ? (
                   <tr>
                     <td colSpan={4} className="px-5 py-8 text-center text-muted-foreground">
-                      Nenhum documento encontrado.
+                      {t("dashboard.no_docs")}
                     </td>
                   </tr>
                 ) : (

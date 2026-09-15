@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AuthProvider } from "@/hooks/use-auth";
+import "@/lib/i18n";
+import { useTranslation } from "react-i18next";
 
 function NotFoundComponent() {
   return (
@@ -82,17 +84,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { httpEquiv: "Content-Security-Policy", content: "default-src 'self' https: wss:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https:; connect-src 'self' https: wss:;" },
-      { title: "FatureAqui — Software de Faturação Moçambique | Emitir Faturas Online" },
+      { title: "FatureAqui — Sistema de Faturação Empresarial Moçambique | Emitir VD, Recibos e Guias" },
       {
         name: "description",
-        content: "O melhor software de faturação online em Moçambique, certificado pela AT. Emita faturas em segundos, com plano grátis e pagamentos M-Pesa integrados.",
+        content: "Sistema de faturação empresarial completo, online e barato em Moçambique, certificado pela AT. Emita Vendas a Dinheiro (VD), Faturas, Recibos e Guias de Remessa em segundos de forma simples e rápida.",
       },
-      { name: "keywords", content: "Software de faturação Moçambique, Emitir faturas online, Sistema de faturação M-Pesa, Faturas grátis Moçambique, Software certificado AT Moçambique, Gestão de negócios Moçambique" },
+      { name: "keywords", content: "Sistema de faturacao, vd, Venda a dinheiro, recibos, guias de remessa, sistema empresarial, sistemas de faturacao gratuitas, Notas de credito, Faturacao online, Mocambique, Faturas baratas, software de faturação, faturar online, software certificado AT" },
       { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
-      { property: "og:title", content: "FatureAqui — Software de Faturação Moçambique" },
+      { property: "og:title", content: "FatureAqui — Sistema Empresarial de Faturação em Moçambique" },
       {
         property: "og:description",
-        content: "Emita faturas em segundos com o sistema mais fácil de Moçambique. Certificado pela AT, integração M-Pesa e plano gratuito disponível.",
+        content: "Emita Vendas a Dinheiro (VD), Faturas, Recibos e Guias de Remessa rapidamente. Teste grátis o sistema de faturação mais acessível de Moçambique, certificado pela AT.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://fatureaqui.com" },
@@ -110,6 +112,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "manifest", href: "/manifest.json" },
       { rel: "stylesheet", href: appCss },
+      { rel: "icon", href: "/favicon.png", type: "image/png" },
       { rel: "icon", href: "/favicon.png", type: "image/png", sizes: "192x192" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -141,9 +144,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "@type": "Offer",
             "price": "0",
             "priceCurrency": "MZN",
-            "description": "Plano gratuito até 300 documentos por mês"
+            "description": "Comece grátis, planos acessíveis para pequenas e médias empresas"
           },
-          "description": "Software de faturação online em Moçambique, certificado pela Autoridade Tributária (AT). Permite a gestão de negócios, emissão de faturas e recibos em segundos, e inclui integração nativa com pagamentos M-Pesa.",
+          "featureList": [
+            "Emissão de Vendas a Dinheiro (VD)",
+            "Emissão de Faturas e Recibos",
+            "Guias de Remessa e Transporte",
+            "Notas de Crédito e Débito",
+            "Certificado pela AT Moçambique",
+            "Integração com M-Pesa"
+          ],
+          "description": "O FatureAqui é o sistema empresarial de faturação mais acessível de Moçambique. Ideal para quem procura desde sistemas de faturação gratuitas até soluções profissionais. Permite emitir VD (Vendas a Dinheiro), faturas, recibos, guias de remessa e notas de crédito com certificação da Autoridade Tributária (AT).",
           "url": "https://fatureaqui.com",
           "publisher": {
             "@type": "Organization",
@@ -172,22 +183,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-MZ">
+    <html lang="pt" suppressHydrationWarning>
       <head>
         <HeadContent />
         {/* Google Analytics Placeholder */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+        {/* <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
         <script dangerouslySetInnerHTML={{
-          __html: `
+          __html: \`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
             gtag('config', 'G-XXXXXXXXXX');
-          `
-        }} />
+          \`
+        }} /> */}
         {/* Meta Pixel Placeholder */}
-        <script dangerouslySetInnerHTML={{
-          __html: `
+        {/* <script dangerouslySetInnerHTML={{
+          __html: \`
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
             n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -198,8 +209,8 @@ function RootShell({ children }: { children: ReactNode }) {
             'https://connect.facebook.net/en_US/fbevents.js');
             fbq('init', 'XXXXXXXXXXXXXXXX');
             fbq('track', 'PageView');
-          `
-        }} />
+          \`
+        }} /> */}
       </head>
       <body>
         {children}

@@ -3,12 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, CreditCard, UserPlus, Activity, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminDashboardPage,
 });
 
 function AdminDashboardPage() {
+  const { t } = useTranslation();
   const { data: metrics, isLoading } = useQuery({
     queryKey: ["admin-metrics"],
     queryFn: async () => {
@@ -44,7 +46,7 @@ function AdminDashboardPage() {
         totalCompanies: totalCompanies || 0,
         newCompanies: newCompanies || 0,
         mrr,
-        systemStatus: error ? "Degradado" : "Operacional"
+        systemStatus: error ? "degraded" : "operational"
       };
     },
     refetchInterval: 30000, // Refresh every 30 seconds
@@ -53,8 +55,8 @@ function AdminDashboardPage() {
   return (
     <div className="flex-1 p-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">Visão Geral</h1>
-        <p className="text-slate-500 mt-1">Métricas em tempo real do ecossistema FatureAqui.</p>
+        <h1 className="text-3xl font-bold text-slate-900">{t("admin.overview")}</h1>
+        <p className="text-slate-500 mt-1">{t("admin.overview_sub")}</p>
       </div>
 
       {isLoading ? (
@@ -65,49 +67,49 @@ function AdminDashboardPage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">MRR Total</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.mrr")}</CardTitle>
               <CreditCard className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">
                 {new Intl.NumberFormat("pt-MZ", { style: "currency", currency: "MZN" }).format(metrics?.mrr || 0)}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Assinaturas Pro: {(metrics?.mrr || 0) / 499}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("admin.pro_subs")} {(metrics?.mrr || 0) / 499}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Empresas Ativas</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.active_companies")}</CardTitle>
               <Building2 className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">{metrics?.totalCompanies || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">Registadas no sistema</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("admin.registered")}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Novos Registos (Mês)</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.new_regs")}</CardTitle>
               <UserPlus className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-slate-900">{metrics?.newCompanies || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">Desde o início do mês</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("admin.since_month_start")}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Status do Sistema</CardTitle>
-              <Activity className={metrics?.systemStatus === "Operacional" ? "h-4 w-4 text-emerald-500" : "h-4 w-4 text-red-500"} />
+              <CardTitle className="text-sm font-medium text-muted-foreground">{t("admin.sys_status")}</CardTitle>
+              <Activity className={metrics?.systemStatus === "operational" ? "h-4 w-4 text-emerald-500" : "h-4 w-4 text-red-500"} />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${metrics?.systemStatus === "Operacional" ? "text-emerald-600" : "text-red-600"}`}>
-                {metrics?.systemStatus}
+              <div className={`text-2xl font-bold ${metrics?.systemStatus === "operational" ? "text-emerald-600" : "text-red-600"}`}>
+                {metrics?.systemStatus === "operational" ? t("admin.operational") : t("admin.degraded")}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">Conexão à Base de Dados</p>
+              <p className="text-xs text-muted-foreground mt-1">{t("admin.db_conn")}</p>
             </CardContent>
           </Card>
         </div>

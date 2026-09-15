@@ -7,7 +7,8 @@ import { Loader2, Plus, MessageSquare, Clock, CheckCircle2, Paperclip, Send, Arr
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { pt } from "date-fns/locale";
+import { pt, enUS } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel/suporte")({
   component: PainelSuportePage,
@@ -29,6 +30,8 @@ type Message = {
 };
 
 function PainelSuportePage() {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'pt' ? pt : enUS;
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
@@ -76,7 +79,7 @@ function PainelSuportePage() {
 
   const createTicketMutation = useMutation({
     mutationFn: async () => {
-      if (!newSubject.trim() || !newMessage.trim()) throw new Error("Assunto e mensagem são obrigatórios.");
+      if (!newSubject.trim() || !newMessage.trim()) throw new Error(t("support.msg_req_fields"));
 
       // 1. Create ticket
       const { data: ticketData, error: ticketError } = await supabase
@@ -105,10 +108,10 @@ function PainelSuportePage() {
       setNewSubject("");
       setNewMessage("");
       setActiveTicket(data);
-      toast.success("Ticket criado com sucesso! O suporte responderá em breve.");
+      toast.success(t("support.msg_success"));
     },
     onError: (e: any) => {
-      toast.error(e.message || "Erro ao criar ticket.");
+      toast.error(e.message || t("support.msg_error"));
     }
   });
 
@@ -134,7 +137,7 @@ function PainelSuportePage() {
       queryClient.invalidateQueries({ queryKey: ["my-tickets"] });
       setNewMessage("");
     },
-    onError: () => toast.error("Erro ao enviar mensagem.")
+    onError: () => toast.error(t("support.msg_send_error"))
   });
 
   const handleReplySubmit = (e: React.FormEvent) => {
@@ -145,16 +148,16 @@ function PainelSuportePage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'aberto': return <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10"><Clock className="h-3 w-3"/> Aberto</span>;
-      case 'em_progresso': return <span className="inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2 py-1 text-xs font-semibold text-yellow-800 ring-1 ring-inset ring-yellow-600/20"><MessageSquare className="h-3 w-3"/> Em Resolução</span>;
-      case 'fechado': return <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><CheckCircle2 className="h-3 w-3"/> Resolvido</span>;
+      case 'aberto': return <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10"><Clock className="h-3 w-3"/> {t("support.status_open")}</span>;
+      case 'em_progresso': return <span className="inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2 py-1 text-xs font-semibold text-yellow-800 ring-1 ring-inset ring-yellow-600/20"><MessageSquare className="h-3 w-3"/> {t("support.status_progress")}</span>;
+      case 'fechado': return <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><CheckCircle2 className="h-3 w-3"/> {t("support.status_closed")}</span>;
       default: return null;
     }
   };
 
   return (
     <>
-      <Topbar title="Suporte" subtitle="Precisa de ajuda? Fale com a nossa equipa." />
+      <Topbar title={t("support.title")} subtitle={t("support.subtitle")} />
 
       <div className="mx-auto w-full max-w-5xl p-4 sm:p-6 h-[calc(100vh-80px)] flex flex-col">
         {/* CREATE TICKET VIEW */}
@@ -164,27 +167,27 @@ function PainelSuportePage() {
               onClick={() => setIsCreating(false)} 
               className="mb-6 flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors"
             >
-              <ArrowLeft className="h-4 w-4" /> Voltar
+              <ArrowLeft className="h-4 w-4" /> {t("support.back")}
             </button>
-            <h2 className="text-xl font-bold text-slate-900 mb-6">Abrir Novo Ticket de Suporte</h2>
+            <h2 className="text-xl font-bold text-slate-900 mb-6">{t("support.new_ticket_title")}</h2>
             
             <div className="space-y-4 max-w-2xl">
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Assunto</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700">{t("support.subject")}</label>
                 <input 
                   type="text" 
                   value={newSubject}
                   onChange={(e) => setNewSubject(e.target.value)}
-                  placeholder="Ex: Erro ao emitir fatura"
+                  placeholder={t("support.subject_ph")}
                   className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3.5 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
               <div>
-                <label className="mb-1.5 block text-sm font-semibold text-slate-700">Descreva o seu problema detalhadamente</label>
+                <label className="mb-1.5 block text-sm font-semibold text-slate-700">{t("support.desc")}</label>
                 <textarea 
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Olá, estou a tentar emitir um documento mas..."
+                  placeholder={t("support.desc_ph")}
                   className="min-h-[150px] w-full resize-y rounded-xl border border-slate-200 bg-white p-3.5 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                 />
               </div>
@@ -196,7 +199,7 @@ function PainelSuportePage() {
                   className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
                 >
                   {createTicketMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  Enviar Pedido
+                  {t("support.send_request")}
                 </button>
               </div>
             </div>
@@ -218,7 +221,7 @@ function PainelSuportePage() {
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">{activeTicket.subject}</h2>
                   <div className="mt-1 flex items-center gap-2 text-xs text-slate-500">
-                    <span>Aberto a {format(new Date(activeTicket.created_at), "dd 'de' MMMM", { locale: pt })}</span>
+                    <span>{t("support.opened_at")} {format(new Date(activeTicket.created_at), "dd 'de' MMMM", { locale: dateLocale })}</span>
                     <span>•</span>
                     {getStatusBadge(activeTicket.status)}
                   </div>
@@ -244,7 +247,7 @@ function PainelSuportePage() {
                           ? 'bg-primary text-primary-foreground rounded-tr-none' 
                           : 'bg-white border border-slate-200 text-slate-900 shadow-sm rounded-tl-none'
                       }`}>
-                        {!isMe && <div className="text-xs font-bold text-primary mb-1">Equipa de Suporte</div>}
+                        {!isMe && <div className="text-xs font-bold text-primary mb-1">{t("support.support_team")}</div>}
                         <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.message}</p>
                         <div className={`mt-2 text-[10px] font-medium ${isMe ? 'text-primary-foreground/70' : 'text-slate-400'}`}>
                           {format(new Date(msg.created_at), "HH:mm")}
@@ -262,7 +265,7 @@ function PainelSuportePage() {
                   type="text" 
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Escreva a sua mensagem..."
+                  placeholder={t("support.type_message")}
                   className="h-11 flex-1 rounded-full border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
                 />
                 <button 
@@ -279,12 +282,12 @@ function PainelSuportePage() {
           /* TICKETS LIST VIEW */
           <div className="flex-1 flex flex-col">
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-900">Os meus pedidos</h2>
+              <h2 className="text-lg font-bold text-slate-900">{t("support.my_requests")}</h2>
               <button 
                 onClick={() => setIsCreating(true)}
                 className="inline-flex h-9 items-center justify-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90"
               >
-                <Plus className="h-4 w-4" /> Novo Ticket
+                <Plus className="h-4 w-4" /> {t("support.new_ticket")}
               </button>
             </div>
 
@@ -298,9 +301,9 @@ function PainelSuportePage() {
                   <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-slate-400">
                     <MessageSquare className="h-6 w-6" />
                   </div>
-                  <h3 className="text-base font-bold text-slate-900">Nenhum ticket de suporte</h3>
+                  <h3 className="text-base font-bold text-slate-900">{t("support.no_tickets")}</h3>
                   <p className="mt-1 max-w-sm text-sm text-slate-500">
-                    Ainda não abriu nenhum pedido de ajuda. Se tiver alguma dúvida ou encontrar um problema, estamos aqui para ajudar.
+                    {t("support.no_tickets_desc")}
                   </p>
                 </div>
               ) : (
@@ -314,7 +317,7 @@ function PainelSuportePage() {
                       <div className="min-w-0 pr-4">
                         <h4 className="truncate text-sm font-bold text-slate-900">{ticket.subject}</h4>
                         <p className="mt-1 text-xs text-slate-500">
-                          Atualizado a {format(new Date(ticket.created_at), "dd MMM yyyy", { locale: pt })}
+                          {t("support.updated_at")} {format(new Date(ticket.created_at), "dd MMM yyyy", { locale: dateLocale })}
                         </p>
                       </div>
                       <div className="shrink-0">

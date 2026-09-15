@@ -1,35 +1,37 @@
 import { ShieldCheck, Zap, BarChart3, Cloud } from "lucide-react";
 import FlameWrap from "@/components/ui/flame-wrap";
+import { useTranslation } from "react-i18next";
 
 export function FeaturesSection() {
+  const { t } = useTranslation();
   const features = [
     {
-      title: "Certificação AT",
-      description: "Cumprimento rigoroso das normas fiscais da Autoridade Tributária de Moçambique. O seu negócio está sempre legal.",
+      title: t("features.items.at.title"),
+      description: t("features.items.at.desc"),
       icon: ShieldCheck,
       color: "text-emerald-600",
       bg: "bg-emerald-100",
       flameColor: [0.05, 0.65, 0.4] as [number, number, number],
     },
     {
-      title: "Emissão em Segundos",
-      description: "Crie faturas, recibos e guias ultra-rápidas. Pare de perder horas em folhas de cálculo do Excel.",
+      title: t("features.items.speed.title"),
+      description: t("features.items.speed.desc"),
       icon: Zap,
       color: "text-amber-600",
       bg: "bg-amber-100",
       flameColor: [0.95, 0.5, 0.1] as [number, number, number],
     },
     {
-      title: "Controlo Total",
-      description: "Dashboard inteligente com relatórios automáticos. Saiba sempre quem lhe deve e qual é a saúde da sua empresa.",
+      title: t("features.items.control.title"),
+      description: t("features.items.control.desc"),
       icon: BarChart3,
       color: "text-blue-600",
       bg: "bg-blue-100",
       flameColor: [0.1, 0.4, 0.9] as [number, number, number],
     },
     {
-      title: "100% Cloud e Seguro",
-      description: "Aceda de qualquer lugar, no computador ou no telemóvel. Os seus dados são guardados em segurança absoluta.",
+      title: t("features.items.cloud.title"),
+      description: t("features.items.cloud.desc"),
       icon: Cloud,
       color: "text-indigo-600",
       bg: "bg-indigo-100",
@@ -42,10 +44,10 @@ export function FeaturesSection() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="text-center max-w-3xl mx-auto">
           <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl">
-            Tudo o que precisa para gerir o seu negócio.
+            {t("features.title")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            A Fature Aqui oferece as ferramentas essenciais para simplificar a sua faturação, poupar tempo e focar-se no crescimento da sua empresa.
+            {t("features.subtitle")}
           </p>
         </div>
 

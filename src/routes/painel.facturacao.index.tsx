@@ -7,21 +7,15 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
 import type { Document } from "@/types";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel/facturacao/")({
   component: FacturacaoPage,
 });
 
-const DOCUMENT_TYPES = [
-  { id: "all", label: "Todos" },
-  { id: "VD", label: "Venda a Dinheiro" },
-  { id: "FT", label: "Fatura" },
-  { id: "RC", label: "Recibo" },
-  { id: "NC", label: "Nota de Crédito" },
-  { id: "ND", label: "Nota de Débito" },
-  { id: "CT", label: "Cotação" },
-  { id: "GR", label: "Guia de Remessa" },
-] as const;
+// Types have to be translated inside the component to use the hook
+// So we define the IDs here and generate the array inside
+const DOCUMENT_TYPE_IDS = ["all", "VD", "FT", "RC", "NC", "ND", "CT", "GR"] as const;
 
 
 
@@ -47,8 +41,20 @@ function typeBadgeColor(t: string) {
 }
 
 function FacturacaoPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [activeType, setActiveType] = useState("all");
+
+  const DOCUMENT_TYPES = [
+    { id: "all", label: t("invoicing.types.all") },
+    { id: "VD", label: t("invoicing.types.vd") },
+    { id: "FT", label: t("invoicing.types.ft") },
+    { id: "RC", label: t("invoicing.types.rc") },
+    { id: "NC", label: t("invoicing.types.nc") },
+    { id: "ND", label: t("invoicing.types.nd") },
+    { id: "CT", label: t("invoicing.types.ct") },
+    { id: "GR", label: t("invoicing.types.gr") },
+  ];
 
   const { data: documents = [], isLoading } = useQuery({
     queryKey: ["documents", user?.id],
@@ -111,14 +117,14 @@ function FacturacaoPage() {
   return (
     <>
       <Topbar
-        title="Documentos"
-        subtitle="Emita e faça a gestão das suas facturas e recibos"
+        title={t("invoicing.title")}
+        subtitle={t("invoicing.subtitle")}
         actions={
           <Link
             to="/painel/facturacao/nova"
             className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
           >
-            <Plus className="h-4 w-4" /> Nova factura
+            <Plus className="h-4 w-4" /> {t("invoicing.new_invoice")}
           </Link>
         }
       />
@@ -126,10 +132,10 @@ function FacturacaoPage() {
       <div className="mx-auto w-full max-w-7xl space-y-5 p-4 sm:p-6">
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           {[
-            { l: "Facturado hoje", v: MT(facturadoHoje) },
-            { l: "Facturado mês", v: MT(facturadoMes) },
-            { l: "Pendente", v: MT(pendente) },
-            { l: "Anulado mês", v: MT(anuladoMes) },
+            { l: t("invoicing.today"), v: MT(facturadoHoje) },
+            { l: t("invoicing.month"), v: MT(facturadoMes) },
+            { l: t("invoicing.pending"), v: MT(pendente) },
+            { l: t("invoicing.canceled"), v: MT(anuladoMes) },
           ].map((s) => (
             <div key={s.l} className="rounded-2xl border border-border bg-card p-4 shadow-soft">
               <div className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
@@ -148,7 +154,7 @@ function FacturacaoPage() {
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 type="search"
-                placeholder="Buscar por número, cliente ou NUIT…"
+                placeholder={t("invoicing.search")}
                 className="h-10 w-full rounded-full border border-border bg-background pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
             </div>
@@ -168,10 +174,10 @@ function FacturacaoPage() {
               ))}
             </div>
             <button className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-foreground hover:border-primary/40">
-              <Filter className="h-3.5 w-3.5" /> Filtros
+              <Filter className="h-3.5 w-3.5" /> {t("invoicing.filters")}
             </button>
             <button className="inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-foreground hover:border-primary/40">
-              <Download className="h-3.5 w-3.5" /> Exportar
+              <Download className="h-3.5 w-3.5" /> {t("invoicing.export")}
             </button>
           </div>
 
@@ -179,13 +185,13 @@ function FacturacaoPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  <th className="px-5 py-3">Nº</th>
-                  <th className="px-5 py-3">Tipo</th>
-                  <th className="px-5 py-3">Cliente</th>
-                  <th className="px-5 py-3">NUIT</th>
-                  <th className="px-5 py-3">Data</th>
-                  <th className="px-5 py-3 text-right">Total</th>
-                  <th className="px-5 py-3">Estado</th>
+                  <th className="px-5 py-3">{t("invoicing.table.num")}</th>
+                  <th className="px-5 py-3">{t("invoicing.table.type")}</th>
+                  <th className="px-5 py-3">{t("invoicing.table.client")}</th>
+                  <th className="px-5 py-3">{t("invoicing.table.nuit")}</th>
+                  <th className="px-5 py-3">{t("invoicing.table.date")}</th>
+                  <th className="px-5 py-3 text-right">{t("invoicing.table.total")}</th>
+                  <th className="px-5 py-3">{t("invoicing.table.status")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -194,14 +200,14 @@ function FacturacaoPage() {
                     <td colSpan={7} className="px-5 py-8 text-center text-muted-foreground">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 className="h-5 w-5 animate-spin" />
-                        <span>A carregar documentos...</span>
+                        <span>{t("invoicing.loading")}</span>
                       </div>
                     </td>
                   </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-5 py-8 text-center text-muted-foreground">
-                      Nenhum documento encontrado.
+                      {t("invoicing.empty")}
                     </td>
                   </tr>
                 ) : (
@@ -243,13 +249,13 @@ function FacturacaoPage() {
           </div>
 
           <div className="flex items-center justify-between border-t border-border p-4 text-xs text-muted-foreground">
-            <span>A mostrar {filtered.length} de {documents.length} documentos</span>
+            <span>{t("invoicing.showing", { count: filtered.length, total: documents.length })}</span>
             <div className="flex gap-1">
               <button className="rounded-lg border border-border px-3 py-1.5 font-semibold hover:border-primary/40 disabled:opacity-50">
-                Anterior
+                {t("invoicing.prev")}
               </button>
               <button className="rounded-lg bg-primary px-3 py-1.5 font-semibold text-primary-foreground disabled:opacity-50">
-                Seguinte
+                {t("invoicing.next")}
               </button>
             </div>
           </div>

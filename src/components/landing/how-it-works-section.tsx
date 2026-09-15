@@ -1,23 +1,25 @@
 import { UserPlus, Settings, FileText } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function HowItWorksSection() {
+  const { t } = useTranslation();
   const steps = [
     {
       num: "01",
-      title: "Crie a sua conta",
-      desc: "Registo gratuito e sem compromisso em menos de 1 minuto.",
+      title: t("how_it_works.steps.1.title"),
+      desc: t("how_it_works.steps.1.desc"),
       icon: UserPlus,
     },
     {
       num: "02",
-      title: "Configure os dados",
-      desc: "Insira os dados da sua empresa, adicione o logótipo e os seus primeiros clientes.",
+      title: t("how_it_works.steps.2.title"),
+      desc: t("how_it_works.steps.2.desc"),
       icon: Settings,
     },
     {
       num: "03",
-      title: "Comece a faturar",
-      desc: "Gere faturas profissionais em PDF prontas a enviar para os seus clientes.",
+      title: t("how_it_works.steps.3.title"),
+      desc: t("how_it_works.steps.3.desc"),
       icon: FileText,
     },
   ];
@@ -27,10 +29,10 @@ export function HowItWorksSection() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl">
-            Simples do início ao fim
+            {t("how_it_works.title")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Desenhámos a Fature Aqui para ser a plataforma mais intuitiva do mercado. Em 3 passos você está pronto para faturar.
+            {t("how_it_works.subtitle")}
           </p>
         </div>
 

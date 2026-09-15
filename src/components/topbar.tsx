@@ -1,6 +1,8 @@
 import { Search, HelpCircle } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { NotificationsMenu } from "./notifications-menu";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "./language-switcher";
 
 interface TopbarProps {
   title: string;
@@ -9,6 +11,8 @@ interface TopbarProps {
 }
 
 export function Topbar({ title, subtitle, actions }: TopbarProps) {
+  const { t } = useTranslation();
+
   return (
     <header className="sticky top-0 z-20 border-b border-border bg-background/80 backdrop-blur-md">
       <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
@@ -37,6 +41,9 @@ export function Topbar({ title, subtitle, actions }: TopbarProps) {
           </button>
           
           <NotificationsMenu />
+        </div>
+        <div className="flex items-center">
+          <LanguageSwitcher />
         </div>
 
         {actions && <div className="flex items-center gap-2">{actions}</div>}

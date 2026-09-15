@@ -5,6 +5,7 @@ import { Loader2, Activity, Building2, CreditCard, Settings2, CalendarDays, Sear
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/admin/logs")({
   component: AdminLogsPage,
@@ -19,6 +20,7 @@ type SystemLog = {
 };
 
 function AdminLogsPage() {
+  const { t } = useTranslation();
   const [filterType, setFilterType] = useState<string>("all");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -52,12 +54,12 @@ function AdminLogsPage() {
 
   const getLogTitle = (eventType: string) => {
     switch (eventType) {
-      case 'company_registered': return "Nova Empresa";
-      case 'subscription_requested': return "Pedido de Subscrição";
-      case 'subscription_approved': return "Subscrição Aprovada";
-      case 'subscription_cancelled': return "Subscrição Expirada";
-      case 'settings_updated': return "Configurações Alteradas";
-      default: return "Evento de Sistema";
+      case 'company_registered': return t("admin.event_new_company");
+      case 'subscription_requested': return t("admin.event_sub_req");
+      case 'subscription_approved': return t("admin.event_sub_appr");
+      case 'subscription_cancelled': return t("admin.event_sub_canc");
+      case 'settings_updated': return t("admin.event_settings");
+      default: return t("admin.event_system");
     }
   };
 
@@ -71,8 +73,8 @@ function AdminLogsPage() {
     <div className="flex-1 p-4 sm:p-8 h-[100dvh] flex flex-col overflow-hidden">
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Histórico de Atividade</h1>
-          <p className="text-slate-500 mt-1">Registo de auditoria e logs do sistema global (Gerado Automaticamente).</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t("admin.logs_title")}</h1>
+          <p className="text-slate-500 mt-1">{t("admin.logs_sub")}</p>
         </div>
       </div>
       
@@ -85,25 +87,25 @@ function AdminLogsPage() {
               onClick={() => setFilterType("all")}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${filterType === 'all' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
             >
-              Todos
+              {t("admin.filter_all")}
             </button>
             <button 
               onClick={() => setFilterType("company")}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${filterType === 'company' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
             >
-              Adesões
+              {t("admin.filter_companies")}
             </button>
             <button 
               onClick={() => setFilterType("subscription")}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${filterType === 'subscription' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
             >
-              Subscrições
+              {t("admin.filter_subscriptions")}
             </button>
             <button 
               onClick={() => setFilterType("settings")}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${filterType === 'settings' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'}`}
             >
-              Configurações
+              {t("admin.filter_settings")}
             </button>
           </div>
 
@@ -111,7 +113,7 @@ function AdminLogsPage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input 
               type="text"
-              placeholder="Pesquisar nos logs..." 
+              placeholder={t("admin.search_logs")} 
               className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -130,9 +132,9 @@ function AdminLogsPage() {
               <div className="mb-4 grid h-16 w-16 place-items-center rounded-full bg-slate-100 text-slate-400">
                 <Filter className="h-8 w-8" />
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Sem registos</h3>
+              <h3 className="text-lg font-bold text-slate-900">{t("admin.no_logs")}</h3>
               <p className="mt-1 max-w-sm text-sm text-slate-500">
-                Ainda não existem eventos no sistema que correspondam à sua pesquisa. Os logs são criados automaticamente pela base de dados.
+                {t("admin.no_logs_desc")}
               </p>
             </div>
           ) : (
@@ -154,7 +156,7 @@ function AdminLogsPage() {
                               <span className="font-bold text-slate-900">{getLogTitle(log.event_type)}</span>
                               <span className="whitespace-nowrap flex items-center gap-1.5 text-xs font-medium bg-slate-100 px-2 py-1 rounded-md text-slate-600">
                                 <CalendarDays className="h-3 w-3" />
-                                {format(new Date(log.created_at), "dd MMM yyyy 'às' HH:mm", { locale: pt })}
+                                {format(new Date(log.created_at), t("admin.log_date_format"), { locale: pt })}
                               </span>
                             </div>
                             <p className="text-slate-700 mt-2 bg-slate-50/80 p-3 rounded-lg border border-slate-100 leading-relaxed">

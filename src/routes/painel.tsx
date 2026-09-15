@@ -6,12 +6,15 @@ import { useEffect, useState } from "react";
 import { Loader2, LayoutDashboard, FileText, Package, Users, Settings, LogOut, ChevronLeft, ChevronRight, Menu, Factory, Warehouse, ShoppingCart, Boxes, ArrowRightLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { differenceInDays } from "date-fns";
+import { PageTransition } from "@/components/ui/page-transition";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel")({
   component: PainelLayout,
 });
 
 function PainelLayout() {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -111,7 +114,7 @@ function PainelLayout() {
 
         if (settings?.maintenance_mode) {
           setIsBlocked(true);
-          setBlockReason("Sistema em Manutenção");
+          setBlockReason(t("layout.maintenance"));
           setInitializing(false);
           return;
         }
@@ -121,7 +124,7 @@ function PainelLayout() {
           .from("subscriptions")
           .select("*")
           .eq("user_id", user.id)
-          .single();
+          .maybeSingle();
 
         const hasActivePro = subscription && 
                              (subscription.status === "ativo" || subscription.status === "active") && 
@@ -136,7 +139,7 @@ function PainelLayout() {
 
           if (daysSinceRegistration > trialLimit) {
             setIsBlocked(true);
-            setBlockReason(`O seu período de utilização gratuita de ${trialLimit} dias expirou.`);
+            setBlockReason(t("layout.trial_expired", { days: trialLimit }));
           } else {
             // B. Verificar Limite de Documentos deste mês
             const date = new Date();
@@ -156,7 +159,7 @@ function PainelLayout() {
             // Se for 0, é ilimitado (nas configs do admin).
             if (docLimit > 0 && currentDocs >= docLimit) {
               setIsBlocked(true);
-              setBlockReason(`Atingiu o limite de ${docLimit} documentos gratuitos deste mês.`);
+              setBlockReason(t("layout.limit_reached", { limit: docLimit }));
             }
           }
         } else {
@@ -192,7 +195,7 @@ function PainelLayout() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-3 text-sm font-medium text-muted-foreground">A preparar o seu painel...</span>
+        <span className="ml-3 text-sm font-medium text-muted-foreground">{t("layout.preparing")}</span>
       </div>
     );
   }
@@ -211,19 +214,21 @@ function PainelLayout() {
                 <div className="mx-auto w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
                   <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
-                <h2 className="text-xl font-bold text-slate-900 mb-2">Acesso Bloqueado</h2>
+                <h2 className="text-xl font-bold text-slate-900 mb-2">{t("layout.blocked_title")}</h2>
                 <p className="text-slate-500 mb-6">{blockReason}</p>
                 <button 
                   onClick={() => navigate({ to: "/painel/assinatura" })}
                   className="bg-primary text-primary-foreground px-6 py-2.5 rounded-lg font-semibold w-full hover:bg-primary/90 transition-colors"
                 >
-                  Regularizar Situação
+                  {t("layout.fix_status")}
                 </button>
               </div>
             </div>
           )}
 
-          <Outlet />
+          <PageTransition>
+            <Outlet />
+          </PageTransition>
         </SidebarInset>
       </div>
     </SidebarProvider>

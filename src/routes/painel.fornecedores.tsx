@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { SupplierModal } from "@/components/supplier-modal";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel/fornecedores")({
   component: FornecedoresPage,
@@ -18,6 +19,7 @@ function initials(name: string) {
 }
 
 function FornecedoresPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [companyId, setCompanyId] = useState<string>("");
@@ -58,14 +60,14 @@ function FornecedoresPage() {
   return (
     <>
       <Topbar
-        title="Fornecedores"
-        subtitle="Gestão de fornecedores e compras"
+        title={t("suppliers.title")}
+        subtitle={t("suppliers.subtitle")}
         actions={
           <button 
             onClick={() => setIsModalOpen(true)}
             className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
           >
-            <Plus className="h-4 w-4" /> Novo fornecedor
+            <Plus className="h-4 w-4" /> {t("suppliers.new_supplier")}
           </button>
         }
       />
@@ -83,7 +85,7 @@ function FornecedoresPage() {
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por nome ou NUIT..."
+            placeholder={t("suppliers.search")}
             className="h-11 w-full rounded-full border border-border bg-card pl-11 pr-4 text-sm shadow-soft focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
@@ -91,18 +93,18 @@ function FornecedoresPage() {
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="mb-4 h-8 w-8 animate-spin" />
-            <p>A carregar fornecedores...</p>
+            <p>{t("suppliers.loading")}</p>
           </div>
         ) : suppliers.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
             <Truck className="mb-4 h-10 w-10 opacity-20" />
-            <h3 className="text-lg font-semibold text-foreground">Sem fornecedores</h3>
-            <p className="mt-1 text-sm">Ainda não registou nenhum fornecedor.</p>
+            <h3 className="text-lg font-semibold text-foreground">{t("suppliers.empty")}</h3>
+            <p className="mt-1 text-sm">{t("suppliers.empty_desc")}</p>
             <button 
               onClick={() => setIsModalOpen(true)}
               className="mt-4 inline-flex h-9 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
             >
-              <Plus className="h-4 w-4" /> Adicionar Fornecedor
+              <Plus className="h-4 w-4" /> {t("suppliers.add")}
             </button>
           </div>
         ) : (
@@ -138,14 +140,14 @@ function FornecedoresPage() {
                 <div className="mt-4 flex items-end justify-between border-t border-border pt-3">
                   <div>
                     <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      Localização
+                      {t("suppliers.location")}
                     </div>
                     <div className="mt-0.5 text-sm font-medium text-foreground">
                       {s.city ? `${s.city}${s.province ? `, ${s.province}` : ''}` : '—'}
                     </div>
                   </div>
                   <button className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition group-hover:border-primary group-hover:bg-primary group-hover:text-primary-foreground">
-                    Ver Perfil
+                    {t("suppliers.view_profile")}
                   </button>
                 </div>
               </div>

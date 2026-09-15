@@ -1,27 +1,33 @@
 import * as Accordion from "@radix-ui/react-accordion";
 import { ChevronDown } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export function FaqSection() {
+  const { t } = useTranslation();
   const faqs = [
     {
-      q: "O Fature Aqui é certificado pela AT?",
-      a: "Sim, a nossa plataforma cumpre rigorosamente todas as normas exigidas pela Autoridade Tributária de Moçambique. Todas as faturas geradas têm validade legal e fiscal."
+      q: t("faq.q1.q"),
+      a: t("faq.q1.a")
     },
     {
-      q: "Preciso de inserir o cartão de crédito para testar?",
-      a: "Não. O plano gratuito é verdadeiramente gratuito e não lhe pedimos qualquer método de pagamento para começar a faturar."
+      q: t("faq.q2.q"),
+      a: t("faq.q2.a")
     },
     {
-      q: "O que acontece se eu ultrapassar as 5 faturas no plano grátis?",
-      a: "O sistema irá alertá-lo que atingiu o limite mensal. A partir daí, poderá optar por fazer o upgrade para o Plano Pro para continuar a emitir documentos ilimitados."
+      q: t("faq.q3.q"),
+      a: t("faq.q3.a")
     },
     {
-      q: "Posso cancelar a minha subscrição a qualquer momento?",
-      a: "Sim. Não exigimos qualquer fidelização. Se não estiver satisfeito ou não precisar mais do sistema, pode cancelar a renovação do seu plano com apenas um clique."
+      q: t("faq.q4.q"),
+      a: t("faq.q4.a")
     },
     {
-      q: "Os dados da minha empresa estão seguros?",
-      a: "Totalmente. Utilizamos servidores na cloud com encriptação de ponta a ponta e backups diários para garantir que a sua informação financeira está sempre protegida."
+      q: t("faq.q5.q"),
+      a: t("faq.q5.a")
+    },
+    {
+      q: t("faq.q6.q"),
+      a: t("faq.q6.a")
     }
   ];
 
@@ -30,10 +36,10 @@ export function FaqSection() {
       <div className="mx-auto max-w-3xl px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl">
-            Perguntas Frequentes
+            {t("faq.title")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Tire todas as suas dúvidas antes de começar.
+            {t("faq.subtitle")}
           </p>
         </div>
 

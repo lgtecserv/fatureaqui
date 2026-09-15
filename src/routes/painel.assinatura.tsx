@@ -6,12 +6,14 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
 import { useState, useRef } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel/assinatura")({
   component: AssinaturaPage,
 });
 
 function AssinaturaPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const uploadSectionRef = useRef<HTMLDivElement>(null);
@@ -127,24 +129,24 @@ function AssinaturaPage() {
 
   const plans = [
     {
-      name: "Gratuito",
+      name: t("subscription.free"),
       price: "0 MT",
       features: [
-        settings?.free_plan_docs_limit === 0 ? "Documentos ilimitados" : `${settings?.free_plan_docs_limit || 5} documentos/mês`, 
-        "1 tipo de documento", 
-        "Suporte por email"
+        settings?.free_plan_docs_limit === 0 ? t("subscription.unlimited_docs") : t("subscription.docs_month", { count: settings?.free_plan_docs_limit || 5 }), 
+        t("subscription.one_doc_type"), 
+        t("subscription.email_support")
       ],
       current: !isProActive && !isPending,
     },
     {
-      name: "Pro",
+      name: t("subscription.pro"),
       price: isSettingsLoading ? "..." : settings?.pro_price ? `${new Intl.NumberFormat("pt-MZ").format(settings.pro_price)} MT/mês` : "499 MT/mês",
       features: [
-        "Documentos ilimitados",
-        "Todos os 7 tipos de documento",
-        "Geração de PDF",
-        "Suporte prioritário",
-        "Múltiplos utilizadores",
+        t("subscription.unlimited_docs"),
+        t("subscription.all_doc_types"),
+        t("subscription.pdf_generation"),
+        t("subscription.priority_support"),
+        t("subscription.multi_user"),
       ],
       current: isProActive,
       recommended: !isProActive,
@@ -158,8 +160,8 @@ function AssinaturaPage() {
   return (
     <>
       <Topbar
-        title="Assinatura"
-        subtitle="Gerencie o seu plano de subscrição"
+        title={t("subscription.title")}
+        subtitle={t("subscription.subtitle")}
       />
 
       <div className="mx-auto w-full max-w-4xl space-y-5 p-4 sm:p-6 pb-24">
@@ -170,21 +172,21 @@ function AssinaturaPage() {
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-base font-bold text-foreground">
-              Plano actual: <span className={isExpired && !isProActive ? 'text-red-700' : isPending ? 'text-amber-700' : 'text-primary'}>{isProActive ? "Pro" : "Gratuito"}</span>
+              {t("subscription.current_plan")} <span className={isExpired && !isProActive ? 'text-red-700' : isPending ? 'text-amber-700' : 'text-primary'}>{isProActive ? t("subscription.pro") : t("subscription.free")}</span>
             </h3>
             <p className="text-sm text-muted-foreground mt-0.5">
-              Status:{" "}
+              {t("subscription.status")}{" "}
               {isPending ? (
                 <span className="inline-flex items-center gap-1 font-semibold text-amber-600">
-                  <Clock className="h-3.5 w-3.5" /> Pendente de Aprovação
+                  <Clock className="h-3.5 w-3.5" /> {t("subscription.pending_approval")}
                 </span>
               ) : isExpired && !isProActive ? (
                 <span className="inline-flex items-center gap-1 font-semibold text-red-600">
-                  <CircleAlert className="h-3.5 w-3.5" /> Período de Teste Expirado
+                  <CircleAlert className="h-3.5 w-3.5" /> {t("subscription.trial_expired")}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1 font-semibold text-primary">
-                  <CheckCircle className="h-3.5 w-3.5" /> Activo até {expirationDate?.toLocaleDateString("pt-PT")} ({daysLeft} dias)
+                  <CheckCircle className="h-3.5 w-3.5" /> {t("subscription.active_until", { date: expirationDate?.toLocaleDateString("pt-PT"), days: daysLeft })}
                 </span>
               )}
             </p>
@@ -204,7 +206,7 @@ function AssinaturaPage() {
             >
               {plan.recommended && (
                 <span className="absolute -top-3 left-4 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">
-                  Recomendado
+                  {t("subscription.recommended")}
                 </span>
               )}
               <h3 className="text-xl font-extrabold text-foreground">
@@ -225,32 +227,32 @@ function AssinaturaPage() {
                 ))}
               </ul>
               
-              {plan.name === "Pro" && !isProActive && !isPending && (
+              {plan.name === t("subscription.pro") && !isProActive && !isPending && (
                 <button
                   onClick={scrollToUpload}
                   className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-primary text-primary-foreground text-sm font-semibold shadow-soft hover:opacity-95 transition"
                 >
-                  Fazer upgrade <ArrowRight className="h-4 w-4" />
+                  {t("subscription.upgrade_btn")} <ArrowRight className="h-4 w-4" />
                 </button>
               )}
 
-              {plan.name === "Pro" && canRenew && !isPending && (
+              {plan.name === t("subscription.pro") && canRenew && !isPending && (
                 <button
                   onClick={scrollToUpload}
                   className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-primary bg-primary-soft text-primary-soft-foreground text-sm font-semibold hover:bg-primary hover:text-primary-foreground transition"
                 >
-                  Renovar Plano ({daysLeft} dias restantes) <ArrowRight className="h-4 w-4" />
+                  {t("subscription.renew_btn", { days: daysLeft })} <ArrowRight className="h-4 w-4" />
                 </button>
               )}
 
               {plan.current && !canRenew && (
                 <button
-                  className={`mt-6 flex h-11 w-full items-center justify-center rounded-full border text-sm font-semibold transition ${isExpired && plan.name === "Gratuito" ? 'border-red-200 bg-red-50 text-red-600' : 'border-border bg-muted text-muted-foreground'}`}
+                  className={`mt-6 flex h-11 w-full items-center justify-center rounded-full border text-sm font-semibold transition ${isExpired && plan.name === t("subscription.free") ? 'border-red-200 bg-red-50 text-red-600' : 'border-border bg-muted text-muted-foreground'}`}
                   disabled
                 >
-                  {isProActive && plan.name === "Pro" ? `Plano actual (${daysLeft} dias)` : 
-                   plan.name === "Gratuito" && isExpired ? "Período de teste expirado" :
-                   plan.name === "Gratuito" ? `Plano actual (Expira em ${daysLeft} dias)` : "Plano actual"}
+                  {isProActive && plan.name === t("subscription.pro") ? t("subscription.current_plan_days", { days: daysLeft }) : 
+                   plan.name === t("subscription.free") && isExpired ? t("subscription.trial_expired") :
+                   plan.name === t("subscription.free") ? t("subscription.current_plan_expires", { days: daysLeft }) : t("subscription.current_plan_btn")}
                 </button>
               )}
             </div>
@@ -262,7 +264,7 @@ function AssinaturaPage() {
           <div ref={uploadSectionRef} className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden mt-8 scroll-mt-24">
           <div className="bg-slate-50 p-6 border-b border-border">
             <h3 className="text-base font-bold text-foreground mb-4">
-              Instruções de Pagamento
+              {t("subscription.payment_instructions")}
             </h3>
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
               {(settings?.mpesa_number || settings?.mpesa_name) && (
@@ -301,7 +303,7 @@ function AssinaturaPage() {
                     <Building2 className="h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-slate-900">{settings.bank_name || "Transferência Bancária"}</h4>
+                    <h4 className="font-semibold text-slate-900">{settings.bank_name || t("subscription.bank_transfer")}</h4>
                     <div className="mt-1 space-y-1 text-sm text-slate-600">
                       {settings.bank_account && <p>Conta: <span className="font-medium text-slate-900">{settings.bank_account}</span></p>}
                       {settings.bank_nib && <p>NIB: <span className="font-medium text-slate-900">{settings.bank_nib}</span></p>}
@@ -318,26 +320,26 @@ function AssinaturaPage() {
                 <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mb-4">
                   <Clock className="h-8 w-8" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">Comprovativo em Análise</h3>
+                <h3 className="text-lg font-bold text-slate-900">{t("subscription.receipt_in_analysis")}</h3>
                 <p className="mt-2 max-w-md text-slate-600">
-                  Recebemos o seu comprovativo e estamos a verificar o pagamento. A sua conta Pro será ativada brevemente.
+                  {t("subscription.receipt_analysis_desc")}
                 </p>
               </div>
             ) : (
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-base font-bold text-foreground">Enviar comprovativo de pagamento</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">Após efectuar o pagamento, envie o comprovativo para activar o plano Pro.</p>
+                  <h3 className="text-base font-bold text-foreground">{t("subscription.send_receipt")}</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">{t("subscription.send_receipt_desc")}</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* File Upload */}
                   <div className="space-y-3">
-                    <label className="text-sm font-semibold text-slate-700">Comprovativo (PDF, JPG, PNG)</label>
+                    <label className="text-sm font-semibold text-slate-700">{t("subscription.receipt_label")}</label>
                     <div className="flex items-center gap-3">
                       <label className="relative flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-slate-50 px-6 py-4 text-sm font-semibold text-muted-foreground transition hover:border-primary hover:text-primary hover:bg-primary-soft/10 w-full">
                         <Upload className="h-5 w-5" /> 
-                        {file ? file.name : "Clique para anexar ficheiro"}
+                        {file ? file.name : t("subscription.click_to_attach")}
                         <input 
                           type="file" 
                           accept="image/png, image/jpeg, application/pdf"
@@ -350,9 +352,9 @@ function AssinaturaPage() {
 
                   {/* Notes */}
                   <div className="space-y-3">
-                    <label className="text-sm font-semibold text-slate-700">Notas Adicionais (Opcional)</label>
+                    <label className="text-sm font-semibold text-slate-700">{t("subscription.additional_notes")}</label>
                     <textarea 
-                      placeholder="Ex: Pagamento feito a partir do número 84..."
+                      placeholder={t("subscription.notes_placeholder")}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       className="w-full h-[60px] rounded-xl border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
@@ -367,7 +369,7 @@ function AssinaturaPage() {
                     disabled={submitReceipt.isPending || !file}
                     className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary px-8 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition"
                   >
-                    {submitReceipt.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : "Enviar para Aprovação"}
+                    {submitReceipt.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : t("subscription.submit_approval")}
                   </button>
                 </div>
               </div>

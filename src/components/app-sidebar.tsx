@@ -32,23 +32,26 @@ import {
 } from "@/components/ui/sidebar";
 
 const mainItems = [
-  { title: "Dashboard", url: "/painel", icon: LayoutDashboard },
-  { title: "Documentos", url: "/painel/facturacao", icon: FileText },
-  { title: "Clientes", url: "/painel/clientes", icon: Users },
-  { title: "Produtos", url: "/painel/produtos", icon: Package },
-  { title: "Lotes & Validades", url: "/painel/lotes", icon: Boxes, isBeta: true },
-  { title: "Fornecedores", url: "/painel/fornecedores", icon: Truck, isBeta: true },
-  { title: "Compras", url: "/painel/compras", icon: ShoppingCart, isBeta: true },
-  { title: "Armazéns", url: "/painel/armazens", icon: Warehouse, isBeta: true },
-  { title: "Transferências", url: "/painel/transferencias", icon: ArrowRightLeft, isBeta: true },
+  { translationKey: "sidebar.dashboard", title: "Dashboard", url: "/painel", icon: LayoutDashboard },
+  { translationKey: "sidebar.documents", title: "Documentos", url: "/painel/facturacao", icon: FileText },
+  { translationKey: "sidebar.clients", title: "Clientes", url: "/painel/clientes", icon: Users },
+  { translationKey: "sidebar.products", title: "Produtos", url: "/painel/produtos", icon: Package },
+  { translationKey: "sidebar.batches", title: "Lotes & Validades", url: "/painel/lotes", icon: Boxes, isBeta: true },
+  { translationKey: "sidebar.suppliers", title: "Fornecedores", url: "/painel/fornecedores", icon: Truck, isBeta: true },
+  { translationKey: "sidebar.purchases", title: "Compras", url: "/painel/compras", icon: ShoppingCart, isBeta: true },
+  { translationKey: "sidebar.warehouses", title: "Armazéns", url: "/painel/armazens", icon: Warehouse, isBeta: true },
+  { translationKey: "sidebar.transfers", title: "Transferências", url: "/painel/transferencias", icon: ArrowRightLeft, isBeta: true },
 ];
 
 const bottomItems = [
-  { title: "Assinatura", url: "/painel/assinatura", icon: CreditCard },
-  { title: "API e Integrações", url: "/painel/api", icon: Code, requiresPro: true },
-  { title: "Suporte", url: "/painel/suporte", icon: LifeBuoy },
-  { title: "Definições", url: "/painel/definicoes", icon: Settings },
+  { translationKey: "sidebar.subscription", title: "Assinatura", url: "/painel/assinatura", icon: CreditCard },
+  { translationKey: "sidebar.api", title: "API e Integrações", url: "/painel/api", icon: Code, requiresPro: true },
+  { translationKey: "sidebar.support", title: "Suporte", url: "/painel/suporte", icon: LifeBuoy },
+  { translationKey: "sidebar.settings", title: "Definições", url: "/painel/definicoes", icon: Settings },
 ];
+
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
@@ -58,6 +61,7 @@ import { useOnboarding } from "@/hooks/use-onboarding";
 import { Download } from "lucide-react";
 
 export function AppSidebar() {
+  const { t } = useTranslation();
   const currentPath = useRouterState({
     select: (r) => r.location.pathname,
   });
@@ -147,7 +151,7 @@ export function AppSidebar() {
       <SidebarContent className="px-1">
         <SidebarGroup>
           <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Gestão
+            {t("sidebar.management")}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -171,11 +175,11 @@ export function AppSidebar() {
                     >
                       <div className="flex items-center gap-2">
                         <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
+                        <span>{t(item.translationKey, item.title)}</span>
                       </div>
                       {item.isBeta && (
                         <span className="text-[9px] font-bold uppercase tracking-wider bg-amber/20 text-amber-700 px-1.5 py-0.5 rounded-full shrink-0 group-data-[collapsible=icon]:hidden">
-                          Breve
+                          {t("sidebar.soon")}
                         </span>
                       )}
                     </Link>
@@ -188,7 +192,7 @@ export function AppSidebar() {
 
         <SidebarGroup className="mt-2">
           <SidebarGroupLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Conta
+            {t("sidebar.account")}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -207,7 +211,7 @@ export function AppSidebar() {
                     <Link to={item.url} className="flex items-center justify-between w-full">
                       <div className="flex items-center gap-2">
                         <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
+                        <span>{t(item.translationKey, item.title)}</span>
                       </div>
                       {item.requiresPro && !isProActive && (
                         <Lock className="h-3.5 w-3.5 text-slate-400 shrink-0" />
@@ -228,7 +232,7 @@ export function AppSidebar() {
                 className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 transition group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center"
               >
                 <Download className="h-4 w-4" />
-                <span className="group-data-[collapsible=icon]:hidden">Instalar App</span>
+                <span className="group-data-[collapsible=icon]:hidden">{t("sidebar.install")}</span>
               </button>
             </SidebarGroupContent>
           </SidebarGroup>
@@ -243,12 +247,13 @@ export function AppSidebar() {
           <div className="flex min-w-0 flex-1 flex-col">
             <span className="truncate text-sm font-semibold text-foreground">{user?.user_metadata?.full_name || company?.name || "Utilizador"}</span>
             <span className="truncate text-xs text-muted-foreground">
-              {isProActive ? `Plano Pro (${daysLeft}d restantes)` : 
-               isPending ? "Pendente de Aprovação" : 
-               isExpired ? <span className="text-red-500 font-medium">Teste Expirado</span> :
-               `Plano Gratuito (${daysLeft}d restantes)`}
+              {isProActive ? t("sidebar.pro_plan", { days: daysLeft }) : 
+               isPending ? t("sidebar.pending") : 
+               isExpired ? <span className="text-red-500 font-medium">{t("sidebar.expired")}</span> :
+               t("sidebar.free_plan", { days: daysLeft })}
             </span>
           </div>
+          <LanguageSwitcher />
           <button
             onClick={() => signOut()}
             className="grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition hover:bg-muted hover:text-foreground"

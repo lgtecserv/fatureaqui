@@ -44,26 +44,26 @@ export function useOnboarding() {
       const steps = [
         {
           id: "nuit",
-          title: "Adicionar NUIT",
-          description: "Obrigatório para emissão de documentos com validade fiscal.",
+          title: "onboarding.steps.nuit.title",
+          description: "onboarding.steps.nuit.desc",
           isComplete: !!(company.nuit && company.nuit.trim().length > 0),
         },
         {
           id: "address",
-          title: "Preencher Morada",
-          description: "A morada física ou sede da sua empresa.",
+          title: "onboarding.steps.address.title",
+          description: "onboarding.steps.address.desc",
           isComplete: !!(company.address && company.address.trim().length > 0),
         },
         {
           id: "phone",
-          title: "Adicionar Contacto",
-          description: "Telefone ou telemóvel da sua empresa.",
+          title: "onboarding.steps.phone.title",
+          description: "onboarding.steps.phone.desc",
           isComplete: !!(company.phone && company.phone.trim().length > 0),
         },
         {
           id: "logo",
-          title: "Logotipo da Empresa",
-          description: "Dê uma imagem profissional aos seus documentos.",
+          title: "onboarding.steps.logo.title",
+          description: "onboarding.steps.logo.desc",
           isComplete: !!(company.logo_url && company.logo_url.trim().length > 0),
         },
       ];

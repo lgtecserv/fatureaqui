@@ -674,7 +674,15 @@ interface ShapeSource {
   shapes: THREE.Shape[];
 }
 
-type AssetSource = MeshSource | ShapeSource;
+interface BitmapSource {
+  kind: "bitmap";
+  shapes: THREE.Shape[];
+  texture: THREE.Texture;
+  width: number;
+  height: number;
+}
+
+type AssetSource = MeshSource | ShapeSource | BitmapSource;
 
 export function createGlassObject(
   elements: GlassObjectElements,
@@ -709,6 +717,14 @@ export function createGlassObject(
   const controls = new OrbitControls(camera, canvas);
   controls.enableDamping = true;
   controls.enablePan = false;
+  controls.maxPolarAngle = Math.PI * 0.65;
+  controls.minPolarAngle = Math.PI * 0.35;
+
+  const ambientLight = new THREE.AmbientLight(0xffffff, 1.2);
+  scene.add(ambientLight);
+  const frontLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  frontLight.position.set(0, 5, 10);
+  scene.add(frontLight);
 
   scene.add(camera);
   const backdropMaterial = new THREE.MeshBasicMaterial();
@@ -915,6 +931,9 @@ export function createGlassObject(
 
   function clearAsset() {
     if (assetSource?.kind === "mesh") disposeObject(assetSource.scene, glass);
+    if (assetSource?.kind === "bitmap") {
+      assetSource.texture.dispose();
+    }
     assetSource = null;
     builtDepth = -1;
     builtBevel = -1;
@@ -986,6 +1005,54 @@ export function createGlassObject(
     geometry = toCreasedNormals(geometry, Math.PI / 7);
     flattenCapNormals(geometry);
     geometry.rotateX(Math.PI);
+
+    if (assetSource.kind === "bitmap") {
+      geometry.computeBoundingBox();
+      const geoBounds = geometry.boundingBox!;
+      const frontZ = Math.max(geoBounds.max.z, geoBounds.min.z);
+
+      const glassMesh = new THREE.Mesh(geometry, glass);
+
+      const planeGeo = new THREE.PlaneGeometry(assetSource.width, assetSource.height);
+      planeGeo.translate(assetSource.width / 2, -assetSource.height / 2, 0);
+
+      const frontMat = new THREE.MeshPhysicalMaterial({
+        map: assetSource.texture,
+        transparent: true,
+        alphaTest: 0.01,
+        roughness: 0.15,
+        metalness: 0.05,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.05,
+        reflectivity: 0.9,
+        side: THREE.FrontSide,
+      });
+
+      const frontMesh = new THREE.Mesh(planeGeo, frontMat);
+      frontMesh.position.z = frontZ + 0.05;
+
+      const backGeo = planeGeo.clone();
+      backGeo.rotateY(Math.PI);
+      backGeo.translate(assetSource.width, 0, 0);
+      const backMat = new THREE.MeshPhysicalMaterial({
+        color: 0x0f172a,
+        roughness: 0.4,
+        metalness: 0.8,
+        clearcoat: 0.4,
+        side: THREE.FrontSide,
+      });
+      const backMesh = new THREE.Mesh(backGeo, backMat);
+      const backZ = Math.min(geoBounds.max.z, geoBounds.min.z);
+      backMesh.position.z = backZ - 0.05;
+
+      const group = new THREE.Group();
+      group.add(glassMesh);
+      group.add(frontMesh);
+      group.add(backMesh);
+      mountModel(group);
+      return;
+    }
+
     mountModel(new THREE.Mesh(geometry, glass));
   }
 
@@ -1028,7 +1095,39 @@ export function createGlassObject(
         if (disposed || token !== loadToken) return;
         const shapes = shapesFromImage(data);
         clearAsset();
-        assetSource = { kind: "shapes", shapes };
+
+        const texLoader = new THREE.TextureLoader();
+        const texture = await new Promise<THREE.Texture>((resolve) => {
+          texLoader.load(
+            src,
+            (tex) => {
+              tex.colorSpace = THREE.SRGBColorSpace;
+              tex.generateMipmaps = true;
+              tex.minFilter = THREE.LinearMipmapLinearFilter;
+              tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+              resolve(tex);
+            },
+            undefined,
+            () => {
+              const canvas = document.createElement("canvas");
+              canvas.width = data.width;
+              canvas.height = data.height;
+              const ctx = canvas.getContext("2d");
+              if (ctx) ctx.putImageData(data, 0, 0);
+              const fallbackTex = new THREE.CanvasTexture(canvas);
+              fallbackTex.colorSpace = THREE.SRGBColorSpace;
+              resolve(fallbackTex);
+            }
+          );
+        });
+
+        assetSource = {
+          kind: "bitmap",
+          shapes,
+          texture,
+          width: data.width,
+          height: data.height,
+        };
       }
       buildModel();
       config.onLoad?.();
@@ -1228,7 +1327,14 @@ export function GlassObject({
 }: GlassObjectProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const instanceRef = useRef<GlassObjectInstance | null>(null);
-  const [initialOptions] = useState(options);
+  const [loaded, setLoaded] = useState(false);
+  const [initialOptions] = useState({
+    ...options,
+    onLoad: () => {
+      setLoaded(true);
+      options.onLoad?.();
+    },
+  });
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -1246,6 +1352,13 @@ export function GlassObject({
 
   return (
     <div className={className} style={{ position: "relative", ...style }}>
+      {options.src && !loaded && (
+        <img
+          src={options.src}
+          alt="Dashboard Mockup"
+          className="absolute inset-0 w-full h-full object-contain pointer-events-none transition-opacity duration-700"
+        />
+      )}
       <canvas
         ref={canvasRef}
         style={{
@@ -1255,6 +1368,8 @@ export function GlassObject({
           height: "100%",
           display: "block",
           touchAction: "none",
+          opacity: loaded ? 1 : 0,
+          transition: "opacity 0.5s ease-in-out",
         }}
       />
     </div>

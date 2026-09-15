@@ -6,14 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { toast } from "sonner";
-import { format } from "date-fns";
 import { pt } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/admin/marketing")({
   component: AdminMarketingPage,
 });
 
 function AdminMarketingPage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [subject, setSubject] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
@@ -87,10 +88,10 @@ function AdminMarketingPage() {
   const sendEmailMutation = useMutation({
     mutationFn: async () => {
       if (!subject.trim() || !htmlContent.trim()) {
-        throw new Error("O assunto e a mensagem são obrigatórios.");
+        throw new Error(t("admin.subj_msg_required"));
       }
       if (selectedCompanies.length === 0) {
-        throw new Error("Nenhum destinatário selecionado.");
+        throw new Error(t("admin.no_recipient"));
       }
 
       const emails = selectedCompanies.map(c => c.email);
@@ -124,7 +125,7 @@ function AdminMarketingPage() {
       return data;
     },
     onSuccess: () => {
-      toast.success("Campanha de email enviada com sucesso para " + selectedCompanies.length + " destinatários!");
+      toast.success(t("admin.campaign_success", { count: selectedCompanies.length }));
       setSubject("");
       setHtmlContent("");
       setCtaText("");
@@ -132,7 +133,7 @@ function AdminMarketingPage() {
       queryClient.invalidateQueries({ queryKey: ["marketing_campaigns_history"] });
     },
     onError: (err) => {
-      toast.error(`Erro ao enviar email: ${err.message}`);
+      toast.error(t("admin.send_error", { message: err.message }));
     }
   });
 
@@ -148,23 +149,23 @@ function AdminMarketingPage() {
     <div className="flex-1 p-4 sm:p-8 max-w-5xl mx-auto pb-24">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-          <Mail className="h-8 w-8 text-primary" /> Marketing e Comunicação
+          <Mail className="h-8 w-8 text-primary" /> {t("admin.marketing_title")}
         </h1>
-        <p className="text-slate-500 mt-1">Crie e envie campanhas de email para os utilizadores da plataforma (Resend).</p>
+        <p className="text-slate-500 mt-1">{t("admin.marketing_sub")}</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Nova Campanha</CardTitle>
-              <CardDescription>Escreva o email que será enviado aos clientes selecionados.</CardDescription>
+              <CardTitle>{t("admin.new_campaign")}</CardTitle>
+              <CardDescription>{t("admin.new_campaign_desc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <label className="text-sm font-semibold text-slate-700">Assunto do Email</label>
+                <label className="text-sm font-semibold text-slate-700">{t("admin.email_subject")}</label>
                 <Input 
-                  placeholder="Ex: Novidades de Outubro no FatureAqui!" 
+                  placeholder={t("admin.email_subject_ph")}
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                   className="mt-1.5"
@@ -172,13 +173,13 @@ function AdminMarketingPage() {
               </div>
 
               <div>
-                <label className="text-sm font-semibold text-slate-700">Mensagem (Suporta HTML)</label>
+                <label className="text-sm font-semibold text-slate-700">{t("admin.message_html")}</label>
                 <div className="mt-1.5 bg-yellow-50 text-yellow-800 text-xs p-3 rounded-lg border border-yellow-200 mb-2 flex items-start gap-2">
                   <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                  <p>O cabeçalho e o rodapé serão adicionados automaticamente. As quebras de linha que escrever aqui serão respeitadas no email final.</p>
+                  <p>{t("admin.message_html_notice")}</p>
                 </div>
                 <textarea 
-                  placeholder="Escreva a sua mensagem aqui..."
+                  placeholder={t("admin.message_ph")}
                   value={htmlContent}
                   onChange={(e) => setHtmlContent(e.target.value)}
                   className="w-full min-h-[300px] p-4 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 text-sm font-sans bg-slate-50"
@@ -187,18 +188,18 @@ function AdminMarketingPage() {
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Botão: Texto (Opcional)</label>
+                  <label className="text-sm font-semibold text-slate-700">{t("admin.btn_text_opt")}</label>
                   <Input 
-                    placeholder="Ex: Aceder à Plataforma" 
+                    placeholder={t("admin.btn_text_ph")}
                     value={ctaText}
                     onChange={(e) => setCtaText(e.target.value)}
                     className="mt-1.5"
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-slate-700">Botão: Link (Opcional)</label>
+                  <label className="text-sm font-semibold text-slate-700">{t("admin.btn_link_opt")}</label>
                   <Input 
-                    placeholder="Ex: https://fatureaqui.com/painel" 
+                    placeholder={t("admin.btn_link_ph")}
                     value={ctaLink}
                     onChange={(e) => setCtaLink(e.target.value)}
                     className="mt-1.5"
@@ -213,7 +214,7 @@ function AdminMarketingPage() {
                   className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-white transition hover:opacity-95 disabled:opacity-50"
                 >
                   {sendEmailMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  {sendEmailMutation.isPending ? "A enviar..." : `Enviar para ${selectedCompanies.length} Empresas`}
+                  {sendEmailMutation.isPending ? t("admin.sending") : t("admin.send_campaign", { count: selectedCompanies.length })}
                 </button>
               </div>
             </CardContent>
@@ -224,7 +225,7 @@ function AdminMarketingPage() {
             <CardHeader className="pb-3 border-b border-slate-100 mb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-lg">
-                  <History className="h-5 w-5 text-primary" /> Histórico de Envios
+                  <History className="h-5 w-5 text-primary" /> {t("admin.campaign_history")}
                 </CardTitle>
               </div>
             </CardHeader>
@@ -237,10 +238,10 @@ function AdminMarketingPage() {
                         <div className="space-y-1">
                           <h4 className="font-bold text-slate-900">{campaign.subject}</h4>
                           <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-                            <span className="bg-white border rounded px-2 py-0.5 font-medium">{format(new Date(campaign.created_at), "d 'de' MMMM, yyyy 'às' HH:mm", { locale: pt })}</span>
-                            <span className="bg-slate-200/50 rounded px-2 py-0.5">Enviado para {campaign.sent_count} destinatários</span>
+                            <span className="bg-white border rounded px-2 py-0.5 font-medium">{format(new Date(campaign.created_at), t("admin.sent_on"), { locale: pt })}</span>
+                            <span className="bg-slate-200/50 rounded px-2 py-0.5">{t("admin.sent_to", { count: campaign.sent_count })}</span>
                             {campaign.cta_text && (
-                              <span className="bg-primary/10 text-primary font-medium rounded px-2 py-0.5 flex items-center gap-1">Botão incluído</span>
+                              <span className="bg-primary/10 text-primary font-medium rounded px-2 py-0.5 flex items-center gap-1">{t("admin.btn_included")}</span>
                             )}
                           </div>
                         </div>
@@ -252,11 +253,11 @@ function AdminMarketingPage() {
                             setCtaLink(campaign.cta_link || "");
                             setAudience(campaign.audience as any);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
-                            toast.success("Campanha carregada para reutilização!");
+                            toast.success(t("admin.campaign_loaded"));
                           }}
                           className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-primary bg-primary/10 hover:bg-primary/20 rounded-md transition-colors w-full sm:w-auto justify-center"
                         >
-                          <RefreshCw className="h-3 w-3" /> Reutilizar
+                          <RefreshCw className="h-3 w-3" /> {t("admin.reuse")}
                         </button>
                       </div>
                     </div>
@@ -264,7 +265,7 @@ function AdminMarketingPage() {
                 </div>
               ) : (
                 <div className="text-center py-8 text-slate-500 text-sm">
-                  Nenhuma campanha enviada até ao momento.
+                  {t("admin.no_campaigns")}
                 </div>
               )}
             </CardContent>
@@ -274,15 +275,15 @@ function AdminMarketingPage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Audiência</CardTitle>
-              <CardDescription>Para quem deseja enviar este email?</CardDescription>
+              <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> {t("admin.audience")}</CardTitle>
+              <CardDescription>{t("admin.audience_desc")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { id: "all", label: "Todos os Utilizadores", count: companies?.length || 0 },
-                { id: "active", label: "Subscritores PRO (Ativos)", count: companies?.filter(c => c.status === "active").length || 0 },
-                { id: "trial", label: "Em Período de Teste (Trial)", count: companies?.filter(c => c.status === "trial").length || 0 },
-                { id: "expired", label: "Contas Expiradas", count: companies?.filter(c => c.status === "expired").length || 0 },
+                { id: "all", label: t("admin.audience_all"), count: companies?.length || 0 },
+                { id: "active", label: t("admin.audience_pro"), count: companies?.filter(c => c.status === "active").length || 0 },
+                { id: "trial", label: t("admin.audience_trial"), count: companies?.filter(c => c.status === "trial").length || 0 },
+                { id: "expired", label: t("admin.audience_expired"), count: companies?.filter(c => c.status === "expired").length || 0 },
               ].map((group) => (
                 <label key={group.id} className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${audience === group.id ? "border-primary bg-primary/5" : "border-slate-200 hover:bg-slate-50"}`}>
                   <div className="flex items-center gap-3">
@@ -303,13 +304,13 @@ function AdminMarketingPage() {
 
           <Card className="bg-slate-50 border-dashed border-slate-300">
             <CardContent className="p-5 text-sm text-slate-600">
-              <h4 className="font-bold text-slate-900 mb-2">Automacões Ativas</h4>
+              <h4 className="font-bold text-slate-900 mb-2">{t("admin.active_automations")}</h4>
               <ul className="space-y-2 list-disc pl-4 marker:text-primary">
-                <li><strong>Boas-vindas:</strong> Enviado no registo.</li>
-                <li><strong>Aviso de Fim de Teste:</strong> Enviado 3 dias antes do fim.</li>
-                <li><strong>Inatividade:</strong> Enviado após 7 dias sem atividade.</li>
+                <li><strong>{t("admin.auto_welcome")}</strong> {t("admin.auto_welcome_desc")}</li>
+                <li><strong>{t("admin.auto_trial_end")}</strong> {t("admin.auto_trial_end_desc")}</li>
+                <li><strong>{t("admin.auto_inactivity")}</strong> {t("admin.auto_inactivity_desc")}</li>
               </ul>
-              <p className="mt-3 text-xs text-slate-500">Estas automações são geridas pela Supabase e executadas de forma invisível.</p>
+              <p className="mt-3 text-xs text-slate-500">{t("admin.auto_managed")}</p>
             </CardContent>
           </Card>
         </div>

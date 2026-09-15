@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 
@@ -85,6 +86,7 @@ function ColorField({
 }
 
 function DefinicoesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"empresa" | "seguranca" | "aparencia">("empresa");
@@ -140,11 +142,11 @@ function DefinicoesPage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Definições atualizadas com sucesso!");
+      toast.success(t("settings.msg_success"));
       queryClient.invalidateQueries({ queryKey: ["company"] });
     },
     onError: () => {
-      toast.error("Erro ao atualizar definições.");
+      toast.error(t("settings.msg_error"));
     }
   });
 
@@ -167,11 +169,11 @@ function DefinicoesPage() {
 
   const handleUpdatePassword = async () => {
     if (newPassword !== confirmPassword) {
-      toast.error("As senhas não coincidem.");
+      toast.error(t("settings.msg_pass_mismatch"));
       return;
     }
     if (newPassword.length < 6) {
-      toast.error("A nova senha deve ter pelo menos 6 caracteres.");
+      toast.error(t("settings.msg_pass_short"));
       return;
     }
     setIsUpdatingPassword(true);
@@ -181,7 +183,7 @@ function DefinicoesPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Senha atualizada com sucesso!");
+      toast.success(t("settings.msg_pass_success"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -235,18 +237,18 @@ function DefinicoesPage() {
 
     // Validate size (3MB = 3 * 1024 * 1024 bytes)
     if (file.size > 3 * 1024 * 1024) {
-      toast.error("O logótipo deve ter no máximo 3MB.");
+      toast.error(t("settings.msg_logo_size"));
       return;
     }
 
     // Validate type
     if (!file.type.startsWith("image/")) {
-      toast.error("Por favor, selecione uma imagem válida (PNG, JPG, etc).");
+      toast.error(t("settings.msg_logo_type"));
       return;
     }
 
     setIsUploading(true);
-    toast.info("A fazer upload do logótipo...");
+    toast.info(t("settings.msg_logo_uploading"));
 
     try {
       const fileExt = file.name.split('.').pop();
@@ -264,10 +266,10 @@ function DefinicoesPage() {
         .getPublicUrl(filePath);
 
       updateCompany.mutate({ logo_url: publicUrl });
-      toast.success("Logótipo carregado com sucesso!");
+      toast.success(t("settings.msg_logo_success"));
     } catch (error: any) {
       console.error("Upload error:", error);
-      toast.error("Erro ao carregar logótipo: " + error.message);
+      toast.error(t("settings.msg_logo_error") + error.message);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -275,14 +277,14 @@ function DefinicoesPage() {
   };
 
   const tabs = [
-    { id: "empresa" as const, label: "Dados da Empresa", icon: Building2 },
-    { id: "seguranca" as const, label: "Segurança", icon: Lock },
-    { id: "aparencia" as const, label: "Aparência", icon: Palette },
+    { id: "empresa" as const, label: t("settings.tab_company"), icon: Building2 },
+    { id: "seguranca" as const, label: t("settings.tab_security"), icon: Lock },
+    { id: "aparencia" as const, label: t("settings.tab_appearance"), icon: Palette },
   ];
 
   return (
     <>
-      <Topbar title="Definições" subtitle="Configure a sua empresa e conta" />
+      <Topbar title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
       <div className="mx-auto w-full max-w-4xl space-y-5 p-4 sm:p-6">
         <OnboardingChecklist />
@@ -320,10 +322,10 @@ function DefinicoesPage() {
               </div>
               <div className="min-w-0 flex-1">
                 <h2 className="text-lg font-extrabold text-foreground">
-                  Dados da Empresa
+                  {t("settings.tab_company")}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Informação usada em todas as facturas emitidas
+                  {t("settings.company_info")}
                 </p>
               </div>
               <div>
@@ -341,7 +343,7 @@ function DefinicoesPage() {
                   className="inline-flex h-10 items-center gap-2 rounded-full border border-border bg-background px-4 text-sm font-semibold text-foreground hover:border-primary/40 disabled:opacity-50"
                 >
                   <Upload className="h-4 w-4" /> 
-                  {isUploading ? "A carregar..." : "Carregar logotipo"}
+                  {isUploading ? t("settings.uploading") : t("settings.upload_logo")}
                 </button>
               </div>
             </div>
@@ -353,23 +355,23 @@ function DefinicoesPage() {
             ) : (
               <>
                 <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
-                  <Field label="Nome comercial" name="name" defaultValue={company?.name} wide />
-                  <Field label="NUIT" name="nuit" defaultValue={company?.nuit} />
-                  <Field label="Telefone" name="phone" defaultValue={company?.phone} />
-                  <Field label="Endereço" name="address" defaultValue={company?.address} wide />
-                  <Field label="Cidade" name="city" defaultValue={company?.city} />
-                  <Field label="Província" name="province" defaultValue={company?.province} />
-                  <Field label="Email" name="email" defaultValue={company?.email} />
-                  <Field label="Website" name="website" defaultValue={company?.website || ""} />
+                  <Field label={t("settings.commercial_name")} name="name" defaultValue={company?.name} wide />
+                  <Field label={t("settings.nuit")} name="nuit" defaultValue={company?.nuit} />
+                  <Field label={t("settings.phone")} name="phone" defaultValue={company?.phone} />
+                  <Field label={t("settings.address")} name="address" defaultValue={company?.address} wide />
+                  <Field label={t("settings.city")} name="city" defaultValue={company?.city} />
+                  <Field label={t("settings.province")} name="province" defaultValue={company?.province} />
+                  <Field label={t("settings.email")} name="email" defaultValue={company?.email} />
+                  <Field label={t("settings.website")} name="website" defaultValue={company?.website || ""} />
                 </div>
 
                 <div className="mt-6 flex justify-end gap-2 border-t border-border pt-6">
                   <button type="button" className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:border-primary/40">
-                    Cancelar
+                    {t("settings.cancel")}
                   </button>
                   <button type="submit" disabled={updateCompany.isPending} className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95 disabled:opacity-50">
                     {updateCompany.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    Guardar alterações
+                    {t("settings.save_changes")}
                   </button>
                 </div>
               </>
@@ -386,26 +388,26 @@ function DefinicoesPage() {
               </div>
               <div>
                 <h2 className="text-lg font-extrabold text-foreground">
-                  Alterar senha
+                  {t("settings.change_pass_title")}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Atualize a sua senha de acesso
+                  {t("settings.change_pass_desc")}
                 </p>
               </div>
             </div>
 
             <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
               <div className="sm:col-span-2">
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Senha actual</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("settings.current_pass")}</label>
                 <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Nova senha</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("settings.new_pass")}</label>
                 <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
-                <p className="mt-1 text-xs text-muted-foreground">Mínimo 6 caracteres</p>
+                <p className="mt-1 text-xs text-muted-foreground">{t("settings.min_chars")}</p>
               </div>
               <div>
-                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">Confirmar nova senha</label>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("settings.confirm_pass")}</label>
                 <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
               </div>
             </div>
@@ -415,14 +417,14 @@ function DefinicoesPage() {
                 onClick={() => { setCurrentPassword(""); setNewPassword(""); setConfirmPassword(""); }}
                 className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:border-primary/40"
               >
-                Cancelar
+                {t("settings.cancel")}
               </button>
               <button 
                 onClick={handleUpdatePassword}
                 disabled={isUpdatingPassword || !newPassword}
                 className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95 disabled:opacity-50"
               >
-                {isUpdatingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Alterar senha
+                {isUpdatingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} {t("settings.change_pass_btn")}
               </button>
             </div>
           </div>
@@ -437,10 +439,10 @@ function DefinicoesPage() {
               </div>
               <div>
                 <h2 className="text-lg font-extrabold text-foreground">
-                  Aparência e cores
+                  {t("settings.appearance_title")}
                 </h2>
                 <p className="text-sm text-muted-foreground">
-                  Personalize as cores usadas no painel e nos documentos
+                  {t("settings.appearance_desc")}
                 </p>
               </div>
             </div>
@@ -453,12 +455,12 @@ function DefinicoesPage() {
               <>
                 <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2">
                   <ColorField 
-                    label="Cor primária" 
+                    label={t("settings.primary_color")} 
                     defaultValue={company?.primary_color || "#02664D"} 
                     onChange={(c) => { setPrimaryColor(c); document.documentElement.style.setProperty('--color-primary', c); }}
                   />
                   <ColorField 
-                    label="Cor secundária" 
+                    label={t("settings.secondary_color")} 
                     defaultValue={company?.secondary_color || "#1E2A38"} 
                     onChange={setSecondaryColor}
                   />
@@ -466,7 +468,7 @@ function DefinicoesPage() {
 
                 <div className="mt-6 rounded-xl bg-muted p-4">
                   <p className="text-xs font-semibold text-muted-foreground">
-                    Pré-visualização
+                    {t("settings.preview")}
                   </p>
                   <div className="mt-3 flex gap-3">
                     <div className="h-10 w-24 rounded-lg" style={{ backgroundColor: primaryColor || company?.primary_color || 'var(--primary)' }} />
@@ -477,8 +479,8 @@ function DefinicoesPage() {
                 <div className="mt-8 border-t border-border pt-6">
                   <div className="flex items-center justify-between mb-4">
                     <div>
-                      <h3 className="text-sm font-bold text-foreground">Carimbo Automático na Fatura</h3>
-                      <p className="text-xs text-muted-foreground">Escolha se quer que o sistema assine e carimbe as faturas automaticamente.</p>
+                      <h3 className="text-sm font-bold text-foreground">{t("settings.stamp_title")}</h3>
+                      <p className="text-xs text-muted-foreground">{t("settings.stamp_desc")}</p>
                     </div>
                     <label className="flex items-center cursor-pointer gap-3">
                       <div className="relative">
@@ -491,8 +493,8 @@ function DefinicoesPage() {
                   
                   {useDigitalStamp && (
                     <div className="mt-6">
-                      <h3 className="text-sm font-bold text-foreground mb-4">Design do Carimbo Digital</h3>
-                      <p className="text-xs text-muted-foreground mb-4">Escolha o formato do carimbo automático que aparecerá no rodapé das suas faturas.</p>
+                      <h3 className="text-sm font-bold text-foreground mb-4">{t("settings.stamp_design_title")}</h3>
+                      <p className="text-xs text-muted-foreground mb-4">{t("settings.stamp_design_desc")}</p>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     {(["style1", "style2", "style3", "style4", "style5"] as const).map((style) => (
@@ -513,7 +515,7 @@ function DefinicoesPage() {
                           />
                         </div>
                         <span className="text-[10px] font-semibold text-foreground uppercase tracking-wider text-center">
-                          {style === "style1" ? "Clássico Redondo" : style === "style2" ? "Selo Dentado" : style === "style3" ? "Hexagonal Minimal" : style === "style4" ? "Retângulo Clássico" : "Retângulo Iniciais"}
+                          {t(`settings.${style}`)}
                         </span>
                       </div>
                     ))}
@@ -524,14 +526,14 @@ function DefinicoesPage() {
 
                 <div className="mt-6 flex justify-end gap-2 border-t border-border pt-6">
                   <button className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:border-primary/40">
-                    Repor padrão
+                    {t("settings.reset_default")}
                   </button>
                   <button 
                     onClick={handleSaveAppearance}
                     disabled={updateCompany.isPending}
                     className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95 disabled:opacity-50"
                   >
-                    {updateCompany.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Guardar cores
+                    {updateCompany.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} {t("settings.save_colors")}
                   </button>
                 </div>
               </>

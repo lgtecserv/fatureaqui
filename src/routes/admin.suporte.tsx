@@ -6,6 +6,7 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { pt } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/admin/suporte")({
   component: AdminSuportePage,
@@ -28,6 +29,7 @@ type Message = {
 };
 
 function AdminSuportePage() {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [activeTicket, setActiveTicket] = useState<Ticket | null>(null);
   const [newMessage, setNewMessage] = useState("");
@@ -89,7 +91,7 @@ function AdminSuportePage() {
       if (!msgText.trim()) return;
       // Get current user id (admin)
       const { data: authData } = await supabase.auth.getUser();
-      if (!authData.user) throw new Error("Não autenticado");
+      if (!authData.user) throw new Error(t("admin.unauthenticated"));
 
       const { error } = await supabase
         .from("ticket_messages")
@@ -110,7 +112,7 @@ function AdminSuportePage() {
       queryClient.invalidateQueries({ queryKey: ["admin-tickets"] });
       setNewMessage("");
     },
-    onError: () => toast.error("Erro ao enviar mensagem.")
+    onError: () => toast.error(t("admin.msg_error"))
   });
 
   const closeTicketMutation = useMutation({
@@ -123,7 +125,7 @@ function AdminSuportePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-tickets"] });
-      toast.success("Ticket marcado como resolvido!");
+      toast.success(t("admin.ticket_resolved"));
       if (activeTicket) setActiveTicket({ ...activeTicket, status: 'fechado' });
     }
   });
@@ -141,9 +143,9 @@ function AdminSuportePage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'aberto': return <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10"><Clock className="h-3 w-3"/> Aberto (Novo)</span>;
-      case 'em_progresso': return <span className="inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-800 ring-1 ring-inset ring-yellow-600/20"><MessageSquare className="h-3 w-3"/> A Responder</span>;
-      case 'fechado': return <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><CheckCircle2 className="h-3 w-3"/> Resolvido</span>;
+      case 'aberto': return <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10"><Clock className="h-3 w-3"/> {t("admin.status_open")}</span>;
+      case 'em_progresso': return <span className="inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2.5 py-1 text-xs font-semibold text-yellow-800 ring-1 ring-inset ring-yellow-600/20"><MessageSquare className="h-3 w-3"/> {t("admin.status_progress")}</span>;
+      case 'fechado': return <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-600/20"><CheckCircle2 className="h-3 w-3"/> {t("admin.status_resolved")}</span>;
       default: return null;
     }
   };
@@ -152,8 +154,8 @@ function AdminSuportePage() {
     <div className="flex-1 p-4 sm:p-8 h-[100dvh] flex flex-col overflow-hidden">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Suporte / Tickets</h1>
-          <p className="text-slate-500 mt-1">Pedidos de ajuda e suporte técnico das empresas.</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t("admin.support_title")}</h1>
+          <p className="text-slate-500 mt-1">{t("admin.support_sub")}</p>
         </div>
         
         {!activeTicket && (
@@ -161,7 +163,7 @@ function AdminSuportePage() {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input 
               type="text"
-              placeholder="Procurar ticket ou empresa..." 
+              placeholder={t("admin.search_ticket")} 
               className="h-10 w-full rounded-lg border border-slate-200 bg-white pl-9 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -201,7 +203,7 @@ function AdminSuportePage() {
                   className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
                 >
                   {closeTicketMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4 text-emerald-600" />}
-                  Marcar como Resolvido
+                  {t("admin.mark_resolved")}
                 </button>
               )}
             </div>
@@ -243,7 +245,7 @@ function AdminSuportePage() {
                     type="text" 
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
-                    placeholder="Escreva a resposta para o cliente..."
+                    placeholder={t("admin.reply_placeholder")}
                     className="h-12 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm outline-none transition-all focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/20"
                   />
                   <button 
@@ -252,13 +254,13 @@ function AdminSuportePage() {
                     className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50"
                   >
                     {replyMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    <span className="hidden sm:inline">Responder</span>
+                    <span className="hidden sm:inline">{t("admin.reply")}</span>
                   </button>
                 </form>
               </div>
             ) : (
               <div className="border-t border-slate-100 bg-slate-50 p-4 text-center">
-                <p className="text-sm text-slate-500 font-medium">Este ticket foi marcado como resolvido e fechado.</p>
+                <p className="text-sm text-slate-500 font-medium">{t("admin.ticket_closed_msg")}</p>
               </div>
             )}
           </div>
@@ -274,19 +276,19 @@ function AdminSuportePage() {
                 <div className="mb-4 grid h-16 w-16 place-items-center rounded-full bg-slate-100 text-slate-400">
                   <MessageSquare className="h-8 w-8" />
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">Sem tickets</h3>
+                <h3 className="text-lg font-bold text-slate-900">{t("admin.no_tickets")}</h3>
                 <p className="mt-1 max-w-sm text-sm text-slate-500">
-                  Não existem tickets abertos ou não encontramos nenhum resultado para a sua pesquisa.
+                  {t("admin.no_tickets_desc")}
                 </p>
               </div>
             ) : (
               <table className="w-full text-left text-sm whitespace-nowrap">
                 <thead className="bg-slate-50/80 text-slate-500 sticky top-0 border-b border-slate-200 backdrop-blur-sm z-10">
                   <tr>
-                    <th className="px-6 py-4 font-semibold">Empresa / Cliente</th>
-                    <th className="px-6 py-4 font-semibold w-1/2">Assunto do Ticket</th>
-                    <th className="px-6 py-4 font-semibold">Estado</th>
-                    <th className="px-6 py-4 font-semibold text-right">Data</th>
+                    <th className="px-6 py-4 font-semibold">{t("admin.col_company_client")}</th>
+                    <th className="px-6 py-4 font-semibold w-1/2">{t("admin.col_subject")}</th>
+                    <th className="px-6 py-4 font-semibold">{t("admin.col_status")}</th>
+                    <th className="px-6 py-4 font-semibold text-right">{t("admin.col_date")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

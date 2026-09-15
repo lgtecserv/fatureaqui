@@ -2,8 +2,10 @@ import { useOnboarding } from "@/hooks/use-onboarding";
 import { Link } from "@tanstack/react-router";
 import { CheckCircle2, ChevronRight, Circle, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 export function OnboardingChecklist() {
+  const { t } = useTranslation();
   const { data: onboarding, isLoading } = useOnboarding();
 
   if (isLoading || !onboarding || onboarding.isComplete) {
@@ -18,11 +20,11 @@ export function OnboardingChecklist() {
             <div className="mb-2 flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
               <h2 className="text-xl font-bold text-foreground">
-                Configure a sua conta para começar
+                {t("onboarding.title")}
               </h2>
             </div>
             <p className="text-sm text-muted-foreground">
-              Complete os passos abaixo para desbloquear a emissão de documentos com validade profissional.
+              {t("onboarding.desc")}
             </p>
             
             {/* Progress Bar */}
@@ -55,11 +57,11 @@ export function OnboardingChecklist() {
                         step.isComplete ? "text-muted-foreground line-through" : "text-foreground"
                       )}
                     >
-                      {step.title}
+                      {t(step.title)}
                     </p>
                     {!step.isComplete && (
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {step.description}
+                        {t(step.description)}
                       </p>
                     )}
                   </div>
@@ -72,7 +74,7 @@ export function OnboardingChecklist() {
                 to="/painel/definicoes"
                 className="group flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-sm transition-all hover:bg-primary/90 hover:shadow-md"
               >
-                Completar Definições
+                {t("onboarding.btn")}
                 <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>

@@ -7,12 +7,14 @@ import { useAuth } from "@/hooks/use-auth";
 import { useState } from "react";
 import { ProductModal } from "@/components/product-modal";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel/produtos")({
   component: ProdutosPage,
 });
 
 function ProdutosPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,25 +62,25 @@ function ProdutosPage() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Artigo apagado com sucesso.");
+      toast.success(t("products.delete_success"));
       queryClient.invalidateQueries({ queryKey: ["products"] });
     },
     onError: (err) => {
-      toast.error(`Erro ao apagar: ${err.message}`);
+      toast.error(`${t("products.delete_error")} ${err.message}`);
     }
   });
 
   return (
     <>
       <Topbar
-        title="Produtos e Serviços"
-        subtitle="Catálogo de artigos, variantes e preços"
+        title={t("products.title")}
+        subtitle={t("products.subtitle")}
         actions={
           <button 
             onClick={() => { setProductToEdit(null); setIsModalOpen(true); }}
             className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
           >
-            <Plus className="h-4 w-4" /> Novo Artigo
+            <Plus className="h-4 w-4" /> {t("products.new_product")}
           </button>
         }
       />
@@ -98,33 +100,33 @@ function ProdutosPage() {
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar produtos por nome..."
+              placeholder={t("products.search_placeholder")}
               className="h-11 w-full rounded-full border border-border bg-card pl-11 pr-4 text-sm shadow-soft focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
           <button 
-            onClick={() => toast.info("Gestor de categorias em desenvolvimento para a próxima atualização.")}
+            onClick={() => toast.info(t("products.categories_dev"))}
             className="h-11 px-6 rounded-full border border-border bg-card text-sm font-medium hover:bg-muted shadow-soft"
           >
-            Categorias
+            {t("products.categories")}
           </button>
         </div>
 
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="mb-4 h-8 w-8 animate-spin" />
-            <p>A carregar catálogo...</p>
+            <p>{t("products.loading")}</p>
           </div>
         ) : products.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border py-12 text-center text-muted-foreground">
             <Package className="mb-4 h-10 w-10 opacity-20" />
-            <h3 className="text-lg font-semibold text-foreground">Catálogo Vazio</h3>
-            <p className="mt-1 text-sm">Ainda não registou nenhum produto ou serviço.</p>
+            <h3 className="text-lg font-semibold text-foreground">{t("products.empty_catalog")}</h3>
+            <p className="mt-1 text-sm">{t("products.empty_catalog_desc")}</p>
             <button 
               onClick={() => setIsModalOpen(true)}
               className="mt-4 inline-flex h-9 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95"
             >
-              <Plus className="h-4 w-4" /> Adicionar Produto
+              <Plus className="h-4 w-4" /> {t("products.add_product")}
             </button>
           </div>
         ) : (
@@ -133,12 +135,12 @@ function ProdutosPage() {
               <table className="w-full text-sm text-left">
                 <thead className="bg-muted/50 text-muted-foreground font-medium border-b border-border">
                   <tr>
-                    <th className="px-6 py-4">Artigo</th>
-                    <th className="px-6 py-4">Categoria</th>
-                    <th className="px-6 py-4">Tipo</th>
-                    <th className="px-6 py-4 text-center">Stock Total</th>
-                    <th className="px-6 py-4">Variantes</th>
-                    <th className="px-6 py-4 text-right">Ações</th>
+                    <th className="px-6 py-4">{t("products.table_article")}</th>
+                    <th className="px-6 py-4">{t("products.table_category")}</th>
+                    <th className="px-6 py-4">{t("products.table_type")}</th>
+                    <th className="px-6 py-4 text-center">{t("products.table_stock")}</th>
+                    <th className="px-6 py-4">{t("products.table_variants")}</th>
+                    <th className="px-6 py-4 text-right">{t("products.table_actions")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -146,14 +148,14 @@ function ProdutosPage() {
                     <tr key={p.id} className="hover:bg-muted/30 transition-colors">
                       <td className="px-6 py-4">
                         <div className="font-semibold text-foreground">{p.name}</div>
-                        <div className="text-xs text-muted-foreground mt-0.5">{p.description || "Sem descrição"}</div>
+                        <div className="text-xs text-muted-foreground mt-0.5">{p.description || t("products.no_description")}</div>
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {p.product_categories?.name || "—"}
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                          {p.type === 'servico' ? 'Serviço' : 'Produto'}
+                          {p.type === 'servico' ? t("products.type_service") : t("products.type_product")}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center font-bold text-foreground">
@@ -166,7 +168,7 @@ function ProdutosPage() {
                       </td>
                       <td className="px-6 py-4 text-muted-foreground">
                         {p.has_variants 
-                          ? `${p.product_variants?.length || 0} variações` 
+                          ? t("products.variations_count", { count: p.product_variants?.length || 0 })
                           : p.product_variants?.[0] ? `${p.product_variants[0].price} MZN` : "—"}
                       </td>
                       <td className="px-6 py-4 text-right">
@@ -179,7 +181,7 @@ function ProdutosPage() {
                           </button>
                           <button 
                             onClick={() => {
-                              if (window.confirm("Tem a certeza que deseja apagar este artigo?")) {
+                              if (window.confirm(t("products.delete_confirm"))) {
                                 deleteProduct.mutate(p.id);
                               }
                             }}

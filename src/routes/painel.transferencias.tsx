@@ -7,12 +7,14 @@ import { useState } from "react";
 import { ArrowRightLeft, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { SuccessModal } from "@/components/success-modal";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/painel/transferencias")({
   component: TransferenciasPage,
 });
 
 function TransferenciasPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
@@ -68,18 +70,18 @@ function TransferenciasPage() {
   const transferMutation = useMutation({
     mutationFn: async () => {
       if (!fromWarehouse || !toWarehouse || !variantId || !quantity) {
-        throw new Error("Preencha todos os campos obrigatórios.");
+        throw new Error(t("transfers.msg_req_fields"));
       }
       if (fromWarehouse === toWarehouse) {
-        throw new Error("O armazém de origem e destino não podem ser os mesmos.");
+        throw new Error(t("transfers.msg_same_wh"));
       }
       
       const qty = parseFloat(quantity);
-      if (isNaN(qty) || qty <= 0) throw new Error("A quantidade deve ser maior que zero.");
+      if (isNaN(qty) || qty <= 0) throw new Error(t("transfers.msg_qty_gt_zero"));
 
       const selectedStock = availableStock.find(s => s.variant_id === variantId && (s.batch_id === batchId || (!s.batch_id && !batchId)));
       if (!selectedStock || selectedStock.quantity < qty) {
-        throw new Error("Stock insuficiente no armazém de origem.");
+        throw new Error(t("transfers.msg_insufficient_stock"));
       }
 
       // 1. Deduct from origin
@@ -149,15 +151,15 @@ function TransferenciasPage() {
       queryClient.invalidateQueries({ queryKey: ["stock_inventory"] });
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao transferir stock");
+      toast.error(error.message || t("transfers.msg_error"));
     }
   });
 
   return (
     <div className="pb-20">
       <Topbar
-        title="Transferência de Stock"
-        subtitle="Mova produtos entre o Armazém e a Loja."
+        title={t("transfers.title")}
+        subtitle={t("transfers.subtitle")}
       />
 
       <div className="mx-auto w-full max-w-4xl p-4 sm:p-6">
@@ -165,7 +167,7 @@ function TransferenciasPage() {
           
           <div className="flex flex-col sm:flex-row items-center gap-4">
             <div className="w-full space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Origem</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("transfers.origin")}</label>
               <select 
                 value={fromWarehouse} 
                 onChange={e => {
@@ -175,7 +177,7 @@ function TransferenciasPage() {
                 }} 
                 className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm focus:border-primary focus:outline-none"
               >
-                <option value="">Selecione...</option>
+                <option value="">{t("transfers.select")}</option>
                 {warehouses.map(w => <option key={w.id} value={w.id}>{w.name} ({w.type})</option>)}
               </select>
             </div>
@@ -183,13 +185,13 @@ function TransferenciasPage() {
             <ArrowRightLeft className="h-6 w-6 text-muted-foreground shrink-0 mt-6 hidden sm:block" />
             
             <div className="w-full space-y-2">
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Destino</label>
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("transfers.destination")}</label>
               <select 
                 value={toWarehouse} 
                 onChange={e => setToWarehouse(e.target.value)} 
                 className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm focus:border-primary focus:outline-none"
               >
-                <option value="">Selecione...</option>
+                <option value="">{t("transfers.select")}</option>
                 {warehouses.map(w => <option key={w.id} value={w.id} disabled={w.id === fromWarehouse}>{w.name} ({w.type})</option>)}
               </select>
             </div>
@@ -198,7 +200,7 @@ function TransferenciasPage() {
           {fromWarehouse && (
             <div className="pt-6 border-t border-border space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Produto / Lote a transferir</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("transfers.product_batch")}</label>
                 <select 
                   value={`${variantId}|${batchId}`} 
                   onChange={e => {
@@ -208,12 +210,12 @@ function TransferenciasPage() {
                   }} 
                   className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm focus:border-primary focus:outline-none"
                 >
-                  <option value="|">Selecione um produto com stock...</option>
+                  <option value="|">{t("transfers.select_product")}</option>
                   {availableStock.map((s, idx) => (
                     <option key={idx} value={`${s.variant_id}|${s.batch_id || ""}`}>
                       {s.product_variants?.products?.name} 
-                      {s.product_batches?.batch_number ? ` (Lote: ${s.product_batches.batch_number})` : ''} 
-                      - {s.quantity} disponíveis
+                      {s.product_batches?.batch_number ? ` (${t("transfers.batch_label")} ${s.product_batches.batch_number})` : ''} 
+                      - {s.quantity} {t("transfers.available")}
                     </option>
                   ))}
                 </select>
@@ -221,7 +223,7 @@ function TransferenciasPage() {
 
               {variantId && (
                 <div className="space-y-2 w-1/3">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Quantidade</label>
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("transfers.quantity")}</label>
                   <input 
                     type="number" 
                     min="0.01" 
@@ -241,7 +243,7 @@ function TransferenciasPage() {
               disabled={transferMutation.isPending || !fromWarehouse || !toWarehouse || !variantId || !quantity}
               className="w-full flex h-11 items-center justify-center rounded-xl bg-primary px-4 text-sm font-semibold text-primary-foreground transition hover:opacity-95 disabled:opacity-50"
             >
-              {transferMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirmar Transferência'}
+              {transferMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : t("transfers.confirm")}
             </button>
           </div>
 
@@ -250,8 +252,8 @@ function TransferenciasPage() {
       <SuccessModal 
         isOpen={isSuccessModalOpen} 
         onClose={() => setIsSuccessModalOpen(false)} 
-        title="Transferência Concluída" 
-        message="O stock foi movido com sucesso." 
+        title={t("transfers.success_title")} 
+        message={t("transfers.success_msg")} 
       />
     </div>
   );

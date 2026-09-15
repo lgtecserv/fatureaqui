@@ -3,8 +3,10 @@ import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import FlameWrap from "@/components/ui/flame-wrap";
+import { useTranslation } from "react-i18next";
 
 export function PricingSection() {
+  const { t } = useTranslation();
   const { data: settings, isLoading: isSettingsLoading } = useQuery({
     queryKey: ["system-settings-public"],
     queryFn: async () => {
@@ -27,35 +29,35 @@ export function PricingSection() {
 
   const plans = [
     {
-      name: "Gratuito",
+      name: t("pricing.free.name"),
       price: "0 MT",
-      period: "/mês",
-      description: "Ideal para começar e testar a plataforma.",
+      period: t("pricing.free.period"),
+      description: t("pricing.free.desc"),
       features: [
-        { name: "Até 5 faturas mensais", included: true },
-        { name: "Até 10 clientes", included: true },
-        { name: "Documentos em PDF", included: true },
-        { name: "Certificação AT", included: true },
-        { name: "Apoio ao cliente prioritário", included: false },
-        { name: "Gestão de inventário", included: false },
+        { name: t("pricing.free.f1"), included: true },
+        { name: t("pricing.free.f2"), included: true },
+        { name: t("pricing.free.f3"), included: true },
+        { name: t("pricing.free.f4"), included: true },
+        { name: t("pricing.free.f5"), included: false },
+        { name: t("pricing.free.f6"), included: false },
       ],
-      cta: "Começar Grátis",
+      cta: t("pricing.free.cta"),
       popular: false,
     },
     {
-      name: "Plano Pro",
+      name: t("pricing.pro.name"),
       price: proPrice,
-      period: "/mês",
-      description: "A solução completa para pequenas e médias empresas.",
+      period: t("pricing.pro.period"),
+      description: t("pricing.pro.desc"),
       features: [
-        { name: "Faturas ilimitadas", included: true },
-        { name: "Clientes ilimitados", included: true },
-        { name: "Documentos em PDF", included: true },
-        { name: "Certificação AT", included: true },
-        { name: "Apoio ao cliente prioritário", included: true },
-        { name: "Gestão de inventário", included: true },
+        { name: t("pricing.pro.f1"), included: true },
+        { name: t("pricing.pro.f2"), included: true },
+        { name: t("pricing.pro.f3"), included: true },
+        { name: t("pricing.pro.f4"), included: true },
+        { name: t("pricing.pro.f5"), included: true },
+        { name: t("pricing.pro.f6"), included: true },
       ],
-      cta: "Testar o Pro",
+      cta: t("pricing.pro.cta"),
       popular: true,
     },
   ];
@@ -65,10 +67,10 @@ export function PricingSection() {
       <div className="mx-auto max-w-5xl px-6">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl font-extrabold text-foreground sm:text-4xl">
-            Preços simples e transparentes
+            {t("pricing.title")}
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
-            Escolha o plano que melhor se adapta às necessidades do seu negócio. Cancele ou altere quando quiser.
+            {t("pricing.subtitle")}
           </p>
         </div>
 
@@ -82,7 +84,7 @@ export function PricingSection() {
               >
                 {p.popular && (
                   <div className="absolute -top-4 left-0 right-0 mx-auto w-fit rounded-full bg-amber-500 px-3 py-1 text-xs font-bold uppercase tracking-wider text-white shadow-sm">
-                    Mais Popular
+                    {t("pricing.popular")}
                   </div>
                 )}
                 

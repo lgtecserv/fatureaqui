@@ -2,12 +2,15 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/language-switcher";
 
 export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
 function LoginPage() {
+  const { t } = useTranslation();
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -29,7 +32,7 @@ function LoginPage() {
 
     const { error } = await signIn(email, password);
     if (error) {
-      setError(`Erro: ${error.message}`);
+      setError(`${t("login.error")} ${error.message}`);
       setLoading(false);
     } else {
       if (email === "lgtecserv@gmail.com") {
@@ -41,15 +44,18 @@ function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 relative">
+      <div className="absolute top-6 right-6">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <img src="/logo.png" alt="FatureAqui" className="h-12 sm:h-14 object-contain mx-auto" />
           <h1 className="mt-6 text-2xl font-extrabold tracking-tight text-foreground">
-            Bem-vindo de volta
+            {t("login.welcome")}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Insira as suas credenciais para aceder ao painel
+            {t("login.subtitle")}
           </p>
         </div>
 
@@ -66,7 +72,7 @@ function LoginPage() {
           <div className="space-y-4">
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Email
+                {t("login.email")}
               </label>
               <div className="relative">
                 <Mail className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -83,7 +89,7 @@ function LoginPage() {
 
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Senha
+                {t("login.password")}
               </label>
               <div className="relative">
                 <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -115,17 +121,17 @@ function LoginPage() {
             disabled={loading}
             className="mt-6 flex h-11 w-full items-center justify-center gap-2 rounded-full bg-primary text-sm font-semibold text-primary-foreground shadow-soft transition hover:opacity-95 disabled:opacity-60"
           >
-            {loading ? "A entrar..." : "Entrar"}
+            {loading ? t("login.loading_btn") : t("login.login_btn")}
             {!loading && <ArrowRight className="h-4 w-4" />}
           </button>
 
           <p className="mt-4 text-center text-sm text-muted-foreground">
-            Ainda não tem conta?{" "}
+            {t("login.no_account")}{" "}
             <Link
               to="/registro"
               className="font-semibold text-primary hover:underline"
             >
-              Criar conta
+              {t("login.create_account")}
             </Link>
           </p>
         </form>
