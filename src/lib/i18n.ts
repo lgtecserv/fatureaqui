@@ -5,16 +5,14 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import en from '../locales/en.json';
 import pt from '../locales/pt.json';
 
-const extractTranslations = (localeFile: any) => {
-  if (localeFile?.translation) return localeFile.translation;
-  if (localeFile?.default?.translation) return localeFile.default.translation;
-  if (localeFile?.default) return localeFile.default;
-  return localeFile;
+// Handle cases where JSON plugin might export differently in production
+const getTranslations = (mod: any) => {
+  return mod?.translation || mod?.default?.translation || mod;
 };
 
 const resources = {
-  en: { translation: extractTranslations(en) },
-  pt: { translation: extractTranslations(pt) }
+  en: { translation: getTranslations(en) },
+  pt: { translation: getTranslations(pt) }
 };
 
 const i18nConfig = {
@@ -30,11 +28,14 @@ const i18nConfig = {
   }
 };
 
-// Only use LanguageDetector on the client side (browser) to prevent SSR crashes
+// Use explicit pt language on the server to avoid SSR hydration mismatches
 if (typeof window !== 'undefined') {
   i18n.use(LanguageDetector).use(initReactI18next).init(i18nConfig);
 } else {
-  i18n.use(initReactI18next).init(i18nConfig);
+  i18n.use(initReactI18next).init({
+    ...i18nConfig,
+    lng: 'pt', // Explicitly set for SSR
+  });
 }
 
 export default i18n;
