@@ -19,21 +19,25 @@ function Index() {
   const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-background">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <img src="/logo.png" alt="FatureAqui" className="h-16 sm:h-[72px] object-contain" />
-        <div className="flex items-center gap-6">
-          <LanguageSwitcher />
-          <Link to="/docs/api" className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors hidden sm:block">
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 sm:py-6">
+        <img src="/logo.png" alt="FatureAqui" className="h-10 sm:h-16 lg:h-[72px] object-contain shrink-0" />
+        <div className="flex items-center gap-3 sm:gap-6">
+          <div className="max-[400px]:hidden">
+            <LanguageSwitcher />
+          </div>
+          <Link to="/docs/api" className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors hidden sm:block whitespace-nowrap">
             {t("nav.api")}
           </Link>
-          <Link to="/login" className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors">
+          <Link to="/login" className="text-sm font-semibold text-muted-foreground hover:text-primary transition-colors whitespace-nowrap">
             {t("nav.login")}
           </Link>
           <Link
             to="/registro"
-            className="inline-flex h-10 items-center gap-2 rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95"
+            className="inline-flex h-9 sm:h-10 items-center gap-1.5 sm:gap-2 rounded-full bg-primary px-4 sm:px-5 text-sm font-semibold text-primary-foreground shadow-soft hover:opacity-95 whitespace-nowrap"
           >
-            {t("nav.register")} <ArrowRight className="h-4 w-4" />
+            <span className="max-[400px]:hidden">{t("nav.register")}</span>
+            <span className="min-[401px]:hidden">Criar</span>
+            <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Link>
         </div>
       </header>

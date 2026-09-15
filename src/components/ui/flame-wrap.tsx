@@ -741,7 +741,17 @@ export function FlameWrap({
   const reach = Math.round(Math.max(options.height ?? 170, 24) * 1.5) + 40;
   const glow = Math.round(Math.max(options.spread ?? 8, 8) * 3) + 16;
 
+  const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  useEffect(() => {
+    if (isMobile) return;
     const source = sourceRef.current;
     const content = contentRef.current;
     const output = outputRef.current;
@@ -755,11 +765,19 @@ export function FlameWrap({
       instanceRef.current?.destroy();
       instanceRef.current = null;
     };
-  }, [initialOptions, native]);
+  }, [initialOptions, native, isMobile]);
 
   useEffect(() => {
     instanceRef.current?.setOptions(options);
   });
+
+  if (isMobile) {
+    return (
+      <div className={className} style={{ position: "relative", ...style }}>
+        {children}
+      </div>
+    );
+  }
 
   return (
     <div className={className} style={{ position: "relative", ...style }}>
