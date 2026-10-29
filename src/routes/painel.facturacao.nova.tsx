@@ -13,9 +13,7 @@ import { DocumentPreview } from "@/components/document-preview";
 import { SuccessModal } from "@/components/success-modal";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
-// @ts-ignore
-import domtoimage from "dom-to-image-more";
-import jsPDF from "jspdf";
+import { exportElementToPdf, printInvoiceElement } from "@/lib/pdf-export";
 
 export const Route = createFileRoute("/painel/facturacao/nova")({
   component: NovaFacturaPage,
@@ -164,20 +162,19 @@ function NovaFacturaPage() {
       if (!company?.id) return;
       const dateObj = new Date(date);
       const year = dateObj.getFullYear();
-      const monthStr = String(dateObj.getMonth() + 1).padStart(2, '0');
-      const yearMonthPrefix = `${year}-${monthStr}`;
 
       const { data: lastDoc } = await supabase
         .from("documents")
         .select("sequence")
         .eq("company_id", company.id)
         .eq("type", docType)
-        .like("date", `${yearMonthPrefix}-%`)
+        .eq("year", year)
         .order("sequence", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       const sequence = lastDoc?.sequence ? lastDoc.sequence + 1 : 1;
-      setNextDocNumber(`${docType} ${yearMonthPrefix}/${sequence}`);
+      setNextDocNumber(`${docType} ${year}/${sequence}`);
     }
     
     fetchNextSequence();
@@ -385,6 +382,7 @@ function NovaFacturaPage() {
         .eq("type", docType)
         .eq("year", year)
         .order("sequence", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       const sequence = lastDoc?.sequence ? lastDoc.sequence + 1 : 1;
@@ -395,6 +393,7 @@ function NovaFacturaPage() {
         .from("documents")
         .insert({
           company_id: company.id,
+          warehouse_id: warehouseId || null,
           type: docType,
           number,
           sequence,
@@ -1004,6 +1003,38 @@ function NovaFacturaPage() {
         </div>
       </div>
 
+      {/* NÓ DEDICADO DE EXPORTAÇÃO E IMPRESSÃO (NUNCA DISPLAY:NONE, ESCALA 1:1, SEM TRANSFORMS) */}
+      <div 
+        id="pdf-export-container"
+        style={{
+          position: "fixed",
+          left: "-9999px",
+          top: 0,
+          width: "794px",
+          minHeight: "1123px",
+          background: "#ffffff",
+          zIndex: -999,
+          pointerEvents: "none",
+        }}
+        aria-hidden="true"
+      >
+        <DocumentPreview 
+          id="pdf-export-content"
+          company={company}
+          client={clientId === "ocasional" ? ocasionalClient as any : selectedClient}
+          documentData={{
+            ...documentData,
+            number: lastGeneratedNumber || documentData.number,
+          }}
+          items={items}
+          calculations={calculations}
+          hasIva={hasIva}
+          ivaRate={ivaRate}
+          hasIspc={hasIspc}
+          ispcRate={ispcRate}
+        />
+      </div>
+
       {/* Modals */}
       <ClientModal 
         isOpen={isClientModalOpen} 
@@ -1016,30 +1047,30 @@ function NovaFacturaPage() {
         isOpen={isSuccessModalOpen}
         onClose={() => navigate({ to: "/painel/facturacao" })}
         documentNumber={lastGeneratedNumber}
-        onDownload={() => {
-          const element = document.getElementById("pdf-content");
-          if (!element) return;
+        onDownload={async () => {
+          const exportElement = document.getElementById("pdf-export-content") || document.getElementById("pdf-content");
+          if (!exportElement) {
+            toast.error("Erro ao localizar elemento da fatura.");
+            return;
+          }
           
-          toast.success("A gerar PDF... por favor aguarde.");
-          
-          domtoimage.toPng(element, { 
-            quality: 1, 
-            bgcolor: '#ffffff',
-            scale: 2 
-          })
-          .then((dataUrl: string) => {
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            
-            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`${lastGeneratedNumber.replace(/\//g, '-')}.pdf`);
-            toast.success("Download concluído!");
-          })
-          .catch((error: any) => {
+          const toastId = toast.loading("A gerar PDF de alta resolução...");
+          try {
+            const fileName = (lastGeneratedNumber || "fatura").replace(/\//g, '-');
+            await exportElementToPdf(exportElement as HTMLElement, `${fileName}.pdf`);
+            toast.dismiss(toastId);
+            toast.success("Download do PDF concluído com sucesso!");
+          } catch (error: any) {
             console.error("Erro ao gerar PDF:", error);
-            toast.error("Erro ao gerar PDF.");
-          });
+            toast.dismiss(toastId);
+            toast.error(error.message || "Erro ao gerar PDF.");
+          }
+        }}
+        onPrint={() => {
+          const exportElement = document.getElementById("pdf-export-content") || document.getElementById("pdf-content");
+          if (exportElement) {
+            printInvoiceElement(exportElement as HTMLElement, lastGeneratedNumber || "Fatura");
+          }
         }}
         onEmail={() => toast.success("Email enviado com sucesso!")}
         onNew={resetForm}

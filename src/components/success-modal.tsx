@@ -1,10 +1,11 @@
-import { CheckCircle2, FileText, Mail, PlusCircle, X } from "lucide-react";
+import { CheckCircle2, FileText, Mail, PlusCircle, Printer, X } from "lucide-react";
 
 interface SuccessModalProps {
   isOpen: boolean;
   onClose: () => void;
   documentNumber: string;
   onDownload: () => void;
+  onPrint?: () => void;
   onEmail: () => void;
   onNew: () => void;
 }
@@ -14,6 +15,7 @@ export function SuccessModal({
   onClose,
   documentNumber,
   onDownload,
+  onPrint,
   onEmail,
   onNew,
 }: SuccessModalProps) {
@@ -43,6 +45,16 @@ export function SuccessModal({
           >
             <FileText className="h-4 w-4" /> Baixar PDF
           </button>
+
+          {onPrint && (
+            <button 
+              type="button"
+              onClick={onPrint}
+              className="w-full inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-border bg-background px-4 text-sm font-semibold text-foreground hover:bg-muted transition"
+            >
+              <Printer className="h-4 w-4" /> Imprimir Documento
+            </button>
+          )}
           
           <button 
             type="button"

@@ -32,6 +32,7 @@ interface DocumentPreviewProps {
   ivaRate: number;
   hasIspc?: boolean;
   ispcRate?: number;
+  id?: string;
 }
 
 export function DocumentPreview({
@@ -44,6 +45,7 @@ export function DocumentPreview({
   ivaRate,
   hasIspc = false,
   ispcRate = 3,
+  id = "pdf-content",
 }: DocumentPreviewProps) {
   const primaryColor = company?.primary_color || "#02664D";
   const docTypeName = DOCUMENT_TYPE_LABELS[documentData.type] || "Documento";
@@ -51,7 +53,7 @@ export function DocumentPreview({
 
   return (
     <div 
-      id="pdf-content" 
+      id={id} 
       className="w-[794px] min-h-[1123px] bg-white relative overflow-hidden text-[13px] text-gray-800 shadow-2xl border border-gray-100" 
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
@@ -73,7 +75,12 @@ export function DocumentPreview({
           {/* Company Info */}
           <div className="flex flex-col max-w-[55%] break-words">
             {company?.logo_url ? (
-              <img src={company.logo_url} alt={company?.name} className="h-20 mb-4 object-contain max-w-full" />
+              <img 
+                src={company.logo_url} 
+                alt={company?.name} 
+                crossOrigin="anonymous"
+                className="h-20 mb-4 object-contain max-w-full" 
+              />
             ) : (
               <div 
                 className="h-16 w-16 rounded-xl flex items-center justify-center font-bold text-white text-2xl mb-4 shadow-sm"

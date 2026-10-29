@@ -29,6 +29,7 @@ import { Route as PainelProdutosRouteImport } from './routes/painel.produtos'
 import { Route as PainelLotesRouteImport } from './routes/painel.lotes'
 import { Route as PainelFornecedoresRouteImport } from './routes/painel.fornecedores'
 import { Route as PainelDefinicoesRouteImport } from './routes/painel.definicoes'
+import { Route as PainelComunidadeRouteImport } from './routes/painel.comunidade'
 import { Route as PainelComprasRouteImport } from './routes/painel.compras'
 import { Route as PainelClientesRouteImport } from './routes/painel.clientes'
 import { Route as PainelAssinaturaRouteImport } from './routes/painel.assinatura'
@@ -42,6 +43,7 @@ import { Route as AdminLogsRouteImport } from './routes/admin.logs'
 import { Route as AdminFaturacaoRouteImport } from './routes/admin.faturacao'
 import { Route as AdminEmpresasRouteImport } from './routes/admin.empresas'
 import { Route as AdminConfiguracoesRouteImport } from './routes/admin.configuracoes'
+import { Route as AdminComunidadeRouteImport } from './routes/admin.comunidade'
 import { Route as PainelFacturacaoIndexRouteImport } from './routes/painel.facturacao.index'
 import { Route as PainelFacturacaoNovaRouteImport } from './routes/painel.facturacao.nova'
 
@@ -145,6 +147,11 @@ const PainelDefinicoesRoute = PainelDefinicoesRouteImport.update({
   path: '/definicoes',
   getParentRoute: () => PainelRoute,
 } as any)
+const PainelComunidadeRoute = PainelComunidadeRouteImport.update({
+  id: '/comunidade',
+  path: '/comunidade',
+  getParentRoute: () => PainelRoute,
+} as any)
 const PainelComprasRoute = PainelComprasRouteImport.update({
   id: '/compras',
   path: '/compras',
@@ -210,6 +217,11 @@ const AdminConfiguracoesRoute = AdminConfiguracoesRouteImport.update({
   path: '/configuracoes',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminComunidadeRoute = AdminComunidadeRouteImport.update({
+  id: '/comunidade',
+  path: '/comunidade',
+  getParentRoute: () => AdminRoute,
+} as any)
 const PainelFacturacaoIndexRoute = PainelFacturacaoIndexRouteImport.update({
   id: '/facturacao/',
   path: '/facturacao/',
@@ -234,6 +246,7 @@ export interface FileRoutesByFullPath {
   '/rgpd': typeof RgpdRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
+  '/admin/comunidade': typeof AdminComunidadeRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
@@ -247,6 +260,7 @@ export interface FileRoutesByFullPath {
   '/painel/assinatura': typeof PainelAssinaturaRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/compras': typeof PainelComprasRoute
+  '/painel/comunidade': typeof PainelComunidadeRoute
   '/painel/definicoes': typeof PainelDefinicoesRoute
   '/painel/fornecedores': typeof PainelFornecedoresRoute
   '/painel/lotes': typeof PainelLotesRoute
@@ -269,6 +283,7 @@ export interface FileRoutesByTo {
   '/rgpd': typeof RgpdRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
+  '/admin/comunidade': typeof AdminComunidadeRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
@@ -282,6 +297,7 @@ export interface FileRoutesByTo {
   '/painel/assinatura': typeof PainelAssinaturaRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/compras': typeof PainelComprasRoute
+  '/painel/comunidade': typeof PainelComunidadeRoute
   '/painel/definicoes': typeof PainelDefinicoesRoute
   '/painel/fornecedores': typeof PainelFornecedoresRoute
   '/painel/lotes': typeof PainelLotesRoute
@@ -307,6 +323,7 @@ export interface FileRoutesById {
   '/rgpd': typeof RgpdRoute
   '/sobre': typeof SobreRoute
   '/termos': typeof TermosRoute
+  '/admin/comunidade': typeof AdminComunidadeRoute
   '/admin/configuracoes': typeof AdminConfiguracoesRoute
   '/admin/empresas': typeof AdminEmpresasRoute
   '/admin/faturacao': typeof AdminFaturacaoRoute
@@ -320,6 +337,7 @@ export interface FileRoutesById {
   '/painel/assinatura': typeof PainelAssinaturaRoute
   '/painel/clientes': typeof PainelClientesRoute
   '/painel/compras': typeof PainelComprasRoute
+  '/painel/comunidade': typeof PainelComunidadeRoute
   '/painel/definicoes': typeof PainelDefinicoesRoute
   '/painel/fornecedores': typeof PainelFornecedoresRoute
   '/painel/lotes': typeof PainelLotesRoute
@@ -346,6 +364,7 @@ export interface FileRouteTypes {
     | '/rgpd'
     | '/sobre'
     | '/termos'
+    | '/admin/comunidade'
     | '/admin/configuracoes'
     | '/admin/empresas'
     | '/admin/faturacao'
@@ -359,6 +378,7 @@ export interface FileRouteTypes {
     | '/painel/assinatura'
     | '/painel/clientes'
     | '/painel/compras'
+    | '/painel/comunidade'
     | '/painel/definicoes'
     | '/painel/fornecedores'
     | '/painel/lotes'
@@ -381,6 +401,7 @@ export interface FileRouteTypes {
     | '/rgpd'
     | '/sobre'
     | '/termos'
+    | '/admin/comunidade'
     | '/admin/configuracoes'
     | '/admin/empresas'
     | '/admin/faturacao'
@@ -394,6 +415,7 @@ export interface FileRouteTypes {
     | '/painel/assinatura'
     | '/painel/clientes'
     | '/painel/compras'
+    | '/painel/comunidade'
     | '/painel/definicoes'
     | '/painel/fornecedores'
     | '/painel/lotes'
@@ -418,6 +440,7 @@ export interface FileRouteTypes {
     | '/rgpd'
     | '/sobre'
     | '/termos'
+    | '/admin/comunidade'
     | '/admin/configuracoes'
     | '/admin/empresas'
     | '/admin/faturacao'
@@ -431,6 +454,7 @@ export interface FileRouteTypes {
     | '/painel/assinatura'
     | '/painel/clientes'
     | '/painel/compras'
+    | '/painel/comunidade'
     | '/painel/definicoes'
     | '/painel/fornecedores'
     | '/painel/lotes'
@@ -601,6 +625,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PainelDefinicoesRouteImport
       parentRoute: typeof PainelRoute
     }
+    '/painel/comunidade': {
+      id: '/painel/comunidade'
+      path: '/comunidade'
+      fullPath: '/painel/comunidade'
+      preLoaderRoute: typeof PainelComunidadeRouteImport
+      parentRoute: typeof PainelRoute
+    }
     '/painel/compras': {
       id: '/painel/compras'
       path: '/compras'
@@ -692,6 +723,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminConfiguracoesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/comunidade': {
+      id: '/admin/comunidade'
+      path: '/comunidade'
+      fullPath: '/admin/comunidade'
+      preLoaderRoute: typeof AdminComunidadeRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/painel/facturacao/': {
       id: '/painel/facturacao/'
       path: '/facturacao'
@@ -710,6 +748,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AdminRouteChildren {
+  AdminComunidadeRoute: typeof AdminComunidadeRoute
   AdminConfiguracoesRoute: typeof AdminConfiguracoesRoute
   AdminEmpresasRoute: typeof AdminEmpresasRoute
   AdminFaturacaoRoute: typeof AdminFaturacaoRoute
@@ -721,6 +760,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminComunidadeRoute: AdminComunidadeRoute,
   AdminConfiguracoesRoute: AdminConfiguracoesRoute,
   AdminEmpresasRoute: AdminEmpresasRoute,
   AdminFaturacaoRoute: AdminFaturacaoRoute,
@@ -739,6 +779,7 @@ interface PainelRouteChildren {
   PainelAssinaturaRoute: typeof PainelAssinaturaRoute
   PainelClientesRoute: typeof PainelClientesRoute
   PainelComprasRoute: typeof PainelComprasRoute
+  PainelComunidadeRoute: typeof PainelComunidadeRoute
   PainelDefinicoesRoute: typeof PainelDefinicoesRoute
   PainelFornecedoresRoute: typeof PainelFornecedoresRoute
   PainelLotesRoute: typeof PainelLotesRoute
@@ -756,6 +797,7 @@ const PainelRouteChildren: PainelRouteChildren = {
   PainelAssinaturaRoute: PainelAssinaturaRoute,
   PainelClientesRoute: PainelClientesRoute,
   PainelComprasRoute: PainelComprasRoute,
+  PainelComunidadeRoute: PainelComunidadeRoute,
   PainelDefinicoesRoute: PainelDefinicoesRoute,
   PainelFornecedoresRoute: PainelFornecedoresRoute,
   PainelLotesRoute: PainelLotesRoute,

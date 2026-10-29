@@ -36,6 +36,7 @@ const mainItems = [
   { translationKey: "sidebar.documents", title: "Documentos", url: "/painel/facturacao", icon: FileText },
   { translationKey: "sidebar.clients", title: "Clientes", url: "/painel/clientes", icon: Users },
   { translationKey: "sidebar.products", title: "Produtos", url: "/painel/produtos", icon: Package },
+  { translationKey: "sidebar.community", title: "Comunidade", url: "/painel/comunidade", icon: Users },
   { translationKey: "sidebar.batches", title: "Lotes & Validades", url: "/painel/lotes", icon: Boxes, isBeta: true },
   { translationKey: "sidebar.suppliers", title: "Fornecedores", url: "/painel/fornecedores", icon: Truck, isBeta: true },
   { translationKey: "sidebar.purchases", title: "Compras", url: "/painel/compras", icon: ShoppingCart, isBeta: true },

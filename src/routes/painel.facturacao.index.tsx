@@ -1,13 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Filter, Download, Search, Loader2 } from "lucide-react";
+import { Plus, Filter, Download, Search, Loader2, Eye } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { MT } from "@/lib/format";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
-import type { Document } from "@/types";
+import type { Document, Company } from "@/types";
 import { useTranslation } from "react-i18next";
+import { InvoiceViewModal } from "@/components/invoice-view-modal";
 
 export const Route = createFileRoute("/painel/facturacao/")({
   component: FacturacaoPage,
@@ -16,8 +17,6 @@ export const Route = createFileRoute("/painel/facturacao/")({
 // Types have to be translated inside the component to use the hook
 // So we define the IDs here and generate the array inside
 const DOCUMENT_TYPE_IDS = ["all", "VD", "FT", "RC", "NC", "ND", "CT", "GR"] as const;
-
-
 
 function statusStyle(s: string) {
   const status = s.toLowerCase();
@@ -44,6 +43,7 @@ function FacturacaoPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const [activeType, setActiveType] = useState("all");
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
 
   const DOCUMENT_TYPES = [
     { id: "all", label: t("invoicing.types.all") },
@@ -56,18 +56,20 @@ function FacturacaoPage() {
     { id: "GR", label: t("invoicing.types.gr") },
   ];
 
-  const { data: documents = [], isLoading } = useQuery({
-    queryKey: ["documents", user?.id],
+  // Fetch company
+  const { data: company } = useQuery({
+    queryKey: ["company", user?.id],
     queryFn: async () => {
-      if (!user) return [];
-      
-      // Get company first
-      const { data: company } = await supabase
-        .from("companies")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-        
+      if (!user) return null;
+      const { data } = await supabase.from("companies").select("*").eq("user_id", user.id).maybeSingle();
+      return data as Company | null;
+    },
+    enabled: !!user,
+  });
+
+  const { data: documents = [], isLoading } = useQuery({
+    queryKey: ["documents", company?.id],
+    queryFn: async () => {
       if (!company) return [];
 
       const { data, error } = await supabase
@@ -79,7 +81,7 @@ function FacturacaoPage() {
       if (error) throw error;
       return data as Document[];
     },
-    enabled: !!user,
+    enabled: !!company,
   });
 
   const currentMonth = new Date().getMonth();
@@ -192,12 +194,13 @@ function FacturacaoPage() {
                   <th className="px-5 py-3">{t("invoicing.table.date")}</th>
                   <th className="px-5 py-3 text-right">{t("invoicing.table.total")}</th>
                   <th className="px-5 py-3">{t("invoicing.table.status")}</th>
+                  <th className="px-5 py-3 text-right">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-8 text-center text-muted-foreground">
+                    <td colSpan={8} className="px-5 py-8 text-center text-muted-foreground">
                       <div className="flex items-center justify-center gap-2">
                         <Loader2 className="h-5 w-5 animate-spin" />
                         <span>{t("invoicing.loading")}</span>
@@ -206,7 +209,7 @@ function FacturacaoPage() {
                   </tr>
                 ) : filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-5 py-8 text-center text-muted-foreground">
+                    <td colSpan={8} className="px-5 py-8 text-center text-muted-foreground">
                       {t("invoicing.empty")}
                     </td>
                   </tr>
@@ -214,7 +217,7 @@ function FacturacaoPage() {
                   filtered.map((r, i) => (
                     <tr
                       key={r.id}
-                      className={`border-t border-border hover:bg-muted/40 ${
+                      className={`border-t border-border hover:bg-muted/40 transition ${
                         i % 2 === 1 ? "bg-muted/20" : ""
                       }`}
                     >
@@ -241,6 +244,17 @@ function FacturacaoPage() {
                           {r.status}
                         </span>
                       </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedDocId(r.id)}
+                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-primary-soft hover:text-primary transition"
+                          title="Ver / Baixar Fatura"
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          <span>Ver / Baixar</span>
+                        </button>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -261,6 +275,14 @@ function FacturacaoPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal de Visualização e Exportação de Fatura */}
+      <InvoiceViewModal
+        isOpen={!!selectedDocId}
+        onClose={() => setSelectedDocId(null)}
+        documentId={selectedDocId}
+        company={company || null}
+      />
     </>
   );
 }

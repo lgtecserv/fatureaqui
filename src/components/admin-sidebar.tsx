@@ -9,6 +9,7 @@ import {
   Activity,
   LogOut,
   Mail,
+  MessageSquare,
 } from "lucide-react";
 import {
   Sidebar,
@@ -31,6 +32,7 @@ export function AdminSidebar() {
   const adminItems = [
     { title: t("admin.nav_dashboard"), url: "/admin", icon: LayoutDashboard },
     { title: t("admin.nav_companies"), url: "/admin/empresas", icon: Building2 },
+    { title: "Comunidade", url: "/admin/comunidade", icon: MessageSquare },
     { title: t("admin.nav_marketing"), url: "/admin/marketing", icon: Mail },
     { title: t("admin.nav_plans"), url: "/admin/planos", icon: Package },
     { title: t("admin.nav_billing"), url: "/admin/faturacao", icon: CreditCard },
