@@ -1,5 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Building2, Upload, Lock, Palette, Save, Loader2 } from "lucide-react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Building2, Upload, Lock, Palette, Save, Loader2, CreditCard, Sparkles, Crown, CheckCircle2 } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { useState, useRef, useEffect } from "react";
 import { StampGenerator } from "@/components/stamp-generator";
@@ -8,6 +8,8 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import { cn } from "@/lib/utils";
+import { INVOICE_TEMPLATES, type InvoiceTemplateId } from "@/types";
 
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 
@@ -88,6 +90,7 @@ function ColorField({
 function DefinicoesPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"empresa" | "seguranca" | "aparencia">("empresa");
   const formRef = useRef<HTMLFormElement>(null);
@@ -103,6 +106,7 @@ function DefinicoesPage() {
   const [secondaryColor, setSecondaryColor] = useState("");
   const [stampStyle, setStampStyle] = useState<"style1" | "style2" | "style3" | "style4" | "style5">("style1");
   const [useDigitalStamp, setUseDigitalStamp] = useState(true);
+  const [selectedTemplate, setSelectedTemplate] = useState<InvoiceTemplateId>("classic");
 
   // Logo Upload State
   const [isUploading, setIsUploading] = useState(false);
@@ -123,12 +127,35 @@ function DefinicoesPage() {
     enabled: !!user,
   });
 
+  // Query subscription to check Pro plan
+  const { data: subscription } = useQuery({
+    queryKey: ["subscription", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase
+        .from("subscriptions")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!user,
+  });
+
+  const hasActivePro = Boolean(
+    subscription &&
+    (subscription.status === "ativo" || subscription.status === "active") &&
+    subscription.valid_until &&
+    new Date(subscription.valid_until) > new Date()
+  );
+
   useEffect(() => {
     if (company) {
       setPrimaryColor(company.primary_color || "");
       setSecondaryColor(company.secondary_color || "");
       setStampStyle(company.stamp_style || "style1");
-      setUseDigitalStamp(company.use_digital_stamp !== false); // default to true
+      setUseDigitalStamp(company.use_digital_stamp !== false);
+      setSelectedTemplate((company.invoice_template as InvoiceTemplateId) || "classic");
     }
   }, [company]);
 
@@ -139,7 +166,20 @@ function DefinicoesPage() {
         .from("companies")
         .update(updates)
         .eq("id", company.id);
-      if (error) throw error;
+
+      if (error && (error.message?.includes("invoice_template") || error.message?.includes("bank_"))) {
+        // Fallback defensivo caso a coluna ainda não exista no schema cache do Supabase
+        const safeUpdates = { ...updates };
+        delete safeUpdates.invoice_template;
+        delete safeUpdates.bank_name;
+        delete safeUpdates.bank_holder;
+        delete safeUpdates.bank_account;
+        delete safeUpdates.bank_iban;
+        const retry = await supabase.from("companies").update(safeUpdates).eq("id", company.id);
+        if (retry.error) throw retry.error;
+      } else if (error) {
+        throw error;
+      }
     },
     onSuccess: () => {
       toast.success(t("settings.msg_success"));
@@ -163,6 +203,10 @@ function DefinicoesPage() {
       province: formData.get("province"),
       email: formData.get("email"),
       website: formData.get("website"),
+      bank_name: formData.get("bank_name") || null,
+      bank_holder: formData.get("bank_holder") || null,
+      bank_account: formData.get("bank_account") || null,
+      bank_iban: formData.get("bank_iban") || null,
     };
     updateCompany.mutate(updates);
   };
@@ -199,6 +243,7 @@ function DefinicoesPage() {
       secondary_color: newSecondary,
       stamp_style: stampStyle,
       use_digital_stamp: useDigitalStamp,
+      invoice_template: selectedTemplate,
     });
     
     // Apply globally immediately with full palette calculation
@@ -365,6 +410,23 @@ function DefinicoesPage() {
                   <Field label={t("settings.website")} name="website" defaultValue={company?.website || ""} />
                 </div>
 
+                {/* Dados Bancários para Faturação */}
+                <div className="mt-8 border-t border-border pt-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <CreditCard className="h-5 w-5 text-primary" />
+                    <div>
+                      <h3 className="text-sm font-bold text-foreground">Dados Bancários para Faturação</h3>
+                      <p className="text-xs text-muted-foreground">Estes dados aparecem nas faturas para transferências e pagamentos dos clientes.</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                    <Field label="Nome do Banco" name="bank_name" defaultValue={company?.bank_name || ""} hint="Ex: BCI, Millennium BIM, Standard Bank, Moza" />
+                    <Field label="Titular da Conta" name="bank_holder" defaultValue={company?.bank_holder || company?.name || ""} hint="Nome da empresa ou titular" />
+                    <Field label="Número da Conta" name="bank_account" defaultValue={company?.bank_account || ""} hint="Ex: 0001 2345 6789" />
+                    <Field label="NIB / IBAN" name="bank_iban" defaultValue={company?.bank_iban || ""} hint="Ex: 0008 0000 0000 1234 5678 9" />
+                  </div>
+                </div>
+
                 <div className="mt-6 flex justify-end gap-2 border-t border-border pt-6">
                   <button type="button" className="rounded-full border border-border bg-background px-5 py-2.5 text-sm font-semibold text-foreground hover:border-primary/40">
                     {t("settings.cancel")}
@@ -473,6 +535,193 @@ function DefinicoesPage() {
                   <div className="mt-3 flex gap-3">
                     <div className="h-10 w-24 rounded-lg" style={{ backgroundColor: primaryColor || company?.primary_color || 'var(--primary)' }} />
                     <div className="h-10 w-24 rounded-lg" style={{ backgroundColor: secondaryColor || company?.secondary_color || '#1E2A38' }} />
+                  </div>
+                </div>
+
+                {/* Modelos de Fatura & Documentos */}
+                <div className="mt-8 border-t border-border pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2.5">
+                      <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10 text-primary">
+                        <Sparkles className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                          <span>Modelos de Fatura & Documentos</span>
+                          {!hasActivePro && (
+                            <span className="text-[10px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-extrabold px-2 py-0.5 rounded-full border border-amber-500/20 flex items-center gap-1">
+                              <Crown className="h-3 w-3" /> PRO
+                            </span>
+                          )}
+                        </h3>
+                        <p className="text-xs text-muted-foreground">
+                          Selecione o design padrão aplicado a todas as faturas, recibos e cotações emitidas pela sua empresa.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    {INVOICE_TEMPLATES.map((tpl) => {
+                      const isSelected = selectedTemplate === tpl.id;
+                      const isLocked = tpl.isPro && !hasActivePro;
+
+                      return (
+                        <div
+                          key={tpl.id}
+                          onClick={() => {
+                            if (isLocked) {
+                              toast.info(`O modelo ${tpl.name} é exclusivo do Plano Pro.`, {
+                                description: "Faça upgrade para desbloquear todos os modelos executivos!",
+                                action: {
+                                  label: "Fazer Upgrade",
+                                  onClick: () => navigate({ to: "/painel/assinatura" }),
+                                },
+                              });
+                              return;
+                            }
+                            setSelectedTemplate(tpl.id);
+                          }}
+                          className={cn(
+                            "relative cursor-pointer rounded-2xl border p-3.5 transition-all duration-200 flex flex-col justify-between overflow-hidden group select-none",
+                            isSelected
+                              ? "border-primary bg-primary/5 ring-2 ring-primary/25 shadow-md"
+                              : "border-border bg-card hover:border-primary/40 hover:bg-muted/30 shadow-xs",
+                            isLocked && "opacity-80 hover:opacity-100"
+                          )}
+                        >
+                          {/* Visual Card Mockup */}
+                          <div className="w-full h-36 rounded-xl bg-background border border-border/80 p-2.5 mb-2.5 flex flex-col justify-between shadow-xs pointer-events-none overflow-hidden relative">
+                            {/* Template Specific Mini Artwork */}
+                            {tpl.id === "classic" && (
+                              <div className="w-full h-full flex flex-col justify-between">
+                                <div className="h-4 w-full bg-primary/20 rounded-b-xl flex items-center px-1.5 justify-between">
+                                  <div className="h-1.5 w-6 bg-primary rounded-full" />
+                                  <div className="h-1.5 w-8 bg-gray-400/50 rounded-full" />
+                                </div>
+                                <div className="space-y-1 px-1">
+                                  <div className="h-1.5 w-12 bg-primary/40 rounded-full" />
+                                  <div className="h-1.5 w-full bg-muted rounded" />
+                                  <div className="h-1.5 w-full bg-muted rounded" />
+                                  <div className="h-1.5 w-3/4 bg-muted rounded" />
+                                </div>
+                                <div className="flex justify-between items-center px-1 border-t border-border pt-1">
+                                  <div className="h-2 w-2 rounded-full bg-primary/40" />
+                                  <div className="h-2 w-10 bg-primary rounded" />
+                                </div>
+                              </div>
+                            )}
+
+                            {tpl.id === "corporate" && (
+                              <div className="w-full h-full flex flex-col justify-between">
+                                <div className="flex justify-between items-start">
+                                  <div className="h-2 w-8 bg-gray-800 rounded" />
+                                  <div className="h-2 w-10 bg-amber-400 rounded-sm" />
+                                </div>
+                                <div className="border border-gray-800 rounded-xs p-0.5 space-y-0.5 my-1">
+                                  <div className="h-1.5 bg-gray-800 rounded-xs w-full" />
+                                  <div className="h-1 bg-gray-200 rounded-xs w-full" />
+                                  <div className="h-1 bg-gray-200 rounded-xs w-full" />
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <div className="h-1.5 w-6 bg-gray-300 rounded" />
+                                  <div className="h-2.5 w-8 bg-amber-400 rounded-xs" />
+                                </div>
+                                <div className="h-1 w-full bg-amber-400 rounded-xs mt-1" />
+                              </div>
+                            )}
+
+                            {tpl.id === "modern" && (
+                              <div className="w-full h-full flex flex-col justify-between">
+                                <div className="flex justify-between items-center">
+                                  <div className="h-3 w-3 bg-gray-800 rounded-xs" />
+                                  <div className="h-1.5 w-8 bg-gray-900 rounded font-bold" />
+                                </div>
+                                <div className="space-y-1 my-1">
+                                  <div className="h-2 bg-gray-800 rounded w-full" />
+                                  <div className="h-1.5 bg-gray-100 rounded w-full" />
+                                  <div className="h-1.5 bg-gray-100 rounded w-full" />
+                                </div>
+                                <div className="flex justify-between items-end border-t border-gray-200 pt-1">
+                                  <div>
+                                    <div className="h-1 w-6 bg-gray-300 rounded mb-0.5" />
+                                    <div className="h-2 w-10 bg-gray-900 rounded" />
+                                  </div>
+                                  <div className="h-2.5 w-8 bg-gray-800 rounded" />
+                                </div>
+                              </div>
+                            )}
+
+                            {tpl.id === "geometric" && (
+                              <div className="w-full h-full flex flex-col justify-between relative">
+                                <div className="absolute top-0 right-0 w-14 h-4 bg-amber-400 clip-diagonal" style={{ clipPath: "polygon(20% 0%, 100% 0%, 100% 100%, 0% 100%)" }} />
+                                <div className="h-2 w-6 bg-gray-800 rounded mt-0.5" />
+                                <div className="border border-gray-800 rounded-xs p-0.5 space-y-0.5 my-1">
+                                  <div className="h-1.5 bg-[#1E2238] rounded-xs w-full" />
+                                  <div className="h-1 bg-gray-200 rounded-xs w-full" />
+                                  <div className="h-1 bg-gray-200 rounded-xs w-full" />
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <div className="h-1.5 w-8 bg-gray-400 rounded" />
+                                  <div className="h-2 w-8 bg-amber-400 rounded-xs" />
+                                </div>
+                                <div className="h-1.5 w-10 bg-amber-400 mt-1" style={{ clipPath: "polygon(0 0, 100% 0, 75% 100%, 0 100%)" }} />
+                              </div>
+                            )}
+
+                            {tpl.id === "boutique" && (
+                              <div className="w-full h-full flex flex-col justify-between">
+                                <div className="flex justify-between items-start">
+                                  <div className="h-3 w-10 bg-blue-900 rounded-xs font-black" />
+                                  <div className="h-3 w-3 rounded-full bg-gray-400" />
+                                </div>
+                                <div className="space-y-1 my-1 border-t border-b border-blue-900 py-1">
+                                  <div className="h-1 bg-gray-200 rounded w-full" />
+                                  <div className="h-1 bg-gray-200 rounded w-full" />
+                                </div>
+                                <div className="flex justify-between items-end">
+                                  <span className="text-[8px] italic font-serif text-blue-900">Obrigado</span>
+                                  <div className="h-2 w-10 bg-blue-900 rounded-xs" />
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Selection Checkmark */}
+                            {isSelected && (
+                              <div className="absolute top-1.5 right-1.5 h-5 w-5 rounded-full bg-primary text-white flex items-center justify-center shadow">
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                              </div>
+                            )}
+
+                            {/* Locked Overlay if Pro */}
+                            {isLocked && (
+                              <div className="absolute inset-0 bg-background/60 backdrop-blur-[1px] flex items-center justify-center">
+                                <span className="text-[10px] bg-amber-500 text-white font-black px-2 py-0.5 rounded-full shadow flex items-center gap-1">
+                                  <Crown className="h-3 w-3" /> PRO
+                                </span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Card Meta */}
+                          <div>
+                            <div className="flex items-center justify-between mb-1">
+                              <h4 className="font-bold text-xs text-foreground group-hover:text-primary transition-colors">
+                                {tpl.name}
+                              </h4>
+                              {tpl.badge && (
+                                <span className="text-[9px] font-black uppercase tracking-wider text-amber-600 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
+                                  {tpl.badge}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">
+                              {tpl.subtitle}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 

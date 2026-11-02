@@ -1,11 +1,12 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { DocumentPreview } from "@/components/document-preview";
+import { InvoiceTemplateSelector } from "@/components/invoice-template-selector";
 import { exportElementToPdf, printInvoiceElement } from "@/lib/pdf-export";
 import { Download, Printer, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import type { Company } from "@/types";
+import type { Company, InvoiceTemplateId } from "@/types";
 
 interface InvoiceViewModalProps {
   isOpen: boolean;
@@ -16,7 +17,16 @@ interface InvoiceViewModalProps {
 
 export function InvoiceViewModal({ isOpen, onClose, documentId, company }: InvoiceViewModalProps) {
   const [isExporting, setIsExporting] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<InvoiceTemplateId>(
+    (company?.invoice_template as InvoiceTemplateId) || "classic"
+  );
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (company?.invoice_template) {
+      setSelectedTemplate(company.invoice_template as InvoiceTemplateId);
+    }
+  }, [company?.invoice_template, isOpen]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["document_detail", documentId],
@@ -169,6 +179,18 @@ export function InvoiceViewModal({ isOpen, onClose, documentId, company }: Invoi
           </div>
         </div>
 
+        {/* Template Selector Bar */}
+        <div className="bg-muted/40 border-b border-border px-4 py-2 sm:px-6 flex items-center justify-between gap-3">
+          <span className="text-xs font-semibold text-muted-foreground shrink-0 hidden sm:inline">
+            Modelo:
+          </span>
+          <InvoiceTemplateSelector
+            selectedTemplate={selectedTemplate}
+            onSelectTemplate={setSelectedTemplate}
+            isPro={company?.plan === "pro"}
+          />
+        </div>
+
         {/* Content Body */}
         <div ref={containerRef} className="flex-1 overflow-y-auto p-4 sm:p-6 bg-muted/20 flex justify-center items-start">
           {isLoading ? (
@@ -180,6 +202,7 @@ export function InvoiceViewModal({ isOpen, onClose, documentId, company }: Invoi
             <div className="scale-90 sm:scale-100 origin-top shadow-xl rounded-lg overflow-hidden bg-white">
               <DocumentPreview
                 id="modal-pdf-content"
+                template={selectedTemplate}
                 company={company}
                 client={clientData}
                 documentData={documentData}

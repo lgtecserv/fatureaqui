@@ -61,6 +61,53 @@ export const CURRENCY_SYMBOLS: Record<Currency, string> = {
   ZAR: 'R',
 };
 
+export type InvoiceTemplateId = 'classic' | 'corporate' | 'modern' | 'geometric' | 'boutique';
+
+export interface InvoiceTemplateInfo {
+  id: InvoiceTemplateId;
+  name: string;
+  subtitle: string;
+  badge?: string;
+  isPro: boolean;
+}
+
+export const INVOICE_TEMPLATES: InvoiceTemplateInfo[] = [
+  {
+    id: 'classic',
+    name: 'Onda Geométrica',
+    subtitle: 'Modelo Padrão — Elegante, fluido e universal',
+    isPro: false,
+  },
+  {
+    id: 'corporate',
+    name: 'Corporativo Dourado',
+    subtitle: 'Estruturado com tabela em grelha e total destacado',
+    badge: 'PRO',
+    isPro: true,
+  },
+  {
+    id: 'modern',
+    name: 'Moderno Executivo',
+    subtitle: 'Minimalista com cabeçalho contrastante e total due',
+    badge: 'PRO',
+    isPro: true,
+  },
+  {
+    id: 'geometric',
+    name: 'Geométrico Angular',
+    subtitle: 'Faixas diagonais arrojadas e visual tecnológico',
+    badge: 'PRO',
+    isPro: true,
+  },
+  {
+    id: 'boutique',
+    name: 'Boutique Editorial',
+    subtitle: 'Tipografia suíça limpa, traços finos e Obrigado',
+    badge: 'PRO',
+    isPro: true,
+  },
+];
+
 // Company
 export interface Company {
   id: string;
@@ -80,6 +127,11 @@ export interface Company {
   signature_url: string | null;
   stamp_url: string | null;
   currency: Currency;
+  invoice_template?: InvoiceTemplateId;
+  bank_name?: string | null;
+  bank_account?: string | null;
+  bank_iban?: string | null;
+  bank_holder?: string | null;
   created_at: string;
   updated_at: string;
 }

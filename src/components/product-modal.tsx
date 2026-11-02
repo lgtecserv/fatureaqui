@@ -95,18 +95,24 @@ export function ProductModal({ isOpen, onClose, companyId, initialData, onProduc
 
       if (initialData) {
         // Atualizar produto existente
+        const updatePayload: any = {
+          name: formData.name.trim(),
+          description: formData.description.trim() || null,
+          type: formData.type,
+          unit_of_measure: finalUnit,
+        };
+
         const { error: prodErr } = await supabase
           .from("products")
-          .update({
-            name: formData.name.trim(),
-            description: formData.description.trim() || null,
-            type: formData.type,
-            unit_of_measure: finalUnit,
-            default_quantity: defaultQty,
-          })
+          .update({ ...updatePayload, default_quantity: defaultQty })
           .eq("id", initialData.id);
 
-        if (prodErr) throw prodErr;
+        if (prodErr && prodErr.message?.includes("default_quantity")) {
+          const retry = await supabase.from("products").update(updatePayload).eq("id", initialData.id);
+          if (retry.error) throw retry.error;
+        } else if (prodErr) {
+          throw prodErr;
+        }
 
         // Atualizar variante de preço
         const variantId = initialData.product_variants?.[0]?.id;
@@ -126,21 +132,36 @@ export function ProductModal({ isOpen, onClose, companyId, initialData, onProduc
         }
       } else {
         // Inserir novo produto
-        const { data: newProd, error: prodErr } = await supabase
+        const insertPayload: any = {
+          company_id: companyId,
+          name: formData.name.trim(),
+          description: formData.description.trim() || null,
+          type: formData.type,
+          unit_of_measure: finalUnit,
+          has_variants: false,
+        };
+
+        let newProd: any;
+        const { data: createdData, error: prodErr } = await supabase
           .from("products")
-          .insert([{
-            company_id: companyId,
-            name: formData.name.trim(),
-            description: formData.description.trim() || null,
-            type: formData.type,
-            unit_of_measure: finalUnit,
-            default_quantity: defaultQty,
-            has_variants: false,
-          }])
+          .insert([{ ...insertPayload, default_quantity: defaultQty }])
           .select()
           .single();
 
-        if (prodErr) throw prodErr;
+        if (prodErr && prodErr.message?.includes("default_quantity")) {
+          const retry = await supabase
+            .from("products")
+            .insert([insertPayload])
+            .select()
+            .single();
+          if (retry.error) throw retry.error;
+          newProd = retry.data;
+        } else if (prodErr) {
+          throw prodErr;
+        } else {
+          newProd = createdData;
+        }
+
         productId = newProd.id;
 
         // Inserir variante padrão de preço

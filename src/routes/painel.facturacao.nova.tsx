@@ -7,10 +7,11 @@ import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
 import { Plus, Trash2, Save, Loader2, UserPlus } from "lucide-react";
 import { MT } from "@/lib/format";
-import type { DocumentType, DocumentItemFormState } from "@/types";
+import type { DocumentType, DocumentItemFormState, InvoiceTemplateId } from "@/types";
 import { ClientModal } from "@/components/client-modal";
 import { ProductModal } from "@/components/product-modal";
 import { DocumentPreview } from "@/components/document-preview";
+import { InvoiceTemplateSelector } from "@/components/invoice-template-selector";
 import { SuccessModal } from "@/components/success-modal";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -32,6 +33,9 @@ function NovaFacturaPage() {
   const [activeItemRowId, setActiveItemRowId] = useState<string | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [lastGeneratedNumber, setLastGeneratedNumber] = useState("");
+
+  // Template State
+  const [selectedTemplate, setSelectedTemplate] = useState<InvoiceTemplateId>("classic");
 
   // Core Document State
   const [docType, setDocType] = useState<DocumentType>("FT");
@@ -88,6 +92,13 @@ function NovaFacturaPage() {
     enabled: !!user,
   });
 
+  // Sync default template from company settings
+  useEffect(() => {
+    if (company?.invoice_template) {
+      setSelectedTemplate(company.invoice_template as InvoiceTemplateId);
+    }
+  }, [company?.invoice_template]);
+
   // Fetch clients
   const { data: clients = [] } = useQuery({
     queryKey: ["clients", company?.id],
@@ -127,12 +138,7 @@ function NovaFacturaPage() {
           sku,
           price,
           products!inner (
-            id,
-            name,
-            type,
-            unit_of_measure,
-            default_quantity,
-            description
+            *
           )
         `)
         .eq("products.company_id", company.id)
@@ -941,11 +947,25 @@ function NovaFacturaPage() {
           {/* RIGHT SIDE: LIVE PREVIEW */}
           <div 
             ref={previewContainerRef}
-            className="hidden lg:flex flex-col items-center lg:sticky lg:top-8 bg-muted/20 rounded-3xl border border-border h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden relative"
+            className="flex flex-col items-center lg:sticky lg:top-8 bg-muted/20 rounded-3xl border border-border min-h-[500px] lg:h-[calc(100vh-8rem)] overflow-y-auto overflow-x-hidden relative w-full"
           >
-              <div className="w-full flex items-center justify-between sticky top-0 bg-muted/90 backdrop-blur-md z-10 p-6 pb-2 mb-4">
-                <h3 className="font-bold text-foreground">{t("invoice_new.preview")}</h3>
-                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-semibold">{t("invoice_new.live")}</span>
+              <div className="w-full sticky top-0 bg-card/95 backdrop-blur-md z-10 p-4 sm:p-5 pb-3 border-b border-border/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-foreground text-sm sm:text-base">{t("invoice_new.preview")}</h3>
+                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-semibold">{t("invoice_new.live")}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground font-medium hidden sm:inline">
+                    Alternar Modelo
+                  </span>
+                </div>
+
+                {/* Template Selector Pills */}
+                <InvoiceTemplateSelector
+                  selectedTemplate={selectedTemplate}
+                  onSelectTemplate={setSelectedTemplate}
+                  isPro={company?.plan === "pro"}
+                />
              </div>
              
              {/* The Auto-Scaled Preview */}
@@ -969,6 +989,7 @@ function NovaFacturaPage() {
                    }}
                  >
                    <DocumentPreview 
+                     template={selectedTemplate}
                      company={company}
                      client={clientId === "ocasional" ? ocasionalClient as any : selectedClient}
                      documentData={documentData}
@@ -1004,6 +1025,7 @@ function NovaFacturaPage() {
       >
         <DocumentPreview 
           id="pdf-export-content"
+          template={selectedTemplate}
           company={company}
           client={clientId === "ocasional" ? ocasionalClient as any : selectedClient}
           documentData={{
