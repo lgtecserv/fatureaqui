@@ -158,6 +158,7 @@ export function DocumentPreview({
                 <tr style={{ backgroundColor: primaryColor }} className="text-white">
                   <th className="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider w-12 text-center">#</th>
                   <th className="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider">Descrição do Artigo/Serviço</th>
+                  <th className="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider text-center w-16">Un.</th>
                   <th className="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider text-center w-20">Qtd.</th>
                   {showFinancials && (
                     <>
@@ -171,7 +172,7 @@ export function DocumentPreview({
               <tbody className="bg-white">
                 {items.length === 0 && (
                    <tr>
-                     <td colSpan={showFinancials ? 6 : 3} className="py-8 text-center text-gray-400 italic">
+                     <td colSpan={showFinancials ? 7 : 4} className="py-8 text-center text-gray-400 italic">
                         Sem itens
                      </td>
                    </tr>
@@ -188,6 +189,7 @@ export function DocumentPreview({
                     <tr key={item.id || index} className={`border-b border-gray-100 ${index % 2 !== 0 ? 'bg-gray-50/50' : ''}`}>
                       <td className="py-3 px-4 text-center text-gray-500">{index + 1}</td>
                       <td className="py-3 px-4 font-medium text-gray-800">{item.description || <span className="text-gray-300 italic">Item sem descrição...</span>}</td>
+                      <td className="py-3 px-3 text-center text-xs text-gray-500 uppercase">{item.unit || "un"}</td>
                       <td className="py-3 px-4 text-center">{qty}</td>
                       {showFinancials && (
                         <>

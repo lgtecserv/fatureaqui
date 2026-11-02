@@ -90,6 +90,7 @@ export interface DocumentItem {
   document_id?: string;
   type: ItemType;
   description: string;
+  unit?: string;
   quantity: number;
   unit_price: number;
   iva_rate: number;
@@ -215,6 +216,7 @@ export interface DocumentItemFormState {
   type: ItemType;
   variant_id?: string;
   description: string;
+  unit?: string;
   quantity: string;
   unit_price: string;
   discount_type: DiscountType;

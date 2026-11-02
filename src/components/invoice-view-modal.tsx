@@ -106,6 +106,7 @@ export function InvoiceViewModal({ isOpen, onClose, documentId, company }: Invoi
     id: item.id,
     type: item.type || "produto",
     description: item.description,
+    unit: item.unit || "un",
     quantity: item.quantity?.toString() || "1",
     unit_price: item.unit_price?.toString() || "0",
     discount_type: item.discount_type || "percentagem",

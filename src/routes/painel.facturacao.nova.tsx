@@ -9,6 +9,7 @@ import { Plus, Trash2, Save, Loader2, UserPlus } from "lucide-react";
 import { MT } from "@/lib/format";
 import type { DocumentType, DocumentItemFormState } from "@/types";
 import { ClientModal } from "@/components/client-modal";
+import { ProductModal } from "@/components/product-modal";
 import { DocumentPreview } from "@/components/document-preview";
 import { SuccessModal } from "@/components/success-modal";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,8 @@ function NovaFacturaPage() {
 
   // Modals
   const [isClientModalOpen, setIsClientModalOpen] = useState(false);
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [activeItemRowId, setActiveItemRowId] = useState<string | null>(null);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [lastGeneratedNumber, setLastGeneratedNumber] = useState("");
 
@@ -59,9 +62,10 @@ function NovaFacturaPage() {
   const [items, setItems] = useState<DocumentItemFormState[]>([
     {
       id: Math.random().toString(36).substring(7),
-      type: "produto",
+      type: "servico",
       variant_id: "custom",
       description: "",
+      unit: "un",
       quantity: "1",
       unit_price: "0",
       discount_type: "percentagem",
@@ -111,28 +115,9 @@ function NovaFacturaPage() {
     enabled: !!company,
   });
 
-  const [warehouseId, setWarehouseId] = useState<string>("");
-
-  // Fetch warehouses
-  const { data: warehouses = [] } = useQuery({
-    queryKey: ["warehouses", company?.id],
-    queryFn: async () => {
-      if (!company) return [];
-      const { data } = await supabase.from("warehouses").select("*").eq("company_id", company.id).eq("is_active", true);
-      
-      // Auto-select default warehouse
-      if (data && data.length > 0 && !warehouseId) {
-        const defaultW = data.find(w => w.is_default) || data[0];
-        setWarehouseId(defaultW.id);
-      }
-      return data || [];
-    },
-    enabled: !!company,
-  });
-
-  // Fetch variants (Products) with stock
-  const { data: variants = [] } = useQuery({
-    queryKey: ["variants_with_stock", company?.id],
+  // Fetch products & services catalog (products + variants)
+  const { data: catalogItems = [] } = useQuery({
+    queryKey: ["all_items_catalog", company?.id],
     queryFn: async () => {
       if (!company) return [];
       const { data, error } = await supabase
@@ -141,10 +126,17 @@ function NovaFacturaPage() {
           id,
           sku,
           price,
-          products!inner ( name, type ),
-          stock_inventory ( quantity, warehouse_id )
+          products!inner (
+            id,
+            name,
+            type,
+            unit_of_measure,
+            default_quantity,
+            description
+          )
         `)
-        .eq("products.company_id", company.id);
+        .eq("products.company_id", company.id)
+        .order("id");
         
       if (error) throw error;
       return data || [];
@@ -235,6 +227,7 @@ function NovaFacturaPage() {
             id: Math.random().toString(36).substring(7),
             type: item.type,
             description: item.description,
+            unit: item.unit || "un",
             quantity: item.quantity.toString(),
             unit_price: item.unit_price.toString(),
             discount_type: item.discount_type,
@@ -262,9 +255,10 @@ function NovaFacturaPage() {
       ...items,
       {
         id: Math.random().toString(36).substring(7),
-        type: "produto",
+        type: "servico",
         variant_id: "custom",
         description: "",
+        unit: "un",
         quantity: "1",
         unit_price: "0",
         discount_type: "percentagem",
@@ -393,7 +387,7 @@ function NovaFacturaPage() {
         .from("documents")
         .insert({
           company_id: company.id,
-          warehouse_id: warehouseId || null,
+          warehouse_id: null,
           type: docType,
           number,
           sequence,
@@ -443,6 +437,7 @@ function NovaFacturaPage() {
           type: item.type,
           variant_id: item.variant_id === 'custom' ? null : (item.variant_id || null),
           description: item.description,
+          unit: item.unit || "un",
           quantity: qty,
           unit_price: price,
           iva_rate: hasIva ? ivaRate : 0,
@@ -456,11 +451,6 @@ function NovaFacturaPage() {
       const { error: itemsError } = await supabase.from("document_items").insert(docItems);
       if (itemsError) throw itemsError;
 
-      // Se for fatura e tiver warehouseId, processar stock
-      if (["FT", "VD", "FR"].includes(docType) && warehouseId) {
-        await supabase.rpc('process_invoice_stock', { p_document_id: doc.id });
-      }
-
       return doc;
     },
     onSuccess: (data) => {
@@ -473,11 +463,31 @@ function NovaFacturaPage() {
     }
   });
 
+  const handleProductCreated = (variant: any) => {
+    if (!activeItemRowId) return;
+    const prod = variant.products;
+    setItems(prevItems => prevItems.map(it => {
+      if (it.id === activeItemRowId) {
+        return {
+          ...it,
+          variant_id: variant.id,
+          type: prod?.type === "servico" ? "servico" : "produto",
+          description: prod?.name + (prod?.description ? ` - ${prod.description}` : ""),
+          unit: prod?.unit_of_measure || "un",
+          unit_price: variant.price?.toString() || "0",
+          quantity: prod?.default_quantity?.toString() || "1",
+        };
+      }
+      return it;
+    }));
+    setActiveItemRowId(null);
+  };
+
   const resetForm = () => {
     setIsSuccessModalOpen(false);
     setClientId("");
     setOcasionalClient({ name: "", nuit: "", email: "", phone: "", address: "" });
-    setItems([{ id: Math.random().toString(36).substring(7), type: "produto", variant_id: "custom", description: "", quantity: "1", unit_price: "0", discount_type: "percentagem", discount_value: "0" }]);
+    setItems([{ id: Math.random().toString(36).substring(7), type: "servico", variant_id: "custom", description: "", unit: "un", quantity: "1", unit_price: "0", discount_type: "percentagem", discount_value: "0" }]);
     setReferenceInvoice("");
     setReferenceDate("");
     setReason("");
@@ -506,7 +516,7 @@ function NovaFacturaPage() {
             
             {/* Header Options */}
             <div className="rounded-2xl border border-border bg-card p-6 shadow-soft space-y-6">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("invoice_new.type_label")}</label>
                   <select
@@ -532,21 +542,6 @@ function NovaFacturaPage() {
                     onChange={(e) => setDate(e.target.value)}
                     className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("invoice_new.warehouse_label")}</label>
-                  <select
-                    value={warehouseId}
-                    onChange={(e) => setWarehouseId(e.target.value)}
-                    disabled={!["FT", "VD", "FR", "GR"].includes(docType)}
-                    className="h-11 w-full rounded-xl border border-border bg-background px-3.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
-                  >
-                    <option value="">{t("invoice_new.no_stock")}</option>
-                    {warehouses.map(w => (
-                      <option key={w.id} value={w.id}>{w.name}</option>
-                    ))}
-                  </select>
                 </div>
               </div>
 
@@ -659,16 +654,16 @@ function NovaFacturaPage() {
               <div className="bg-muted/30 px-5 py-3 border-b border-border">
                 <h3 className="font-semibold text-sm">{t("invoice_new.doc_lines")}</h3>
               </div>
-              
-              <div className="p-5 overflow-x-auto w-full">
-                <div className="min-w-[580px] space-y-4 pb-2">
+                    <div className="p-5 overflow-x-auto w-full">
+                <div className="min-w-[660px] space-y-4 pb-2">
                 
                 {/* Headers for Desktop */}
                 <div className={cn(
                   "hidden sm:grid gap-2 px-1 pb-2 border-b border-border/50",
-                  isTransportDoc ? "grid-cols-[1fr_80px_40px]" : "grid-cols-[1fr_70px_100px_130px_40px]"
+                  isTransportDoc ? "grid-cols-[1fr_65px_80px_40px]" : "grid-cols-[1fr_65px_70px_100px_130px_40px]"
                 )}>
                   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("invoice_new.item")}</div>
+                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{t("invoice_new.unit")}</div>
                   <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{t("invoice_new.qty")}</div>
                   {!isTransportDoc && (
                     <>
@@ -682,94 +677,76 @@ function NovaFacturaPage() {
                 {items.map((item) => (
                   <div key={item.id} className={cn(
                     "grid grid-cols-1 gap-2 items-start sm:items-center",
-                    isTransportDoc ? "sm:grid-cols-[1fr_80px_40px]" : "sm:grid-cols-[1fr_70px_100px_130px_40px]"
+                    isTransportDoc ? "sm:grid-cols-[1fr_65px_80px_40px]" : "sm:grid-cols-[1fr_65px_70px_100px_130px_40px]"
                   )}>
-                    <div className="flex gap-2 relative w-full flex-1">
-                      <select
-                        value={item.type}
-                        onChange={(e) => updateItem(item.id, "type", e.target.value)}
-                        className="h-10 w-24 shrink-0 rounded-lg border border-border bg-muted/50 px-2 text-xs focus:border-primary focus:outline-none"
-                      >
-                        <option value="produto">{t("invoice_new.product")}</option>
-                        <option value="servico">{t("invoice_new.service")}</option>
-                      </select>
-                      {item.type === "produto" ? (
-                        <div className="w-full flex-1 min-w-0 relative">
-                          {item.variant_id !== "custom" && (
-                            <select
-                              value={item.variant_id || ""}
-                              onChange={(e) => {
-                                const val = e.target.value;
-                                if (val === "custom") {
-                                  updateItem(item.id, "variant_id", "custom");
-                                  updateItem(item.id, "description", "");
-                                  return;
-                                }
-                                if (!val) {
-                                  updateItem(item.id, "variant_id", "");
-                                  updateItem(item.id, "description", "");
-                                  return;
-                                }
-                                const matched = variants.find(v => v.id === val);
-                                if (matched) {
-                                  updateItem(item.id, "variant_id", matched.id);
-                                  updateItem(item.id, "description", matched.products?.name || "");
-                                  updateItem(item.id, "unit_price", matched.price.toString());
-                                }
-                              }}
-                              className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none"
-                            >
-                              <option value="">{t("invoice_new.select_product")}</option>
-                              {variants.map(v => {
-                                const stock = v.stock_inventory?.find((s: any) => s.warehouse_id === warehouseId)?.quantity || 0;
-                                return (
-                                  <option key={v.id} value={v.id}>
-                                    {v.products?.name} {v.sku ? `(${v.sku})` : ''} - Stock: {stock} - {MT(v.price)}
-                                  </option>
-                                );
-                              })}
-                              <option value="custom">{t("invoice_new.manual_product")}</option>
-                            </select>
-                          )}
-                          {item.variant_id === "custom" && (
-                            <div className="flex w-full relative">
-                              <input
-                                type="text"
-                                placeholder={t("invoice_new.product_name_pl")}
-                                value={item.description}
-                                onChange={(e) => updateItem(item.id, "description", e.target.value)}
-                                className={cn(
-                                  "h-10 flex-1 min-w-[100px] w-full border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none",
-                                  variants.length > 0 ? "rounded-l-lg" : "rounded-lg"
-                                )}
-                              />
-                              {variants.length > 0 && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    updateItem(item.id, "variant_id", "");
-                                    updateItem(item.id, "description", "");
-                                  }}
-                                  className="h-10 px-3 bg-muted border border-l-0 border-border rounded-r-lg text-xs hover:bg-muted/80 text-muted-foreground font-bold shrink-0"
-                                  title="Voltar à lista"
-                                >
-                                  <span className="sr-only">Lista</span>
-                                  &#9776;
-                                </button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <input
-                          type="text"
-                          placeholder={t("invoice_new.service_desc")}
-                          value={item.description}
-                          onChange={(e) => updateItem(item.id, "description", e.target.value)}
-                          className="h-10 flex-1 min-w-0 w-full rounded-lg border border-border bg-background px-3 text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        />
-                      )}
+                    {/* Artigo / Serviço description & catalog selector */}
+                    <div className="space-y-1.5 w-full min-w-0">
+                      <div className="flex gap-1.5 items-center w-full">
+                        <select
+                          value={item.variant_id && item.variant_id !== "custom" ? item.variant_id : ""}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            if (!val) {
+                              updateItem(item.id, "variant_id", "custom");
+                              return;
+                            }
+                            const matched = catalogItems.find(v => v.id === val);
+                            if (matched) {
+                              setItems(items.map(it => it.id === item.id ? {
+                                ...it,
+                                variant_id: matched.id,
+                                type: matched.products?.type === "servico" ? "servico" : "produto",
+                                description: matched.products?.name + (matched.products?.description ? ` - ${matched.products.description}` : ""),
+                                unit: matched.products?.unit_of_measure || "un",
+                                unit_price: matched.price?.toString() || "0",
+                                quantity: matched.products?.default_quantity?.toString() || "1",
+                              } : it));
+                            }
+                          }}
+                          className="h-9 flex-1 min-w-0 rounded-lg border border-border bg-muted/40 px-2.5 text-xs text-foreground focus:border-primary focus:outline-none"
+                        >
+                          <option value="">{t("invoice_new.select_product")}</option>
+                          {catalogItems.map(v => (
+                            <option key={v.id} value={v.id}>
+                              [{v.products?.type === "servico" ? "Serviço" : "Produto"}] {v.products?.name} - {MT(v.price)} ({v.products?.unit_of_measure || "un"})
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setActiveItemRowId(item.id);
+                            setIsProductModalOpen(true);
+                          }}
+                          className="h-9 px-2.5 rounded-lg border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold flex items-center gap-1 shrink-0 transition"
+                          title="Cadastrar novo artigo ou serviço no catálogo"
+                        >
+                          <Plus className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Novo</span>
+                        </button>
+                      </div>
+
+                      <input
+                        type="text"
+                        placeholder={t("invoice_new.service_desc")}
+                        value={item.description}
+                        onChange={(e) => updateItem(item.id, "description", e.target.value)}
+                        className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm font-medium focus:border-primary focus:outline-none"
+                      />
                     </div>
+
+                    {/* Unidade */}
+                    <input
+                      type="text"
+                      placeholder="un"
+                      value={item.unit || "un"}
+                      onChange={(e) => updateItem(item.id, "unit", e.target.value)}
+                      className="h-10 w-full rounded-lg border border-border bg-background px-1 text-center text-xs uppercase focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      title="Unidade de medida (ex: un, hora, mês, projeto, kg)"
+                    />
+
+                    {/* Quantidade */}
                     <input
                       type="number"
                       min="0.01"
@@ -779,8 +756,10 @@ function NovaFacturaPage() {
                       onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
                       className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                     />
+
                     {!isTransportDoc && (
                       <>
+                        {/* Preço Unitário */}
                         <input
                           type="number"
                           min="0"
@@ -790,6 +769,8 @@ function NovaFacturaPage() {
                           onChange={(e) => updateItem(item.id, "unit_price", e.target.value)}
                           className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                         />
+
+                        {/* Desconto */}
                         <div className="flex gap-1">
                           <input
                             type="number"
@@ -811,10 +792,13 @@ function NovaFacturaPage() {
                         </div>
                       </>
                     )}
+
+                    {/* Remover Linha */}
                     <button
                       type="button"
                       onClick={() => removeItem(item.id)}
                       className="h-10 w-10 shrink-0 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center transition-colors"
+                      title="Remover linha"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -1041,6 +1025,16 @@ function NovaFacturaPage() {
         onClose={() => setIsClientModalOpen(false)} 
         companyId={company?.id || ""} 
         onClientCreated={(id) => setClientId(id)}
+      />
+
+      <ProductModal
+        isOpen={isProductModalOpen}
+        onClose={() => {
+          setIsProductModalOpen(false);
+          setActiveItemRowId(null);
+        }}
+        companyId={company?.id || ""}
+        onProductCreated={handleProductCreated}
       />
 
       <SuccessModal
