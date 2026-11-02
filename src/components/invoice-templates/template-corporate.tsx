@@ -29,31 +29,31 @@ export function TemplateCorporate({
       <div className="p-10 flex-1 flex flex-col">
         {/* --- HEADER (Brand Name on Left, Colored Block on Right) --- */}
         <div className="flex justify-between items-start mb-8">
-          <div className="flex items-center gap-3.5">
             {company?.logo_url ? (
               <img 
                 src={company.logo_url} 
                 alt={company?.name} 
                 crossOrigin="anonymous"
-                className="h-16 object-contain" 
+                className="h-16 object-contain max-w-[240px]" 
               />
             ) : (
-              <div 
-                className="h-14 w-14 rounded-lg flex items-center justify-center font-black text-white text-2xl shadow-sm"
-                style={{ backgroundColor: primaryColor }}
-              >
-                {company?.name?.charAt(0) || "B"}
+              <div className="flex items-center gap-3.5">
+                <div 
+                  className="h-14 w-14 rounded-lg flex items-center justify-center font-black text-white text-2xl shadow-sm"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {company?.name?.charAt(0) || "B"}
+                </div>
+                <div>
+                  <h1 className="font-black text-2xl tracking-tight text-gray-900 uppercase">
+                    {company?.name || "Brand Name"}
+                  </h1>
+                  <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold">
+                    {company?.website || "Soluções Empresariais & Comerciais"}
+                  </p>
+                </div>
               </div>
             )}
-            <div>
-              <h1 className="font-black text-2xl tracking-tight text-gray-900 uppercase">
-                {company?.name || "Brand Name"}
-              </h1>
-              <p className="text-[11px] uppercase tracking-wider text-gray-400 font-semibold">
-                {company?.website || "Soluções Empresariais & Comerciais"}
-              </p>
-            </div>
-          </div>
 
           {/* Top Right Colored Accent Block */}
           <div 
@@ -179,9 +179,14 @@ export function TemplateCorporate({
               <div>
                 <h4 className="font-bold text-gray-900 text-xs mb-1">Payment Info:</h4>
                 <div className="text-[11px] text-gray-600 space-y-0.5">
-                  <p>Account #: <span className="text-gray-900 font-medium">{company?.bank_account || "1234 5678 9012"}</span></p>
-                  <p>A/C Name: <span className="text-gray-900 font-medium">{company?.bank_holder || company?.name || "Empresa Titular"}</span></p>
-                  <p>Bank Details: <span className="text-gray-900 font-medium">{company?.bank_name ? `${company.bank_name} - ${company.bank_iban || ""}` : "Transferência / Depósito"}</span></p>
+                  {company?.bank_account && <p>Account #: <span className="text-gray-900 font-semibold">{company.bank_account}</span></p>}
+                  {company?.bank_holder && <p>A/C Name: <span className="text-gray-900 font-semibold">{company.bank_holder}</span></p>}
+                  {company?.bank_name && <p>Bank Details: <span className="text-gray-900 font-semibold">{company.bank_name} {company?.bank_iban && `(${company.bank_iban})`}</span></p>}
+                  {company?.mpesa_number && <p><span className="text-red-600 font-bold">M-Pesa:</span> <span className="text-gray-900 font-bold">{company.mpesa_number}</span></p>}
+                  {company?.emola_number && <p><span className="text-orange-600 font-bold">e-Mola:</span> <span className="text-gray-900 font-bold">{company.emola_number}</span></p>}
+                  {!company?.bank_account && !company?.mpesa_number && (
+                    <p>Details: <span className="text-gray-900 font-medium">Transferência Bancária / Numerário</span></p>
+                  )}
                 </div>
               </div>
 
@@ -192,11 +197,8 @@ export function TemplateCorporate({
                 </p>
               </div>
 
-              <div className="pt-2 flex items-center gap-3">
-                <StampGenerator company={company} date={documentData.date} />
-                <div className="p-1 border border-gray-200 rounded bg-gray-50">
-                  <QrCode className="h-10 w-10 text-gray-600" />
-                </div>
+              <div className="pt-2">
+                <StampGenerator company={company} className="h-28 w-28" />
               </div>
             </div>
 

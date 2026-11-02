@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 import { INVOICE_TEMPLATES, type InvoiceTemplateId } from "@/types";
+import { useProPlan } from "@/hooks/use-pro-plan";
 
 import { OnboardingChecklist } from "@/components/onboarding-checklist";
 
@@ -127,27 +128,8 @@ function DefinicoesPage() {
     enabled: !!user,
   });
 
-  // Query subscription to check Pro plan
-  const { data: subscription } = useQuery({
-    queryKey: ["subscription", user?.id],
-    queryFn: async () => {
-      if (!user) return null;
-      const { data } = await supabase
-        .from("subscriptions")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!user,
-  });
-
-  const hasActivePro = Boolean(
-    subscription &&
-    (subscription.status === "ativo" || subscription.status === "active") &&
-    subscription.valid_until &&
-    new Date(subscription.valid_until) > new Date()
-  );
+  // Check Pro plan status via centralized hook
+  const { isPro: hasActivePro } = useProPlan();
 
   useEffect(() => {
     if (company) {
@@ -167,7 +149,7 @@ function DefinicoesPage() {
         .update(updates)
         .eq("id", company.id);
 
-      if (error && (error.message?.includes("invoice_template") || error.message?.includes("bank_"))) {
+      if (error && (error.message?.includes("invoice_template") || error.message?.includes("bank_") || error.message?.includes("mpesa") || error.message?.includes("emola"))) {
         // Fallback defensivo caso a coluna ainda não exista no schema cache do Supabase
         const safeUpdates = { ...updates };
         delete safeUpdates.invoice_template;
@@ -175,6 +157,8 @@ function DefinicoesPage() {
         delete safeUpdates.bank_holder;
         delete safeUpdates.bank_account;
         delete safeUpdates.bank_iban;
+        delete safeUpdates.mpesa_number;
+        delete safeUpdates.emola_number;
         const retry = await supabase.from("companies").update(safeUpdates).eq("id", company.id);
         if (retry.error) throw retry.error;
       } else if (error) {
@@ -207,6 +191,8 @@ function DefinicoesPage() {
       bank_holder: formData.get("bank_holder") || null,
       bank_account: formData.get("bank_account") || null,
       bank_iban: formData.get("bank_iban") || null,
+      mpesa_number: formData.get("mpesa_number") || null,
+      emola_number: formData.get("emola_number") || null,
     };
     updateCompany.mutate(updates);
   };
@@ -424,6 +410,8 @@ function DefinicoesPage() {
                     <Field label="Titular da Conta" name="bank_holder" defaultValue={company?.bank_holder || company?.name || ""} hint="Nome da empresa ou titular" />
                     <Field label="Número da Conta" name="bank_account" defaultValue={company?.bank_account || ""} hint="Ex: 0001 2345 6789" />
                     <Field label="NIB / IBAN" name="bank_iban" defaultValue={company?.bank_iban || ""} hint="Ex: 0008 0000 0000 1234 5678 9" />
+                    <Field label="Número M-Pesa (Vodacom)" name="mpesa_number" defaultValue={company?.mpesa_number || ""} hint="Ex: 84 123 4567 ou 85 123 4567" />
+                    <Field label="Número e-Mola (Movitel)" name="emola_number" defaultValue={company?.emola_number || ""} hint="Ex: 86 123 4567 ou 87 123 4567" />
                   </div>
                 </div>
 

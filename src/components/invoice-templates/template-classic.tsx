@@ -48,17 +48,19 @@ export function TemplateClassic({
                 src={company.logo_url} 
                 alt={company?.name} 
                 crossOrigin="anonymous"
-                className="h-20 mb-4 object-contain max-w-full" 
+                className="h-20 mb-3 object-contain max-w-[240px]" 
               />
             ) : (
-              <div 
-                className="h-16 w-16 rounded-xl flex items-center justify-center font-bold text-white text-2xl mb-4 shadow-sm"
-                style={{ backgroundColor: primaryColor }}
-              >
-                {company?.name?.charAt(0) || "F"}
-              </div>
+              <>
+                <div 
+                  className="h-16 w-16 rounded-xl flex items-center justify-center font-bold text-white text-2xl mb-2 shadow-sm"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  {company?.name?.charAt(0) || "F"}
+                </div>
+                <h1 className="font-extrabold text-lg tracking-tight text-gray-900 mb-1">{company?.name || "Sua Empresa, Lda"}</h1>
+              </>
             )}
-            <h1 className="font-extrabold text-lg tracking-tight text-gray-900">{company?.name || "Sua Empresa, Lda"}</h1>
             <p className="text-gray-500">{company?.address || "Endereço da Empresa"}</p>
             <div className="flex items-center gap-3 text-gray-500 mt-1 flex-wrap">
               <span><strong className="text-gray-700">NUIT:</strong> {company?.nuit || "000000000"}</span>
@@ -231,21 +233,46 @@ export function TemplateClassic({
           </div>
         </div>
 
+        {/* Payment Coordinates Block */}
+        {(company?.bank_name || company?.bank_account || company?.mpesa_number || company?.emola_number) && (
+          <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-700">
+            <span className="font-bold uppercase tracking-wider text-[10px] text-gray-900 block mb-1">
+              Coordenadas de Pagamento:
+            </span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+              {company?.bank_name && (
+                <div>
+                  <strong>Banco:</strong> {company.bank_name}
+                  {company?.bank_account && <span> | Conta: <strong>{company.bank_account}</strong></span>}
+                  {company?.bank_iban && <div>NIB/IBAN: <strong>{company.bank_iban}</strong></div>}
+                </div>
+              )}
+              <div className="space-y-0.5">
+                {company?.mpesa_number && (
+                  <div>
+                    <span className="font-bold text-red-600">M-Pesa:</span> <strong>{company.mpesa_number}</strong>
+                  </div>
+                )}
+                {company?.emola_number && (
+                  <div>
+                    <span className="font-bold text-orange-600">e-Mola:</span> <strong>{company.emola_number}</strong>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Footer Area with Stamp and Signature */}
-        <div className="mt-8 pt-6 border-t border-gray-100 flex justify-between items-end">
-          <div className="flex items-center gap-4">
-            <div className="p-2 border border-gray-200 rounded-lg bg-gray-50 flex items-center justify-center">
-              <QrCode className="h-14 w-14 text-gray-700" />
-            </div>
-            <div className="text-[11px] text-gray-400 space-y-0.5">
-              <p>Processado por programa certificado nº 01/AT/2026</p>
-              <p>FatureAqui — Sistema Comercial & Faturação</p>
-              <p className="font-mono text-[9px] text-gray-400 mt-1">HASH: {Math.random().toString(36).substring(2, 10).toUpperCase()}-M1</p>
-            </div>
+        <div className="mt-6 pt-5 border-t border-gray-100 flex justify-between items-end">
+          <div className="text-[11px] text-gray-400 space-y-0.5 max-w-xs">
+            <p className="font-semibold text-gray-500">Processado por programa certificado nº 01/AT/2026</p>
+            <p>FatureAqui — Sistema Comercial & Faturação</p>
+            <p className="font-mono text-[9px] text-gray-400 mt-1">HASH: {Math.random().toString(36).substring(2, 10).toUpperCase()}-M1</p>
           </div>
 
           <div className="flex items-end gap-6">
-            <StampGenerator company={company} date={documentData.date} />
+            <StampGenerator company={company} className="h-28 w-28" />
             <div className="text-center w-44">
               <div className="border-b border-gray-400 pb-1 mb-1 min-h-[30px] flex items-end justify-center">
                 {company?.signature_url ? (

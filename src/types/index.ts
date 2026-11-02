@@ -132,6 +132,10 @@ export interface Company {
   bank_account?: string | null;
   bank_iban?: string | null;
   bank_holder?: string | null;
+  mpesa_number?: string | null;
+  emola_number?: string | null;
+  stamp_style?: "style1" | "style2" | "style3" | "style4" | "style5";
+  use_digital_stamp?: boolean;
   created_at: string;
   updated_at: string;
 }

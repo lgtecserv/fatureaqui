@@ -7,6 +7,7 @@ import { exportElementToPdf, printInvoiceElement } from "@/lib/pdf-export";
 import { Download, Printer, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Company, InvoiceTemplateId } from "@/types";
+import { useProPlan } from "@/hooks/use-pro-plan";
 
 interface InvoiceViewModalProps {
   isOpen: boolean;
@@ -16,6 +17,7 @@ interface InvoiceViewModalProps {
 }
 
 export function InvoiceViewModal({ isOpen, onClose, documentId, company }: InvoiceViewModalProps) {
+  const { isPro } = useProPlan();
   const [isExporting, setIsExporting] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<InvoiceTemplateId>(
     (company?.invoice_template as InvoiceTemplateId) || "classic"
@@ -187,7 +189,8 @@ export function InvoiceViewModal({ isOpen, onClose, documentId, company }: Invoi
           <InvoiceTemplateSelector
             selectedTemplate={selectedTemplate}
             onSelectTemplate={setSelectedTemplate}
-            isPro={company?.plan === "pro"}
+            isPro={isPro}
+            primaryColor={company?.primary_color}
           />
         </div>
 

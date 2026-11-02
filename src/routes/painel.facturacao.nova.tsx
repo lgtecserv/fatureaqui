@@ -16,14 +16,24 @@ import { SuccessModal } from "@/components/success-modal";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
 import { exportElementToPdf, printInvoiceElement } from "@/lib/pdf-export";
+import { useProPlan } from "@/hooks/use-pro-plan";
 
 export const Route = createFileRoute("/painel/facturacao/nova")({
+  validateSearch: (search: Record<string, unknown>): { editId?: string } => {
+    return {
+      editId: search.editId as string | undefined,
+    };
+  },
   component: NovaFacturaPage,
 });
 
 function NovaFacturaPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const { isPro } = useProPlan();
+  const search = Route.useSearch();
+  const editId = search?.editId;
+  const isEditing = Boolean(editId);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -150,6 +160,82 @@ function NovaFacturaPage() {
     enabled: !!company,
   });
 
+  // Fetch document if in edit mode
+  const { data: editingDoc } = useQuery({
+    queryKey: ["editing_document", editId],
+    queryFn: async () => {
+      if (!editId) return null;
+      const { data: doc, error: docErr } = await supabase
+        .from("documents")
+        .select("*")
+        .eq("id", editId)
+        .single();
+      if (docErr) throw docErr;
+
+      const { data: docItems, error: itemsErr } = await supabase
+        .from("document_items")
+        .select("*")
+        .eq("document_id", editId)
+        .order("order_index", { ascending: true });
+      if (itemsErr) throw itemsErr;
+
+      return { doc, items: docItems || [] };
+    },
+    enabled: !!editId,
+  });
+
+  // Populate form with existing document data
+  useEffect(() => {
+    if (editingDoc?.doc) {
+      const d = editingDoc.doc;
+      setDocType(d.type as DocumentType);
+      setDate(d.date || new Date().toISOString().split("T")[0]);
+      setObservations(d.observations || "");
+      setReferenceInvoice(d.reference_invoice || "");
+      setReferenceDate(d.reference_date || "");
+      setReason(d.reason || "");
+      setOrigin(d.origin || "");
+      setDestination(d.destination || "");
+      setDriver(d.driver || "");
+      setVehiclePlate(d.vehicle_plate || "");
+      setHasIva(d.has_iva ?? true);
+      setIvaRate(d.iva_rate ?? 16);
+      setHasIspc(d.has_ispc ?? false);
+      setIspcRate(d.ispc_rate ?? 3);
+      setNextDocNumber(d.number);
+
+      const matched = clients.find((c) => c.name === d.client_name);
+      if (matched) {
+        setClientId(matched.id);
+      } else {
+        setClientId("ocasional");
+        setOcasionalClient({
+          name: d.client_name || "",
+          nuit: d.client_nuit || "",
+          email: d.client_email || "",
+          phone: d.client_phone || "",
+          address: d.client_address || "",
+        });
+      }
+
+      if (editingDoc.items && editingDoc.items.length > 0) {
+        setItems(
+          editingDoc.items.map((it: any) => ({
+            id: it.id || Math.random().toString(36).substring(7),
+            type: it.type || "servico",
+            variant_id: "custom",
+            description: it.description,
+            unit: it.unit || "un",
+            quantity: it.quantity?.toString() || "1",
+            unit_price: it.unit_price?.toString() || "0",
+            discount_type: it.discount_type || "percentagem",
+            discount_value: it.discount_value?.toString() || "0",
+          }))
+        );
+      }
+    }
+  }, [editingDoc, clients]);
+
   const [nextDocNumber, setNextDocNumber] = useState<string>("");
   const [previewScale, setPreviewScale] = useState<number>(1);
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -157,7 +243,7 @@ function NovaFacturaPage() {
   // Fetch next sequence live
   useEffect(() => {
     async function fetchNextSequence() {
-      if (!company?.id) return;
+      if (!company?.id || isEditing) return;
       const dateObj = new Date(date);
       const year = dateObj.getFullYear();
 
@@ -176,7 +262,7 @@ function NovaFacturaPage() {
     }
     
     fetchNextSequence();
-  }, [docType, date, company?.id]);
+  }, [docType, date, company?.id, isEditing]);
 
   // Auto-scale Preview
   useEffect(() => {
@@ -371,64 +457,107 @@ function NovaFacturaPage() {
         }
       }
 
-      // Generate sequence number (yearly)
-      const dateObj = new Date(date);
-      const year = dateObj.getFullYear();
+      let doc;
+      if (isEditing && editId) {
+        const { data: updatedDoc, error: updateError } = await supabase
+          .from("documents")
+          .update({
+            date,
+            time: new Date().toTimeString().split(' ')[0],
+            client_name: finalClient.name,
+            client_company: finalClient.company_name || null,
+            client_nuit: finalClient.nuit,
+            client_phone: finalClient.phone,
+            client_email: finalClient.email,
+            client_address: finalClient.address,
+            subtotal: calculations.subtotal,
+            total_discount: calculations.totalDiscount,
+            total_iva: calculations.totalIva,
+            total_ispc: calculations.totalIspc,
+            total: calculations.total,
+            observations: observations || null,
+            reference_invoice: referenceInvoice || null,
+            reference_date: referenceDate || null,
+            reason: reason || null,
+            origin: origin || null,
+            destination: destination || null,
+            driver: driver || null,
+            vehicle_plate: vehiclePlate || null,
+            has_iva: hasIva,
+            has_ispc: hasIspc,
+            iva_rate: hasIva ? ivaRate : 0,
+            ispc_rate: hasIspc ? ispcRate : 0,
+          })
+          .eq("id", editId)
+          .select()
+          .single();
 
-      const { data: lastDoc } = await supabase
-        .from("documents")
-        .select("sequence")
-        .eq("company_id", company.id)
-        .eq("type", docType)
-        .eq("year", year)
-        .order("sequence", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+        if (updateError) throw updateError;
+        doc = updatedDoc;
 
-      const sequence = lastDoc?.sequence ? lastDoc.sequence + 1 : 1;
-      const number = `${docType} ${year}/${sequence}`;
+        // Delete existing items to replace with updated set
+        await supabase.from("document_items").delete().eq("document_id", editId);
+      } else {
+        // Generate sequence number (yearly)
+        const dateObj = new Date(date);
+        const year = dateObj.getFullYear();
 
-      // Insert document
-      const { data: doc, error: docError } = await supabase
-        .from("documents")
-        .insert({
-          company_id: company.id,
-          warehouse_id: null,
-          type: docType,
-          number,
-          sequence,
-          year,
-          status: "emitido",
-          date,
-          time: new Date().toTimeString().split(' ')[0],
-          client_name: finalClient.name,
-          client_company: finalClient.company_name || null,
-          client_nuit: finalClient.nuit,
-          client_phone: finalClient.phone,
-          client_email: finalClient.email,
-          client_address: finalClient.address,
-          subtotal: calculations.subtotal,
-          total_discount: calculations.totalDiscount,
-          total_iva: calculations.totalIva,
-          total_ispc: calculations.totalIspc,
-          total: calculations.total,
-          observations: observations || null,
-          reference_invoice: referenceInvoice || null,
-          reference_date: referenceDate || null,
-          reason: reason || null,
-          origin: origin || null,
-          destination: destination || null,
-          driver: driver || null,
-          vehicle_plate: vehiclePlate || null,
-          has_iva: hasIva,
-          has_ispc: hasIspc,
-          iva_rate: hasIva ? ivaRate : 0,
-          ispc_rate: hasIspc ? ispcRate : 0,
-        })
-        .select()
-        .single();
+        const { data: lastDoc } = await supabase
+          .from("documents")
+          .select("sequence")
+          .eq("company_id", company.id)
+          .eq("type", docType)
+          .eq("year", year)
+          .order("sequence", { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-      if (docError) throw docError;
+        const sequence = lastDoc?.sequence ? lastDoc.sequence + 1 : 1;
+        const number = `${docType} ${year}/${sequence}`;
+
+        // Insert document
+        const { data: newDoc, error: docError } = await supabase
+          .from("documents")
+          .insert({
+            company_id: company.id,
+            warehouse_id: null,
+            type: docType,
+            number,
+            sequence,
+            year,
+            status: "emitido",
+            date,
+            time: new Date().toTimeString().split(' ')[0],
+            client_name: finalClient.name,
+            client_company: finalClient.company_name || null,
+            client_nuit: finalClient.nuit,
+            client_phone: finalClient.phone,
+            client_email: finalClient.email,
+            client_address: finalClient.address,
+            subtotal: calculations.subtotal,
+            total_discount: calculations.totalDiscount,
+            total_iva: calculations.totalIva,
+            total_ispc: calculations.totalIspc,
+            total: calculations.total,
+            observations: observations || null,
+            reference_invoice: referenceInvoice || null,
+            reference_date: referenceDate || null,
+            reason: reason || null,
+            origin: origin || null,
+            destination: destination || null,
+            driver: driver || null,
+            vehicle_plate: vehiclePlate || null,
+            has_iva: hasIva,
+            has_ispc: hasIspc,
+            iva_rate: hasIva ? ivaRate : 0,
+            ispc_rate: hasIspc ? ispcRate : 0,
+          })
+          .select()
+          .single();
+
+        if (docError) throw docError;
+        doc = newDoc;
+      }
 
       // Insert items
       const docItems = items.map((item, index) => {
@@ -460,12 +589,19 @@ function NovaFacturaPage() {
       return doc;
     },
     onSuccess: (data) => {
-      setLastGeneratedNumber(data.number);
-      setIsSuccessModalOpen(true);
-      queryClient.invalidateQueries({ queryKey: ["documents"] });
+      if (isEditing) {
+        toast.success("Documento atualizado com sucesso!");
+        queryClient.invalidateQueries({ queryKey: ["documents"] });
+        queryClient.invalidateQueries({ queryKey: ["document_detail", editId] });
+        navigate({ to: "/painel/facturacao" });
+      } else {
+        setLastGeneratedNumber(data.number);
+        setIsSuccessModalOpen(true);
+        queryClient.invalidateQueries({ queryKey: ["documents"] });
+      }
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao criar documento");
+      toast.error(error.message || (isEditing ? "Erro ao atualizar documento" : "Erro ao criar documento"));
     }
   });
 
@@ -510,8 +646,8 @@ function NovaFacturaPage() {
   return (
     <div className="pb-20">
       <Topbar
-        title={t("invoice_new.title")}
-        subtitle={t("invoice_new.subtitle")}
+        title={isEditing ? "Editar Documento" : t("invoice_new.title")}
+        subtitle={isEditing ? `A editar o documento ${nextDocNumber}` : t("invoice_new.subtitle")}
       />
 
       <div className="mx-auto w-full max-w-[1600px] p-4 sm:p-6">
@@ -936,7 +1072,7 @@ function NovaFacturaPage() {
                     className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-primary py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-95 disabled:opacity-70"
                   >
                     {saveDocument.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                    {t("invoice_new.issue")}
+                    {isEditing ? "Guardar Alterações" : t("invoice_new.issue")}
                   </button>
                 </div>
               </div>
@@ -964,7 +1100,8 @@ function NovaFacturaPage() {
                 <InvoiceTemplateSelector
                   selectedTemplate={selectedTemplate}
                   onSelectTemplate={setSelectedTemplate}
-                  isPro={company?.plan === "pro"}
+                  isPro={isPro}
+                  primaryColor={company?.primary_color}
                 />
              </div>
              

@@ -37,7 +37,9 @@ export function TemplateBoutique({
               {docTypeName}
             </h1>
             <div className="text-gray-700 text-xs space-y-0.5">
-              <p className="font-bold text-sm text-gray-900">{company?.name || "Empresa Lda"}</p>
+              {!company?.logo_url && (
+                <p className="font-bold text-sm text-gray-900">{company?.name || "Empresa Lda"}</p>
+              )}
               <p>{company?.address || "Endereço da Empresa"}</p>
               <p>NUIT: <strong>{company?.nuit || "000000000"}</strong> | Tel: {company?.phone || "+258 00 000 0000"}</p>
               <p>{company?.email || "contacto@empresa.com"}</p>
@@ -238,11 +240,13 @@ export function TemplateBoutique({
                 <p className="text-gray-600 text-[11px] max-w-xs leading-relaxed">
                   {documentData.observations || "O pagamento é devido no prazo acordado."}
                 </p>
-                {(company?.bank_name || company?.bank_account || company?.bank_iban) && (
+                {(company?.bank_name || company?.bank_account || company?.bank_iban || company?.mpesa_number || company?.emola_number) && (
                   <div className="text-[10px] text-gray-700 pt-1 font-medium space-y-0.5">
                     {company.bank_name && <p>Banco: <strong>{company.bank_name}</strong></p>}
                     {company.bank_account && <p>Conta: <strong>{company.bank_account}</strong></p>}
                     {company.bank_iban && <p>IBAN/NIB: <strong>{company.bank_iban}</strong></p>}
+                    {company.mpesa_number && <p><span className="text-red-600 font-bold">M-Pesa:</span> <strong>{company.mpesa_number}</strong></p>}
+                    {company.emola_number && <p><span className="text-orange-600 font-bold">e-Mola:</span> <strong>{company.emola_number}</strong></p>}
                   </div>
                 )}
               </div>
@@ -250,7 +254,7 @@ export function TemplateBoutique({
 
             {/* Right side: Stamp & Handwritten Signature */}
             <div className="flex items-end gap-6">
-              <StampGenerator company={company} date={documentData.date} />
+              <StampGenerator company={company} className="h-28 w-28" />
               <div className="text-center w-40">
                 <div className="min-h-[45px] flex items-end justify-center pb-1">
                   {company?.signature_url ? (

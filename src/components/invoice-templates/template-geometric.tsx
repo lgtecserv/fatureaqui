@@ -186,9 +186,14 @@ export function TemplateGeometric({
               <div>
                 <h4 className="font-bold text-gray-900 text-xs mb-1">PAYMENT INFO</h4>
                 <div className="text-[11px] text-gray-600 space-y-0.5">
-                  <p>ACCOUNT NUMBER : <span className="text-gray-900 font-semibold">{company?.bank_account || "0000 0000 0000"}</span></p>
-                  <p>A/C NAME : <span className="text-gray-900 font-semibold">{company?.bank_holder || company?.name}</span></p>
-                  <p>BANK DETAILS : <span className="text-gray-900 font-semibold">{company?.bank_name ? `${company.bank_name} - ${company.bank_iban || ""}` : "Transferência / Depósito"}</span></p>
+                  {company?.bank_account && <p>ACCOUNT NUMBER : <span className="text-gray-900 font-semibold">{company.bank_account}</span></p>}
+                  {company?.bank_holder && <p>A/C NAME : <span className="text-gray-900 font-semibold">{company.bank_holder}</span></p>}
+                  {company?.bank_name && <p>BANK DETAILS : <span className="text-gray-900 font-semibold">{company.bank_name} {company?.bank_iban && `(${company.bank_iban})`}</span></p>}
+                  {company?.mpesa_number && <p><span className="text-red-600 font-bold">M-PESA :</span> <span className="text-gray-900 font-bold">{company.mpesa_number}</span></p>}
+                  {company?.emola_number && <p><span className="text-orange-600 font-bold">E-MOLA :</span> <span className="text-gray-900 font-bold">{company.emola_number}</span></p>}
+                  {!company?.bank_account && !company?.mpesa_number && (
+                    <p>DETAILS : <span className="text-gray-900 font-medium">Transferência / Depósito</span></p>
+                  )}
                 </div>
               </div>
 
@@ -199,14 +204,11 @@ export function TemplateGeometric({
                 </p>
               </div>
 
-              <div className="pt-2 flex items-center gap-4">
-                <StampGenerator company={company} date={documentData.date} />
-                <div className="p-1 border border-gray-200 rounded">
-                  <QrCode className="h-10 w-10 text-gray-600" />
-                </div>
+              <div className="pt-2">
+                <StampGenerator company={company} className="h-28 w-28" />
               </div>
 
-              <div className="pt-4">
+              <div className="pt-3">
                 <p className="font-black text-sm uppercase tracking-wider text-gray-900">
                   THANKS FOR YOUR BUSINESS
                 </p>

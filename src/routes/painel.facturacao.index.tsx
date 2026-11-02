@@ -1,14 +1,15 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Plus, Filter, Download, Search, Loader2, Eye } from "lucide-react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Plus, Filter, Download, Search, Loader2, Eye, Edit2, Trash2, AlertTriangle } from "lucide-react";
 import { Topbar } from "@/components/topbar";
 import { MT } from "@/lib/format";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/hooks/use-auth";
 import type { Document, Company } from "@/types";
 import { useTranslation } from "react-i18next";
 import { InvoiceViewModal } from "@/components/invoice-view-modal";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/painel/facturacao/")({
   component: FacturacaoPage,
@@ -42,8 +43,11 @@ function typeBadgeColor(t: string) {
 function FacturacaoPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeType, setActiveType] = useState("all");
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const [docToDelete, setDocToDelete] = useState<Document | null>(null);
 
   const DOCUMENT_TYPES = [
     { id: "all", label: t("invoicing.types.all") },
@@ -82,6 +86,24 @@ function FacturacaoPage() {
       return data as Document[];
     },
     enabled: !!company,
+  });
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async (docId: string) => {
+      // Delete document items first
+      await supabase.from("document_items").delete().eq("document_id", docId);
+      // Delete document
+      const { error } = await supabase.from("documents").delete().eq("id", docId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documents", company?.id] });
+      toast.success("Documento apagado com sucesso!");
+      setDocToDelete(null);
+    },
+    onError: (err: any) => {
+      toast.error(err.message || "Erro ao apagar documento.");
+    },
   });
 
   const currentMonth = new Date().getMonth();
@@ -245,15 +267,37 @@ function FacturacaoPage() {
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedDocId(r.id)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-primary-soft hover:text-primary transition"
-                          title="Ver / Baixar Fatura"
-                        >
-                          <Eye className="h-3.5 w-3.5" />
-                          <span>Ver / Baixar</span>
-                        </button>
+                        <div className="inline-flex items-center justify-end gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedDocId(r.id)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-primary-soft hover:text-primary transition"
+                            title="Ver / Baixar Documento"
+                          >
+                            <Eye className="h-3.5 w-3.5" />
+                            <span className="hidden xl:inline">Ver</span>
+                          </button>
+                          
+                          <button
+                            type="button"
+                            onClick={() => navigate({ to: "/painel/facturacao/nova", search: { editId: r.id } })}
+                            className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-amber/15 hover:text-amber-700 transition"
+                            title="Editar Documento"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                            <span className="hidden xl:inline">Editar</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setDocToDelete(r)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-destructive/20 bg-destructive/5 px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive hover:text-white transition"
+                            title="Apagar Documento"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span className="hidden xl:inline">Apagar</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -283,6 +327,46 @@ function FacturacaoPage() {
         documentId={selectedDocId}
         company={company || null}
       />
+      {/* Modal de Confirmação de Eliminação */}
+      {docToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-card border border-border p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-destructive">
+              <div className="rounded-full bg-destructive/10 p-2.5">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground text-base">Apagar Documento</h3>
+                <p className="text-xs text-muted-foreground">Esta ação não poderá ser desfeita.</p>
+              </div>
+            </div>
+
+            <p className="text-sm text-foreground">
+              Tem certeza de que deseja apagar permanentemente o documento <strong className="font-mono text-primary">{docToDelete.number}</strong> ({docToDelete.client_name})?
+            </p>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-border">
+              <button
+                type="button"
+                onClick={() => setDocToDelete(null)}
+                disabled={deleteDocumentMutation.isPending}
+                className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted transition"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={() => deleteDocumentMutation.mutate(docToDelete.id)}
+                disabled={deleteDocumentMutation.isPending}
+                className="inline-flex items-center gap-1.5 rounded-full bg-destructive px-5 py-2 text-xs font-semibold text-white hover:bg-destructive/90 transition disabled:opacity-50"
+              >
+                {deleteDocumentMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                <span>Confirmar e Apagar</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

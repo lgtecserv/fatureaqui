@@ -1,8 +1,10 @@
 import React from "react";
+import type { Company } from "@/types";
 
 interface StampGeneratorProps {
-  companyName: string;
-  companyNuit: string;
+  company?: Company | null;
+  companyName?: string;
+  companyNuit?: string;
   companyCity?: string;
   companyPhone?: string;
   companyAddress?: string;
@@ -12,15 +14,41 @@ interface StampGeneratorProps {
 }
 
 export function StampGenerator({ 
-  companyName = "EMPRESA DESCONHECIDA", 
-  companyNuit = "000000000", 
-  companyCity = "MAPUTO",
-  companyPhone = "---",
-  companyAddress = "---",
-  color = "#02664D", 
-  style = "style1",
+  company,
+  companyName: propCompanyName, 
+  companyNuit: propCompanyNuit, 
+  companyCity: propCompanyCity,
+  companyPhone: propCompanyPhone,
+  companyAddress: propCompanyAddress,
+  color: propColor, 
+  style: propStyle,
   className = ""
 }: StampGeneratorProps) {
+  // If company uploaded their own physical stamp image, display it
+  if (company?.stamp_url) {
+    return (
+      <div className={`relative flex items-center justify-center ${className || "h-28 w-28"}`}>
+        <img 
+          src={company.stamp_url} 
+          alt="Carimbo da Empresa" 
+          className="h-full w-full object-contain filter drop-shadow-sm rotate-[-4deg]"
+        />
+      </div>
+    );
+  }
+
+  // If digital stamp is explicitly disabled and no image uploaded, don't show
+  if (company && company.use_digital_stamp === false) {
+    return null;
+  }
+
+  const companyName = company?.name || propCompanyName || "EMPRESA";
+  const companyNuit = company?.nuit || propCompanyNuit || "---";
+  const companyCity = company?.city || propCompanyCity || "MAPUTO";
+  const companyPhone = company?.phone || propCompanyPhone || "---";
+  const companyAddress = company?.address || propCompanyAddress || "";
+  const color = propColor || company?.primary_color || "#02664D";
+  const style = propStyle || company?.stamp_style || "style1";
   
   // Limitar o tamanho do nome para não quebrar o carimbo
   const shortName = companyName.length > 25 ? companyName.substring(0, 22) + "..." : companyName;

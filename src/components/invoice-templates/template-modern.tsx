@@ -36,21 +36,23 @@ export function TemplateModern({
                 src={company.logo_url} 
                 alt={company?.name} 
                 crossOrigin="anonymous"
-                className="h-16 object-contain" 
+                className="h-16 object-contain max-w-[240px]" 
               />
             ) : (
-              <div 
-                className="h-16 w-16 rounded-md flex flex-col items-center justify-center p-2 text-white shadow-sm"
-                style={{ backgroundColor: primaryColor }}
-              >
-                <span className="font-black text-xl leading-none">{company?.name?.charAt(0) || "K"}</span>
-                <span className="text-[8px] uppercase tracking-tighter opacity-80 mt-1">Corporate</span>
+              <div className="flex items-center gap-3">
+                <div 
+                  className="h-16 w-16 rounded-md flex flex-col items-center justify-center p-2 text-white shadow-sm"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <span className="font-black text-xl leading-none">{company?.name?.charAt(0) || "K"}</span>
+                  <span className="text-[8px] uppercase tracking-tighter opacity-80 mt-1">Corporate</span>
+                </div>
+                <div>
+                  <h2 className="font-extrabold text-base text-gray-900 tracking-tight">{company?.name || "Corporate Lda"}</h2>
+                  <p className="text-[10px] text-gray-400 font-medium">NUIT: {company?.nuit || "000000000"}</p>
+                </div>
               </div>
             )}
-            <div>
-              <h2 className="font-extrabold text-base text-gray-900 tracking-tight">{company?.name || "Corporate Lda"}</h2>
-              <p className="text-[10px] text-gray-400 font-medium">NUIT: {company?.nuit || "000000000"}</p>
-            </div>
           </div>
 
           {/* INVOICE Title */}
@@ -99,14 +101,28 @@ export function TemplateModern({
                 <span className="text-gray-400">Payment Method</span>
                 <span className="font-medium text-gray-800">{company?.bank_name || "Transferência / Depósito"}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-400">Account ID</span>
-                <span className="font-medium text-gray-800">{company?.bank_account || company?.nuit || "—"}</span>
-              </div>
+              {company?.bank_account && (
+                <div className="flex justify-between">
+                  <span className="text-gray-400">Account ID</span>
+                  <span className="font-semibold text-gray-900">{company.bank_account}</span>
+                </div>
+              )}
               {company?.bank_iban && (
                 <div className="flex justify-between">
                   <span className="text-gray-400">IBAN / NIB</span>
-                  <span className="font-medium text-gray-800">{company.bank_iban}</span>
+                  <span className="font-semibold text-gray-900">{company.bank_iban}</span>
+                </div>
+              )}
+              {company?.mpesa_number && (
+                <div className="flex justify-between">
+                  <span className="text-red-600 font-bold">M-Pesa</span>
+                  <span className="font-bold text-gray-900">{company.mpesa_number}</span>
+                </div>
+              )}
+              {company?.emola_number && (
+                <div className="flex justify-between">
+                  <span className="text-orange-600 font-bold">e-Mola</span>
+                  <span className="font-bold text-gray-900">{company.emola_number}</span>
                 </div>
               )}
             </div>
@@ -239,7 +255,7 @@ export function TemplateModern({
                 {documentData.observations || "O pagamento deverá ser efetuado de acordo com as condições combinadas. Agradecemos a confiança depositada."}
               </p>
               <div className="pt-2">
-                <StampGenerator company={company} date={documentData.date} />
+                <StampGenerator company={company} className="h-28 w-28" />
               </div>
             </div>
 
