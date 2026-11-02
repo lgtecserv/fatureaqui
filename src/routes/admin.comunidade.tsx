@@ -140,25 +140,25 @@ function AdminComunidadePage() {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Gestão da Comunidade</h1>
-        <p className="text-muted-foreground">Publique em nome do FatureAqui e modere o conteúdo.</p>
+    <div className="p-4 sm:p-6 lg:p-8 max-w-4xl mx-auto">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">Gestão da Comunidade</h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">Publique em nome do FatureAqui e modere o conteúdo.</p>
       </div>
 
       {/* CREATE POST CARD (OFFICIAL) */}
-      <div className="bg-card border border-primary/20 rounded-2xl p-6 shadow-sm mb-8 relative overflow-hidden">
+      <div className="bg-card border border-primary/20 rounded-2xl p-4 sm:p-6 shadow-sm mb-6 sm:mb-8 relative overflow-hidden">
         <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl-lg">
           Publicação Oficial
         </div>
-        <div className="flex gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 border flex items-center justify-center shrink-0">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-2 sm:mt-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary/10 border flex items-center justify-center shrink-0">
             <img src="/logo.png" className="w-full h-full object-contain p-1" />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 min-w-0">
             <textarea 
               placeholder="Escreva um comunicado ou novidade para a comunidade..."
-              className="w-full bg-transparent resize-none outline-none text-foreground placeholder:text-muted-foreground min-h-[60px]"
+              className="w-full bg-transparent resize-none outline-none text-foreground placeholder:text-muted-foreground min-h-[60px] text-sm"
               value={newPost}
               onChange={(e) => {
                 setNewPost(e.target.value);
@@ -170,11 +170,11 @@ function AdminComunidadePage() {
             {imagePreviews.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-4">
                 {imagePreviews.map((url, i) => (
-                  <div key={i} className="relative group w-24 h-24 rounded-lg overflow-hidden border border-border">
+                  <div key={i} className="relative group w-20 h-20 sm:w-24 sm:h-24 rounded-lg overflow-hidden border border-border">
                     <img src={url} className="w-full h-full object-cover" />
                     <button 
                       onClick={() => removeImage(i)}
-                      className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                      className="absolute inset-0 bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition text-xs"
                     >
                       Remover
                     </button>
@@ -183,7 +183,7 @@ function AdminComunidadePage() {
               </div>
             )}
 
-            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-border">
               <div className="flex items-center gap-2">
                 <input 
                   type="file" 
@@ -195,7 +195,7 @@ function AdminComunidadePage() {
                 />
                 <label 
                   htmlFor="admin-image-upload" 
-                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary cursor-pointer transition px-3 py-1.5 rounded-md hover:bg-primary/10"
+                  className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground hover:text-primary cursor-pointer transition px-2.5 sm:px-3 py-1.5 rounded-md hover:bg-primary/10"
                 >
                   <ImageIcon className="w-4 h-4" />
                   <span className="font-medium">Anexar imagens</span>
@@ -204,7 +204,7 @@ function AdminComunidadePage() {
               <button 
                 disabled={(!newPost.trim() && imageFiles.length === 0) || createPost.isPending}
                 onClick={() => createPost.mutate()}
-                className="bg-primary text-primary-foreground px-6 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition disabled:opacity-50 flex items-center gap-2 shadow-md shadow-primary/20"
+                className="bg-primary text-primary-foreground px-4 sm:px-6 py-2 rounded-full text-xs sm:text-sm font-semibold hover:opacity-90 transition disabled:opacity-50 flex items-center gap-2 shadow-md shadow-primary/20 shrink-0"
               >
                 {createPost.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                 Publicar Comunicado
@@ -276,41 +276,41 @@ function PostModal({ post, currentUser, onClose, deleteComment }: { post: any, c
       <div className="bg-background rounded-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col md:flex-row shadow-2xl" onClick={e => e.stopPropagation()}>
         
         {/* Left Side (Post details) */}
-        <div className="w-full md:w-[60%] overflow-y-auto bg-muted/10 border-b md:border-b-0 md:border-r border-border p-6 hidden md:flex flex-col">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-12 h-12 rounded-lg bg-primary/5 flex items-center justify-center overflow-hidden border">
+        <div className="w-full md:w-[60%] overflow-y-auto bg-muted/10 border-b md:border-b-0 md:border-r border-border p-4 sm:p-6 flex flex-col max-h-[35vh] md:max-h-none">
+          <div className="flex items-center gap-3 mb-4 sm:mb-6">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-primary/5 flex items-center justify-center overflow-hidden border shrink-0">
               {post.company_id === null ? (
                 <img src="/logo.png" className="w-full h-full object-contain p-1" />
               ) : post.companies?.logo_url ? (
                 <img src={post.companies.logo_url} className="w-full h-full object-cover" />
               ) : (
-                <Building2 className="w-6 h-6 text-primary" />
+                <Building2 className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
               )}
             </div>
             <div>
-              <h4 className="font-bold text-foreground flex items-center gap-2">
+              <h4 className="font-bold text-sm sm:text-base text-foreground flex items-center gap-2">
                 {post.company_id === null ? "Equipa FatureAqui" : (post.companies?.name || "Empresa")}
                 {post.company_id === null && <span className="bg-primary text-white text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Oficial</span>}
               </h4>
             </div>
           </div>
           
-          <div className="text-foreground whitespace-pre-wrap leading-relaxed mb-6 text-sm">
+          <div className="text-foreground whitespace-pre-wrap leading-relaxed mb-4 sm:mb-6 text-xs sm:text-sm">
             {post.content}
           </div>
 
           <div className="space-y-2">
              {post.image_urls?.map((url: string, i: number) => (
-                <img key={i} src={url} alt="Anexo" className="w-full rounded-xl object-contain bg-muted/30 max-h-[400px]" />
+                <img key={i} src={url} alt="Anexo" className="w-full rounded-xl object-contain bg-muted/30 max-h-[250px] sm:max-h-[400px]" />
              ))}
              {post.image_url && (!post.image_urls || post.image_urls.length === 0) && (
-                <img src={post.image_url} alt="Anexo" className="w-full rounded-xl object-contain bg-muted/30 max-h-[400px]" />
+                <img src={post.image_url} alt="Anexo" className="w-full rounded-xl object-contain bg-muted/30 max-h-[250px] sm:max-h-[400px]" />
              )}
           </div>
         </div>
 
         {/* Right Side (Comments) */}
-        <div className="w-full md:w-[40%] flex flex-col h-full bg-card max-h-[90vh]">
+        <div className="w-full md:w-[40%] flex flex-col flex-1 bg-card min-h-[300px] md:min-h-0">
           <div className="px-5 py-4 border-b border-border flex items-center justify-between">
             <h3 className="font-bold text-lg">Comentários (Admin)</h3>
             <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition"><X className="w-5 h-5" /></button>

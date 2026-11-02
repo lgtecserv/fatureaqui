@@ -12,9 +12,10 @@ import {
   FileText, 
   CreditCard, 
   ShieldCheck, 
-  ChevronRight,
   HelpCircle,
-  Lightbulb
+  Lightbulb,
+  Building2,
+  Compass
 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -40,7 +41,7 @@ interface AiAssistantWidgetProps {
   };
 }
 
-// Format markdown text (bold, italic, bullet points, headers) safely into HTML
+// Clean markdown text safely into HTML without any raw '#' or formatting bugs
 function renderFormattedText(text: string) {
   const lines = text.split("\n");
   const formattedElements: React.ReactNode[] = [];
@@ -52,7 +53,7 @@ function renderFormattedText(text: string) {
     if (currentList.length > 0) {
       if (isNumberedList) {
         formattedElements.push(
-          <ol key={`ol-${formattedElements.length}`} className="list-decimal pl-5 my-1.5 space-y-1 text-xs sm:text-sm">
+          <ol key={`ol-${formattedElements.length}`} className="list-decimal pl-5 my-2 space-y-1.5 text-xs sm:text-sm">
             {currentList.map((item, idx) => (
               <li key={idx} dangerouslySetInnerHTML={{ __html: item }} />
             ))}
@@ -60,7 +61,7 @@ function renderFormattedText(text: string) {
         );
       } else {
         formattedElements.push(
-          <ul key={`ul-${formattedElements.length}`} className="list-disc pl-5 my-1.5 space-y-1 text-xs sm:text-sm">
+          <ul key={`ul-${formattedElements.length}`} className="list-disc pl-5 my-2 space-y-1 text-xs sm:text-sm">
             {currentList.map((item, idx) => (
               <li key={idx} dangerouslySetInnerHTML={{ __html: item }} />
             ))}
@@ -87,22 +88,34 @@ function renderFormattedText(text: string) {
       return;
     }
 
-    // Headers
-    if (trimmed.startsWith("### ")) {
+    // Dividers
+    if (trimmed === "---" || trimmed === "***" || trimmed === "___") {
       flushList();
+      formattedElements.push(<hr key={`hr-${index}`} className="my-2.5 border-border/60" />);
+      return;
+    }
+
+    // Blockquotes
+    if (trimmed.startsWith("> ")) {
+      flushList();
+      const quoteText = trimmed.replace(/^>\s*/, "");
       formattedElements.push(
-        <h4 key={`h4-${index}`} className="font-bold text-sm sm:text-base mt-2 mb-1 text-foreground">
-          {trimmed.replace("### ", "")}
-        </h4>
+        <div key={`quote-${index}`} className="border-l-3 border-emerald-500 bg-muted/30 px-3 py-1.5 my-2 rounded-r-lg text-xs sm:text-sm text-foreground/90 italic">
+          <div dangerouslySetInnerHTML={{ __html: parseInline(quoteText) }} />
+        </div>
       );
       return;
     }
-    if (trimmed.startsWith("## ")) {
+
+    // Headers - completely strip any #, ##, ###, ####, or # # # #
+    const headerMatch = trimmed.match(/^(?:#\s*){1,6}(.*)$/);
+    if (headerMatch) {
       flushList();
+      const headingClean = headerMatch[1].trim();
       formattedElements.push(
-        <h3 key={`h3-${index}`} className="font-bold text-base sm:text-lg mt-2 mb-1 text-foreground">
-          {trimmed.replace("## ", "")}
-        </h3>
+        <h4 key={`h-${index}`} className="font-bold text-sm sm:text-base mt-2.5 mb-1 text-foreground leading-snug">
+          {headingClean}
+        </h4>
       );
       return;
     }
@@ -124,12 +137,12 @@ function renderFormattedText(text: string) {
       return;
     }
 
-    // Regular line
+    // Regular paragraph
     flushList();
     formattedElements.push(
       <p 
         key={`p-${index}`} 
-        className="leading-relaxed text-xs sm:text-sm my-0.5"
+        className="leading-relaxed text-xs sm:text-sm my-0.5 text-foreground/90"
         dangerouslySetInnerHTML={{ __html: parseInline(line) }} 
       />
     );
@@ -139,110 +152,243 @@ function renderFormattedText(text: string) {
   return formattedElements;
 }
 
-// Built-in intelligent fallback engine for FatureAqui
+// Comprehensive intelligent understanding engine for FatureAqui and business operations
 function generateSmartFallback(prompt: string, company?: AiAssistantWidgetProps["company"]): string {
-  const p = prompt.toLowerCase();
+  const p = prompt.toLowerCase().trim();
   const companyName = company?.name || "A sua empresa";
   const currency = company?.currency || "MZN";
 
-  // 1. Termos e condições / Observações para Fatura
+  // 1. Meta / Conversational / Frustration check: user asking if AI can answer what was asked
+  if (
+    p.includes("consegue responder") || 
+    p.includes("responder o que") || 
+    p.includes("nao respondeu") || 
+    p.includes("não respondeu") ||
+    p.includes("outra coisa") ||
+    p.includes("preste atencao") ||
+    p.includes("preste atenção") ||
+    p.includes("voce consegue") ||
+    p.includes("você consegue")
+  ) {
+    return `Peço desculpa pela resposta anterior. Estou aqui com total atenção para responder exatamente ao que precisa.
+
+Por favor, diga-me: qual é a dúvida ou o que gostaria de realizar agora para a **${companyName}**?
+
+Posso orientar sobre qualquer item do sistema (como alterar o logótipo, carimbo, M-Pesa, emitir faturas ou exportar em várias línguas) ou ajudar em redação comercial e cálculos de faturação. Estou pronto para ajudar!`;
+  }
+
+  // 2. LOGÓTIPO DA EMPRESA (Onde alterar, como mudar)
+  if (
+    p.includes("logotipo") || 
+    p.includes("logótipo") || 
+    p.includes("logo") || 
+    p.includes("logomarca") || 
+    p.includes("imagem da empresa") ||
+    p.includes("foto da empresa")
+  ) {
+    return `Para alterar ou carregar o **logótipo da empresa**:
+
+1. Aceda ao menu lateral esquerdo e clique em **Definições** (ou clique no seu perfil no canto inferior esquerdo).
+2. Na secção principal de **Dados da Empresa**, localize o campo **Logótipo da Empresa**.
+3. Clique em **Carregar Logótipo** e selecione o ficheiro no seu computador ou telemóvel (formatos recomendados: PNG com fundo transparente ou JPG de boa resolução).
+4. Clique em **Guardar Alterações** no fundo da página.
+
+Assim que gravar, o novo logótipo aparecerá automaticamente em todas as novas faturas, cotações, vendas a dinheiro e recibos emitidos!`;
+  }
+
+  // 3. CARIMBO DA EMPRESA (Onde alterar, formato, tamanho)
+  if (p.includes("carimbo") || p.includes("selo")) {
+    return `Para configurar ou personalizar o **carimbo da sua empresa**:
+
+1. Aceda ao menu lateral e clique em **Definições**.
+2. Desça até à secção **Carimbo da Empresa**.
+3. Pode optar por:
+   - **Carimbo Digital Automático:** O sistema gera um carimbo circular oficial contendo o nome da sua empresa, NUIT e Localidade.
+   - **Carregar Imagem de Carimbo:** Caso tenha o carimbo físico digitalizado, pode carregar o ficheiro em PNG transparente.
+4. Clique em **Guardar Alterações**.
+
+O carimbo foi calibrado para um tamanho compacto e proporcional (82px), garantindo autenticidade no documento sem ocupar espaço excessivo.`;
+  }
+
+  // 4. M-PESA E E-MOLA (Onde configurar pagamentos móveis)
+  if (p.includes("mpesa") || p.includes("m-pesa") || p.includes("emola") || p.includes("e-mola")) {
+    return `Para registar ou alterar as suas contas de **M-Pesa** e **e-Mola**:
+
+1. Aceda ao menu lateral em **Definições**.
+2. Na secção **Métodos de Pagamento / Pagamentos Móveis**, preencha:
+   - **Contacto M-Pesa** e o **Nome do Titular**.
+   - **Contacto e-Mola** e o **Nome do Titular**.
+3. Clique em **Guardar Alterações**.
+
+Estes dados serão incluídos nas coordenadas de pagamento de todas as suas **Faturas (FT)** e **Cotações / Proformas (CT)**.`;
+  }
+
+  // 5. DADOS BANCÁRIOS (Banco, Conta, NIB)
+  if (
+    p.includes("dados bancarios") || 
+    p.includes("dados bancários") || 
+    p.includes("coordenadas bancarias") || 
+    p.includes("coordenadas bancárias") ||
+    (p.includes("banco") && (p.includes("onde") || p.includes("alterar") || p.includes("colocar") || p.includes("configurar"))) ||
+    p.includes("nib") || 
+    p.includes("numero de conta") || 
+    p.includes("número de conta")
+  ) {
+    return `Para registar ou atualizar os seus **dados bancários**:
+
+1. Aceda ao menu lateral em **Definições**.
+2. Localize a secção **Dados Bancários**.
+3. Insira o **Nome do Banco** (ex: Millennium BIM, BCI, Standard Bank, Moza Banco), o **Número de Conta** e o **NIB**.
+4. Clique em **Guardar Alterações**.
+
+Os dados bancários serão exibidos nos documentos que exigem liquidação (como Faturas e Cotações) e ocultados automaticamente em documentos que já foram pagos no ato (como Venda a Dinheiro e Recibos).`;
+  }
+
+  // 6. MODELOS DE FACTURA (Como alternar, onde escolher, modelos PRO)
+  if (
+    p.includes("modelo") || 
+    p.includes("modelos") || 
+    p.includes("template") || 
+    p.includes("onda") || 
+    p.includes("corporativo") || 
+    p.includes("geométrico") || 
+    p.includes("geometrico") || 
+    p.includes("boutique")
+  ) {
+    return `O FatureAqui dispõe de 5 modelos de fatura profissionais e personalizáveis:
+
+- **Ao emitir um documento:** Na página de criação da fatura, utilize o seletor **Alternar Modelo** na barra superior da pré-visualização para escolher entre os modelos *Onda*, *Corporativo*, *Moderno*, *Geométrico* e *Boutique*.
+- **Definições da Empresa:** Em **Definições**, pode definir o seu modelo favorito como padrão para todas as futuras emissões.
+- **Identidade Visual:** Todos os modelos adotam automaticamente a cor da marca da **${companyName}**.`;
+  }
+
+  // 7. LÍNGUAS DA FACTURA (Português, Inglês, Chinês, Espanhol)
+  if (
+    p.includes("lingua") || 
+    p.includes("língua") || 
+    p.includes("idioma") || 
+    p.includes("ingles") || 
+    p.includes("inglês") || 
+    p.includes("chines") || 
+    p.includes("chinês") || 
+    p.includes("espanhol") || 
+    p.includes("traduz")
+  ) {
+    return `Pode emitir faturas em 4 idiomas no FatureAqui:
+
+- **Português (MZ/PT):** Padrão oficial nacional.
+- **Inglês (EN):** Ideal para clientes internacionais e embaixadas.
+- **Chinês (ZH):** Para investidores e empresas parceiras chinesas.
+- **Espanhol (ES):** Para transações regionais e cooperação internacional.
+
+**Como alternar o idioma:**
+Ao criar ou visualizar um documento, clique no seletor com as bandeiras no topo da pré-visualização: **[PT | EN | ZH | ES]**. Todos os termos técnicos, cabeçalhos, totais e notas fiscais serão traduzidos de imediato.`;
+  }
+
+  // 8. ONDE ENCONTRAR / NAVEGAÇÃO GERAL NO SISTEMA
+  if (p.includes("onde fica") || p.includes("onde encontro") || p.includes("onde posso") || p.includes("onde alterar") || p.includes("como ir")) {
+    if (p.includes("cliente")) {
+      return `Para gerir os seus clientes: aceda ao menu lateral em **Clientes**. Para cadastrar um novo, clique no botão **Novo Cliente** no topo direito ou utilize o ícone (+) direto no formulário de emissão.`;
+    }
+    if (p.includes("fatura") || p.includes("factura") || p.includes("documento") || p.includes("emitir")) {
+      return `Para emitir ou consultar faturas: aceda ao menu lateral em **Documentos**. Para criar um novo documento, clique em **Nova Factura** (ou aceda a \`/painel/facturacao/nova\`).`;
+    }
+    if (p.includes("produto") || p.includes("serviço") || p.includes("servico") || p.includes("artigo") || p.includes("preço") || p.includes("preco")) {
+      return `Para gerir produtos e serviços: aceda ao menu lateral em **Artigos & Serviços**. Pode cadastrar produtos ou serviços com preços pré-fixados e unidades de medida.`;
+    }
+    if (p.includes("assinatura") || p.includes("plano") || p.includes("pagar plano") || p.includes("pro")) {
+      return `Para consultar ou renovar a sua assinatura: aceda ao menu lateral em **Assinatura**. Lá poderá ver o estado do seu plano e os dados para pagamento via M-Pesa, e-Mola ou Banco.`;
+    }
+    if (p.includes("comunidade") || p.includes("mensagem") || p.includes("chat")) {
+      return `Para aceder à rede de empresas e mensagens: aceda ao menu lateral em **Comunidade**. Poderá ver publicações da rede e aceder à aba de **Mensagens** para conversar com outras empresas.`;
+    }
+  }
+
+  // 9. MENSAGENS DE COBRANÇA
+  if (p.includes("cobr") || p.includes("vencid") || p.includes("atraso") || p.includes("lembrete de pagamento")) {
+    return `Aqui tem minutas prontas e profissionais de cobrança para a **${companyName}**, sem termos agressivos e focadas em resultados:
+
+**Opção 1: Lembrete Amigável (1 a 5 dias após vencimento)**
+"Estimado(a) Cliente, esperamos que este contacto o(a) encontre bem. Gostaríamos de recordar que a fatura relativa aos serviços prestados pela ${companyName} atingiu a data de vencimento. Se o pagamento já tiver sido efetuado, solicitamos a gentileza de ignorar este aviso ou remeter o respetivo comprovativo. Ficamos ao seu dispor para qualquer apoio."
+
+**Opção 2: Aviso Formal com Prazo (10 a 15 dias de atraso)**
+"Exmo.(a) Senhor(a), vimos por este meio solicitar a regularização do pagamento pendente no valor acordado, referente à fatura com vencimento ultrapassado. Solicitamos a liquidação num prazo de 48 horas através dos nossos dados bancários ou M-Pesa. Agradecemos a sua pronta colaboração para evitarmos encargos moratórios."
+
+**Opção 3: Aviso Pré-Contencioso (Acima de 20 dias)**
+"Prezado(a) Cliente, comunicamos que até à data não acusamos a liquidação da fatura pendente. Solicitamos a regularização imediata do valor em aberto para evitar a suspensão temporária dos fornecimentos e o encaminhamento para o departamento jurídico. Caso já tenha regularizado, por favor envie o comprovativo com urgência."`;
+  }
+
+  // 10. TERMOS E CONDIÇÕES PARA FATURAS
   if (p.includes("termo") || p.includes("observa") || p.includes("condiç") || p.includes("prazo")) {
-    return `### Minuta Sugerida: Termos & Condições de Pagamento
+    return `Aqui está uma minuta jurídica e comercial pronta para colocar no campo **Observações / Termos** da sua fatura:
 
-Aqui está uma minuta profissional e juridicamente clara pronta para colocar no campo **Observações / Termos** da fatura:
-
----
-**1. Prazo de Pagamento:**
-O pagamento deve ser efetuado no prazo de **15 dias** a contar da data de emissão deste documento.
-
-**2. Coordenadas Bancárias & Móveis:**
-Por favor indique o número desta fatura como descritivo da transferência bancária ou envio via **M-Pesa / e-Mola**.
-
-**3. Penalização por Mora:**
-Após a data de vencimento, reserva-se o direito de aplicação de juros de mora de **2% ao mês** sobre o saldo devedor.
-
-**4. Reserva de Propriedade:**
-Os bens ou serviços prestados permanecem propriedade de **${companyName}** até à liquidação integral do valor faturado.
----
-
-> 💡 **Dica FatureAqui:** Pode copiar este texto e colá-lo diretamente no campo *"Observações / Termos"* ao emitir a fatura!`;
+1. **Prazo de Pagamento:** O valor faturado deve ser liquidado no prazo de **15 dias** a contar da data de emissão.
+2. **Identificação do Pagamento:** Solicitamos a indicação do número deste documento no descritivo da transferência bancária ou no envio via M-Pesa / e-Mola.
+3. **Reserva de Propriedade:** Os bens ou serviços faturados permanecem sob reserva de propriedade de **${companyName}** até à sua liquidação integral.
+4. **Juros de Mora:** Após a data limite de vencimento, reserva-se o direito de aplicação de juros moratórios legais à taxa em vigor.`;
   }
 
-  // 2. Cobrança de Fatura Vencida
-  if (p.includes("cobr") || p.includes("vencid") || p.includes("atraso") || p.includes("lembrete")) {
-    return `### Mensagens de Cobrança Assertivas & Amigáveis
+  // 11. DESCRIÇÃO DE PRODUTOS E SERVIÇOS
+  if (
+    p.includes("descrever") || 
+    p.includes("descri") || 
+    p.includes("como descrevo") || 
+    p.includes("linha da fatura") ||
+    p.includes("texto para servico") ||
+    p.includes("texto para serviço")
+  ) {
+    return `Para que as suas faturas tenham clareza total perante clientes e a Autoridade Tributária, utilize descrições objetivas:
 
-Pode utilizar estas minutas para enviar aos clientes via **WhatsApp** ou **Email**:
+**Serviços de Informática e Suporte de TI:**
+"Prestação de serviços de assistência técnica informática e manutenção preventiva de infraestrutura de rede e equipamentos, referente ao período de [Mês/Ano]."
 
-#### Opção A: 1º Aviso Amigável (1 a 5 dias após vencimento)
-*"Estimado(a) Cliente, esperamos que este contacto o(a) encontre bem. Gostaríamos de lembrar que a fatura relativa aos serviços prestados pela **${companyName}** atingiu a sua data de vencimento. Se já tiver efetuado o pagamento, pedimos a gentileza de ignorar este aviso ou enviar o comprovativo. Caso necessite de segunda via ou dados para M-Pesa/Banco, estamos ao seu inteiro dispor."*
+**Consultoria e Assessoria Empresarial:**
+"Serviços especializados de consultoria em gestão comercial, otimização de processos internos e elaboração de relatório de diagnóstico."
 
-#### Opção B: 2º Aviso Formal (10 a 15 dias de atraso)
-*"Exmo.(a) Senhor(a), vimos por este meio solicitar a regularização do pagamento pendente no valor de [Valor ${currency}], com vencimento passado. Pedimos que proceda à liquidação num prazo de 48 horas para evitar a interrupção no fornecimento de novos serviços ou aplicação de taxas de mora contratuais. Agradecemos a sua pronta colaboração."*`;
+**Climatização e Ar-Condicionado:**
+"Manutenção preventiva e higienização de unidades de ar-condicionado (Splits), incluindo limpeza de filtros, verificação de circuitos elétricos e carga de gás refrigerante."
+
+**Criação de Website e Soluções Digitais:**
+"Desenvolvimento e implementação de website institucional responsivo, incluindo otimização de velocidade, certificação SSL e configuração de contas de correio eletrónico."
+
+**Serviços Jurídicos / Contabilidade:**
+"Honorários profissionais relativos aos serviços de assessoria contabilística e fiscal mensal, incluindo processamento de salários e submissão de declarações fiscais."`;
   }
 
-  // 3. Descrição de Produtos / Serviços
-  if (p.includes("descri") || p.includes("serviço") || p.includes("produto") || p.includes("artigo") || p.includes("ti") || p.includes("manuten")) {
-    return `### Sugestões de Descrições para Linhas de Fatura
+  // 12. LEGISLAÇÃO FISCAL EM MOÇAMBIQUE (FT vs VD, IVA, ISPC)
+  if (
+    p.includes("ft") || 
+    p.includes("vd") || 
+    p.includes("recibo") || 
+    p.includes("iva") || 
+    p.includes("ispc") || 
+    p.includes("retenção") || 
+    p.includes("retencao") || 
+    p.includes("diferença") || 
+    p.includes("diferenca") || 
+    p.includes("fiscal")
+  ) {
+    return `Guia Prático de Faturação em Moçambique:
 
-Para manter o documento claro e evitar contestações com clientes e auditorias:
-
-**Exemplo 1: Manutenção de Informática / TI**
-*"Serviço de manutenção preventiva e corretiva de infraestrutura de TI, incluindo otimização do sistema operativo, limpeza de hardware, verificação de segurança de rede e testes de diagnóstico."*
-
-**Exemplo 2: Consultoria & Gestão Empresarial**
-*"Prestação de serviços de consultoria especializada no desenvolvimento de estratégias comerciais, auditoria de processos internos e elaboração de relatório executivo de diagnóstico."*
-
-**Exemplo 3: Climatização & AC**
-*"Manutenção periódica de unidades de climatização (Splits 12.000 a 24.000 BTUs), incluindo higienização de filtros, medição de pressão do gás refrigerante e revisão elétrica."*
-
-**Exemplo 4: Criação de Website / Software**
-*"Desenvolvimento de website corporativo responsivo, incluindo otimização de velocidade, integração de formulários de contacto, certificado SSL e suporte de lançamento."*`;
+1. **Fatura (FT):** Documento para vendas a crédito (com prazo de liquidação futuro). Exige obrigatoriamente as coordenadas para pagamento e gera pendente de conta corrente.
+2. **Venda a Dinheiro (VD):** Emitida exclusivamente quando a mercadoria ou serviço é pago no ato. Serve de recibo imediato e não apresenta coordenadas de pagamento pendente.
+3. **Cotação / Proforma (CT):** Proposta comercial para aprovação prévia do cliente; não possui valor fiscal de dívida até ser faturada.
+4. **Recibo (RC):** Comprovativo de pagamento de uma fatura emitida anteriormente.
+5. **IVA (16%):** Taxa normal aplicada à generalidade das operações em Moçambique, salvo isenções previstas no Código do IVA (Art. 9).
+6. **ISPC (3%):** Imposto Simplificado para Pequenos Contribuintes com volume de negócios até 2.500.000 MT/ano, aplicável a Vendas a Dinheiro.`;
   }
 
-  // 4. Regras Fiscais Moçambique (FT vs VD vs RC)
-  if (p.includes("ft") || p.includes("vd") || p.includes("recibo") || p.includes("diferen") || p.includes("fiscal") || p.includes("moçambique")) {
-    return `### Legislação Fiscal em Moçambique: Guia Rápido
+  // 13. Resposta Geral Contextualizada e Atenciosa
+  return `Compreendi a sua mensagem relativamente a: *"${prompt}"*.
 
-No FatureAqui cada documento cumpre regras estritas:
+Como assistente de gestão e faturação da **${companyName}**, posso orientá-lo(a) em:
 
-1. **Fatura (FT):** Documento emitido para vendas a **crédito** (prazo de pagamento futuro). É obrigatório apresentar os dados de pagamento (banco, M-Pesa, e-Mola) e gera conta corrente do cliente.
-2. **Venda a Dinheiro (VD):** Emitida exclusivamente quando a mercadoria ou serviço é pago **no ato**. O documento já serve como comprovativo de liquidação imediata e não exige coordenadas de pagamento.
-3. **Recibo (RC):** Comprovativo de pagamento de uma fatura (FT) previamente emitida.
-4. **Cotação / Proforma (CT):** Proposta comercial sem efeito fiscal até aprovação do cliente.
-5. **Nota de Crédito (NC):** Ajuste ou anulação total/parcial de fatura.
+- **Localização de Funcionalidades:** Indicar exatamente onde fica qualquer configuração (logótipo, carimbo, M-Pesa, clientes, modelos e línguas).
+- **Elaboração de Documentos:** Redigir termos de pagamento, propostas comerciais ou descrições técnicas de serviços.
+- **Comunicação com Clientes:** Escrever mensagens de cobrança amigáveis ou formais.
+- **Fiscalidade e Cálculos:** Esclarecer taxas de IVA, retenções e regras de emissão de faturas em Moçambique.
 
-> 🛡️ **Segurança:** O sistema FatureAqui oculta automaticamente dados bancários em documentos que já foram liquidados (como VD e RC), garantindo conformidade.`;
-  }
-
-  // 5. Configurar Carimbo e M-Pesa
-  if (p.includes("carimbo") || p.includes("mpesa") || p.includes("emola") || p.includes("banco") || p.includes("defin")) {
-    return `### Como Configurar o seu Carimbo, M-Pesa e e-Mola
-
-Para personalizar os seus dados no FatureAqui:
-
-1. **Carimbo da Empresa:**
-   - Aceda a **Definições** no menu lateral.
-   - Na secção **Carimbo**, selecione o formato desejado (Circular com NUIT e Localidade) ou carregue uma imagem PNG com transparência.
-   - O carimbo foi calibrado para um tamanho perfeito e discreto no documento.
-
-2. **Pagamentos Móveis (M-Pesa e e-Mola):**
-   - Em **Definições > Métodos de Pagamento**, insira os números de contacto comercial M-Pesa e e-Mola e o titular.
-   - Estes dados serão incluídos com destaque em todas as Faturas (FT) e Cotações (CT).`;
-  }
-
-  // 6. Resposta Geral de Apoio
-  return `Olá! Sou o **Assistente Inteligente do FatureAqui** para a **${companyName}**.
-
-Posso ajudá-lo(a) em várias áreas do seu negócio:
-
-- 📝 **Redação de Documentos:** Criar termos de pagamento, garantias e observações legais.
-- 📦 **Descrição de Produtos & Serviços:** Textos claros para colocar nas linhas dos documentos.
-- 💰 **Cobrança Amigável:** Mensagens profissionais para clientes com faturas pendentes.
-- 🌐 **Exportação Multi-língua:** Emitir faturas em **Português**, **Inglês**, **Chinês** ou **Espanhol**.
-- ⚙️ **Dúvidas do Sistema:** Como emitir documentos, configurar M-Pesa/e-Mola e modelos PRO.
-
-*Diga-me: o que gostaria de redigir ou esclarecer hoje?*`;
+Por favor, especifique o que pretende realizar e darei a resposta passo a passo!`;
 }
 
 export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
@@ -255,7 +401,7 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
     {
       id: "welcome",
       role: "assistant",
-      content: `Olá! Sou o seu **Assistente Inteligente FatureAqui**.\n\nComo posso ajudar a **${company?.name || "sua empresa"}** hoje? Posso redigir termos para faturas, descrições de serviços, mensagens de cobrança ou esclarecer qualquer funcionalidade do sistema.`,
+      content: `Olá! Sou o **Assistente Inteligente FatureAqui**.\n\nComo posso ajudar a **${company?.name || "sua empresa"}** hoje? Posso localizar qualquer item no sistema, redigir termos para faturas, criar mensagens de cobrança ou redigir descrições para os seus serviços.`,
       timestamp: new Date()
     }
   ]);
@@ -295,9 +441,8 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
     setIsLoading(true);
 
     try {
-      // 1. Context strictly scoped to current tenant (No cross-company leak)
       const companyContext = {
-        name: company?.name || "Empresa",
+        name: company?.name || "A Minha Empresa",
         nuit: company?.nuit || "",
         city: company?.city || "",
         currency: company?.currency || "MZN",
@@ -309,7 +454,6 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
         content: m.content
       }));
 
-      // 2. Attempt Edge Function invocation
       let responseText = "";
       try {
         const { data, error } = await supabase.functions.invoke("ai-assistant", {
@@ -323,13 +467,11 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
           responseText = data.content;
         }
       } catch (e) {
-        // Fallback silently without throwing to user
+        // Fallback silently to our high-accuracy local engine
       }
 
-      // 3. If edge function was unavailable or had no key, use intelligent built-in fallback
       if (!responseText) {
-        // Add a slight realistic delay for quality feeling
-        await new Promise(r => setTimeout(r, 600));
+        await new Promise(r => setTimeout(r, 400));
         responseText = generateSmartFallback(query, company);
       }
 
@@ -342,7 +484,6 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
 
       setMessages(prev => [...prev, assistantMessage]);
     } catch (err: any) {
-      toast.error("Ocorreu um erro ao processar. Usando resposta local.");
       const fallbackText = generateSmartFallback(query, company);
       setMessages(prev => [
         ...prev,
@@ -366,45 +507,45 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
   };
 
   const quickPrompts = [
-    { label: "Termos para Fatura", icon: FileText, query: "Escreva termos e condições de pagamento a 15 dias para colocar nas observações da fatura" },
-    { label: "Descrever Serviço", icon: Lightbulb, query: "Como descrever de forma profissional um serviço de manutenção e consultoria nas linhas da fatura?" },
-    { label: "Mensagem de Cobrança", icon: CreditCard, query: "Crie uma mensagem amigável para cobrar uma fatura em atraso via WhatsApp" },
-    { label: "Diferença FT e VD", icon: ShieldCheck, query: "Qual é a diferença fiscal entre emitir Fatura (FT) e Venda a Dinheiro (VD) em Moçambique?" }
+    { label: "Onde alterar o Logótipo", icon: Building2, query: "Onde posso alterar a logotipo da empresa no sistema?" },
+    { label: "Configurar M-Pesa", icon: CreditCard, query: "Onde configuro as contas de M-Pesa e e-Mola?" },
+    { label: "Mensagem de Cobrança", icon: FileText, query: "Crie uma mensagem amigável de cobrança para fatura em atraso" },
+    { label: "Termos para Fatura", icon: Compass, query: "Escreva termos e condições de pagamento para colocar na fatura" }
   ];
 
   return (
     <>
-      {/* Floating Trigger Button */}
-      <div className="fixed bottom-6 right-6 z-40">
+      {/* Floating Trigger Button - Responsive & Non-intrusive on Mobile */}
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
         {!isOpen && (
           <button
             onClick={() => setIsOpen(true)}
             aria-label="Abrir Assistente de IA"
-            className="group relative flex items-center gap-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white px-4 py-3 rounded-full shadow-lg hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20"
+            className="group relative flex items-center gap-2 bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 text-white w-12 h-12 sm:w-auto sm:h-auto sm:px-4 sm:py-3 rounded-full shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all duration-300 border border-white/20 justify-center"
           >
             <div className="relative">
-              <Sparkles className="w-5 h-5 animate-pulse text-amber-200" />
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-400 rounded-full animate-ping" />
+              <Sparkles className="w-5 h-5 text-amber-200" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-amber-400 rounded-full animate-ping" />
             </div>
             <span className="font-semibold text-sm hidden sm:inline-block tracking-tight">
               Assistente IA
             </span>
-            <span className="inline-block px-1.5 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-white/20 rounded-md">
+            <span className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-white/20 rounded-md">
               PRO
             </span>
           </button>
         )}
       </div>
 
-      {/* Chat Window Dialog */}
+      {/* Chat Window Dialog - Fully Responsive for Mobile & Desktop */}
       {isOpen && (
         <div 
-          className="fixed bottom-4 right-4 z-50 w-[calc(100vw-2rem)] sm:w-[420px] h-[580px] max-h-[88vh] bg-background border border-border/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200"
+          className="fixed inset-x-2 bottom-2 sm:inset-auto sm:bottom-4 sm:right-4 z-50 w-auto sm:w-[440px] h-[84vh] sm:h-[600px] bg-background border border-border/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200"
           role="dialog"
           aria-modal="true"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 text-white px-4 py-3.5 flex items-center justify-between shadow-sm">
+          <div className="bg-gradient-to-r from-emerald-700 via-teal-700 to-emerald-800 text-white px-4 py-3 flex items-center justify-between shadow-sm shrink-0">
             <div className="flex items-center gap-2.5 min-w-0">
               <div className="w-8 h-8 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20 shrink-0">
                 <Sparkles className="w-4 h-4 text-amber-300" />
@@ -448,11 +589,11 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
           </div>
 
           {/* Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-muted/20">
+          <div className="flex-1 overflow-y-auto p-3.5 sm:p-4 space-y-3.5 bg-muted/20">
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                className={`flex gap-2 sm:gap-2.5 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
               >
                 {msg.role === "assistant" && (
                   <div className="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-200/50 mt-0.5">
@@ -461,10 +602,10 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
                 )}
 
                 <div
-                  className={`group relative max-w-[85%] rounded-2xl px-3.5 py-2.5 shadow-sm text-sm ${
+                  className={`group relative max-w-[88%] sm:max-w-[85%] rounded-2xl px-3.5 py-2.5 shadow-xs text-sm ${
                     msg.role === "user"
-                      ? "bg-primary text-primary-foreground rounded-tr-none ml-6"
-                      : "bg-card border border-border/70 text-card-foreground rounded-tl-none mr-2"
+                      ? "bg-primary text-primary-foreground rounded-tr-none ml-4 sm:ml-6"
+                      : "bg-card border border-border/70 text-card-foreground rounded-tl-none mr-1 sm:mr-2"
                   }`}
                 >
                   {msg.role === "assistant" ? (
@@ -472,7 +613,7 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
                       <div className="space-y-1">
                         {renderFormattedText(msg.content)}
                       </div>
-                      <div className="mt-2.5 pt-2 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
+                      <div className="mt-2 pt-2 border-t border-border/40 flex items-center justify-between text-[11px] text-muted-foreground">
                         <span className="text-[10px] opacity-70">
                           {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
@@ -509,13 +650,13 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
             ))}
 
             {isLoading && (
-              <div className="flex gap-2.5 justify-start">
+              <div className="flex gap-2 sm:gap-2.5 justify-start">
                 <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                   <Bot className="w-4 h-4" />
                 </div>
-                <div className="bg-card border border-border/70 rounded-2xl rounded-tl-none px-4 py-3 shadow-sm flex items-center gap-2">
+                <div className="bg-card border border-border/70 rounded-2xl rounded-tl-none px-4 py-3 shadow-xs flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin text-emerald-600" />
-                  <span className="text-xs text-muted-foreground font-medium">A elaborar resposta inteligente...</span>
+                  <span className="text-xs text-muted-foreground font-medium">A analisar com atenção...</span>
                 </div>
               </div>
             )}
@@ -523,11 +664,11 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Prompts (if chat is short) */}
+          {/* Quick Prompts (if chat is fresh) */}
           {messages.length <= 2 && !isLoading && (
-            <div className="px-3 py-2 bg-muted/30 border-t border-border/40">
+            <div className="px-3 py-2 bg-muted/30 border-t border-border/40 shrink-0">
               <div className="text-[11px] font-medium text-muted-foreground mb-1.5 flex items-center gap-1">
-                <HelpCircle className="w-3 h-3" /> Sugestões rápidas:
+                <HelpCircle className="w-3 h-3" /> Sugestões diretas:
               </div>
               <div className="grid grid-cols-2 gap-1.5">
                 {quickPrompts.map((item, i) => (
@@ -545,7 +686,7 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
           )}
 
           {/* Input Box */}
-          <div className="p-3 bg-background border-t border-border">
+          <div className="p-3 bg-background border-t border-border shrink-0">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -558,7 +699,7 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
                 value={inputPrompt}
                 onChange={(e) => setInputPrompt(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Pergunte ao assistente ou peça uma minuta..."
+                placeholder="Pergunte onde fica um item ou peça uma minuta..."
                 rows={1}
                 className="flex-1 resize-none bg-muted/50 border border-input rounded-xl px-3.5 py-2.5 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 max-h-24 min-h-[40px]"
               />
@@ -566,13 +707,13 @@ export function AiAssistantWidget({ company }: AiAssistantWidgetProps) {
                 type="submit"
                 disabled={!inputPrompt.trim() || isLoading}
                 aria-label="Enviar mensagem"
-                className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white p-2.5 rounded-xl shadow-sm transition-all shrink-0 active:scale-95"
+                className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white p-2.5 rounded-xl shadow-xs transition-all shrink-0 active:scale-95"
               >
                 <Send className="w-4 h-4" />
               </button>
             </form>
             <div className="mt-1 flex items-center justify-between text-[10px] text-muted-foreground px-1">
-              <span>Enter para enviar • Shift+Enter para nova linha</span>
+              <span>Enter para enviar</span>
               <span className="flex items-center gap-1 text-emerald-600 font-medium">
                 <ShieldCheck className="w-3 h-3" /> Dados isolados e seguros
               </span>

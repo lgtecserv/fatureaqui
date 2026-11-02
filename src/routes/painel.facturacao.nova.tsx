@@ -660,8 +660,8 @@ function NovaFacturaPage() {
           <div className="space-y-6">
             
             {/* Header Options */}
-            <div className="rounded-2xl border border-border bg-card p-6 shadow-soft space-y-6">
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <div className="rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-soft space-y-6">
+              <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("invoice_new.type_label")}</label>
                   <select
@@ -692,11 +692,11 @@ function NovaFacturaPage() {
 
               <div className="space-y-2">
                 <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{t("invoice_new.client_label")}</label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-center w-full min-w-0">
                   <select
                     value={clientId}
                     onChange={(e) => setClientId(e.target.value)}
-                    className="h-11 flex-1 rounded-xl border border-border bg-background px-3.5 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    className="h-11 flex-1 min-w-0 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 truncate"
                   >
                     <option value="">{t("invoice_new.select_client")}</option>
                     <option value="ocasional">{t("invoice_new.manual_client")}</option>
@@ -796,168 +796,364 @@ function NovaFacturaPage() {
 
             {/* Line Items */}
             <div className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden">
-              <div className="bg-muted/30 px-5 py-3 border-b border-border">
+              <div className="bg-muted/30 px-4 sm:px-5 py-3 border-b border-border flex items-center justify-between">
                 <h3 className="font-semibold text-sm">{t("invoice_new.doc_lines")}</h3>
+                <span className="text-xs text-muted-foreground font-medium sm:hidden">
+                  {items.length} {items.length === 1 ? "linha" : "linhas"}
+                </span>
               </div>
-                    <div className="p-5 overflow-x-auto w-full">
-                <div className="min-w-[660px] space-y-4 pb-2">
-                
-                {/* Headers for Desktop */}
-                <div className={cn(
-                  "hidden sm:grid gap-2 px-1 pb-2 border-b border-border/50",
-                  isTransportDoc ? "grid-cols-[1fr_65px_80px_40px]" : "grid-cols-[1fr_65px_70px_100px_130px_40px]"
-                )}>
-                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("invoice_new.item")}</div>
-                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{t("invoice_new.unit")}</div>
-                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{t("invoice_new.qty")}</div>
-                  {!isTransportDoc && (
-                    <>
-                      <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{t("invoice_new.unit_price")}</div>
-                      <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{t("invoice_new.discount")}</div>
-                    </>
-                  )}
-                  <div></div>
-                </div>
 
-                {items.map((item) => (
-                  <div key={item.id} className={cn(
-                    "grid grid-cols-1 gap-2 items-start sm:items-center",
-                    isTransportDoc ? "sm:grid-cols-[1fr_65px_80px_40px]" : "sm:grid-cols-[1fr_65px_70px_100px_130px_40px]"
-                  )}>
-                    {/* Artigo / Serviço description & catalog selector */}
-                    <div className="space-y-1.5 w-full min-w-0">
-                      <div className="flex gap-1.5 items-center w-full">
-                        <select
-                          value={item.variant_id && item.variant_id !== "custom" ? item.variant_id : ""}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (!val) {
-                              updateItem(item.id, "variant_id", "custom");
-                              return;
-                            }
-                            const matched = catalogItems.find(v => v.id === val);
-                            if (matched) {
-                              setItems(items.map(it => it.id === item.id ? {
-                                ...it,
-                                variant_id: matched.id,
-                                type: matched.products?.type === "servico" ? "servico" : "produto",
-                                description: matched.products?.name + (matched.products?.description ? ` - ${matched.products.description}` : ""),
-                                unit: matched.products?.unit_of_measure || "un",
-                                unit_price: matched.price?.toString() || "0",
-                                quantity: matched.products?.default_quantity?.toString() || "1",
-                              } : it));
-                            }
-                          }}
-                          className="h-9 flex-1 min-w-0 rounded-lg border border-border bg-muted/40 px-2.5 text-xs text-foreground focus:border-primary focus:outline-none"
-                        >
-                          <option value="">{t("invoice_new.select_product")}</option>
-                          {catalogItems.map(v => (
-                            <option key={v.id} value={v.id}>
-                              [{v.products?.type === "servico" ? "Serviço" : "Produto"}] {v.products?.name} - {MT(v.price)} ({v.products?.unit_of_measure || "un"})
-                            </option>
-                          ))}
-                        </select>
+              {/* Mobile View (< 640px) */}
+              <div className="block sm:hidden p-3.5 space-y-3.5">
+                {items.map((item, idx) => {
+                  const qty = parseFloat(item.quantity) || 0;
+                  const price = parseFloat(item.unit_price) || 0;
+                  const discVal = parseFloat(item.discount_value) || 0;
+                  const gross = qty * price;
+                  const disc = item.discount_type === "percentagem" ? gross * (discVal / 100) : discVal;
+                  const lineTotal = Math.max(0, gross - disc);
 
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveItemRowId(item.id);
-                            setIsProductModalOpen(true);
-                          }}
-                          className="h-9 px-2.5 rounded-lg border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold flex items-center gap-1 shrink-0 transition"
-                          title="Cadastrar novo artigo ou serviço no catálogo"
-                        >
-                          <Plus className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">Novo</span>
-                        </button>
+                  return (
+                    <div key={item.id} className="rounded-xl border border-border/80 bg-muted/15 p-3.5 space-y-3 shadow-xs">
+                      {/* Top bar of item */}
+                      <div className="flex items-center justify-between pb-2 border-b border-border/50">
+                        <span className="text-xs font-bold text-foreground flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">
+                            {idx + 1}
+                          </span>
+                          Artigo / Linha {idx + 1}
+                        </span>
+                        {items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeItem(item.id)}
+                            className="text-xs text-destructive hover:bg-destructive/10 px-2 py-1 rounded-lg flex items-center gap-1 transition"
+                            title="Remover linha"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            <span>Remover</span>
+                          </button>
+                        )}
                       </div>
 
-                      <input
-                        type="text"
-                        placeholder={t("invoice_new.service_desc")}
-                        value={item.description}
-                        onChange={(e) => updateItem(item.id, "description", e.target.value)}
-                        className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm font-medium focus:border-primary focus:outline-none"
-                      />
-                    </div>
+                      {/* Catálogo */}
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Produto ou Serviço do Catálogo
+                        </label>
+                        <div className="flex gap-1.5 items-center w-full min-w-0">
+                          <select
+                            value={item.variant_id && item.variant_id !== "custom" ? item.variant_id : ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (!val) {
+                                updateItem(item.id, "variant_id", "custom");
+                                return;
+                              }
+                              const matched = catalogItems.find(v => v.id === val);
+                              if (matched) {
+                                setItems(items.map(it => it.id === item.id ? {
+                                  ...it,
+                                  variant_id: matched.id,
+                                  type: matched.products?.type === "servico" ? "servico" : "produto",
+                                  description: matched.products?.name + (matched.products?.description ? ` - ${matched.products.description}` : ""),
+                                  unit: matched.products?.unit_of_measure || "un",
+                                  unit_price: matched.price?.toString() || "0",
+                                  quantity: matched.products?.default_quantity?.toString() || "1",
+                                } : it));
+                              }
+                            }}
+                            className="h-10 flex-1 min-w-0 rounded-lg border border-border bg-background px-2.5 text-xs text-foreground focus:border-primary focus:outline-none truncate"
+                          >
+                            <option value="">{t("invoice_new.select_product")}</option>
+                            {catalogItems.map(v => (
+                              <option key={v.id} value={v.id}>
+                                [{v.products?.type === "servico" ? "Serviço" : "Produto"}] {v.products?.name} - {MT(v.price)} ({v.products?.unit_of_measure || "un"})
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveItemRowId(item.id);
+                              setIsProductModalOpen(true);
+                            }}
+                            className="h-10 px-2.5 rounded-lg border border-primary/30 bg-primary/10 text-primary text-xs font-semibold flex items-center gap-1 shrink-0 transition"
+                            title="Cadastrar novo artigo no catálogo"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            <span>Novo</span>
+                          </button>
+                        </div>
+                      </div>
 
-                    {/* Unidade */}
-                    <input
-                      type="text"
-                      placeholder="un"
-                      value={item.unit || "un"}
-                      onChange={(e) => updateItem(item.id, "unit", e.target.value)}
-                      className="h-10 w-full rounded-lg border border-border bg-background px-1 text-center text-xs uppercase focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                      title="Unidade de medida (ex: un, hora, mês, projeto, kg)"
-                    />
-
-                    {/* Quantidade */}
-                    <input
-                      type="number"
-                      min="0.01"
-                      step="0.01"
-                      placeholder={t("invoice_new.qty")}
-                      value={item.quantity}
-                      onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
-                      className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                    />
-
-                    {!isTransportDoc && (
-                      <>
-                        {/* Preço Unitário */}
+                      {/* Descrição */}
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Descrição Detalhada no Documento
+                        </label>
                         <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder={t("invoice_new.price_mt")}
-                          value={item.unit_price}
-                          onChange={(e) => updateItem(item.id, "unit_price", e.target.value)}
-                          className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          type="text"
+                          placeholder={t("invoice_new.service_desc")}
+                          value={item.description}
+                          onChange={(e) => updateItem(item.id, "description", e.target.value)}
+                          className="h-10 w-full rounded-lg border border-border bg-background px-3 text-xs font-medium focus:border-primary focus:outline-none"
                         />
+                      </div>
 
-                        {/* Desconto */}
-                        <div className="flex gap-1">
+                      {/* Unidade e Quantidade */}
+                      <div className="grid grid-cols-2 gap-2.5">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Unidade (un, h, mês)
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="un"
+                            value={item.unit || "un"}
+                            onChange={(e) => updateItem(item.id, "unit", e.target.value)}
+                            className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-xs uppercase focus:border-primary focus:outline-none"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Quantidade
+                          </label>
                           <input
                             type="number"
-                            min="0"
+                            min="0.01"
                             step="0.01"
-                            placeholder={t("invoice_new.discount")}
-                            value={item.discount_value}
-                            onChange={(e) => updateItem(item.id, "discount_value", e.target.value)}
-                            className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            placeholder={t("invoice_new.qty")}
+                            value={item.quantity}
+                            onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
+                            className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-xs font-medium focus:border-primary focus:outline-none"
                           />
-                          <select
-                            value={item.discount_type}
-                            onChange={(e) => updateItem(item.id, "discount_type", e.target.value as "percentagem" | "valor")}
-                            className="h-10 w-12 shrink-0 rounded-lg border border-border bg-muted/50 px-1 text-center text-xs focus:border-primary focus:outline-none"
-                          >
-                            <option value="percentagem">%</option>
-                            <option value="valor">MT</option>
-                          </select>
                         </div>
-                      </>
-                    )}
+                      </div>
 
-                    {/* Remover Linha */}
-                    <button
-                      type="button"
-                      onClick={() => removeItem(item.id)}
-                      className="h-10 w-10 shrink-0 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center transition-colors"
-                      title="Remover linha"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                      {/* Preço Unitário e Desconto */}
+                      {!isTransportDoc && (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                              Preço Unitário (MT)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder={t("invoice_new.price_mt")}
+                              value={item.unit_price}
+                              onChange={(e) => updateItem(item.id, "unit_price", e.target.value)}
+                              className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-xs font-medium focus:border-primary focus:outline-none"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                              Desconto
+                            </label>
+                            <div className="flex gap-1">
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0"
+                                value={item.discount_value}
+                                onChange={(e) => updateItem(item.id, "discount_value", e.target.value)}
+                                className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-xs focus:border-primary focus:outline-none"
+                              />
+                              <select
+                                value={item.discount_type}
+                                onChange={(e) => updateItem(item.id, "discount_type", e.target.value as "percentagem" | "valor")}
+                                className="h-10 w-12 shrink-0 rounded-lg border border-border bg-muted/50 px-1 text-center text-xs focus:border-primary focus:outline-none"
+                              >
+                                <option value="percentagem">%</option>
+                                <option value="valor">MT</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Subtotal da Linha */}
+                      {!isTransportDoc && (
+                        <div className="pt-2 flex justify-between items-center text-xs border-t border-border/40">
+                          <span className="text-muted-foreground font-medium">Subtotal da linha:</span>
+                          <span className="font-bold text-foreground text-sm">{MT(lineTotal)}</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
 
                 <button
                   type="button"
                   onClick={addItem}
-                  className="flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors mt-2"
+                  className="w-full py-2.5 rounded-xl border border-dashed border-primary/40 bg-primary/5 hover:bg-primary/10 text-primary font-bold text-xs flex items-center justify-center gap-1.5 transition"
                 >
                   <Plus className="h-4 w-4" />
-                  {t("invoice_new.add_item")}
+                  <span>{t("invoice_new.add_item")}</span>
                 </button>
+              </div>
+
+              {/* Desktop View (>= 640px) */}
+              <div className="hidden sm:block p-5 overflow-x-auto w-full">
+                <div className="min-w-[660px] space-y-4 pb-2">
+                  <div className={cn(
+                    "grid gap-2 px-1 pb-2 border-b border-border/50",
+                    isTransportDoc ? "grid-cols-[1fr_65px_80px_40px]" : "grid-cols-[1fr_65px_70px_100px_130px_40px]"
+                  )}>
+                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("invoice_new.item")}</div>
+                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{t("invoice_new.unit")}</div>
+                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{t("invoice_new.qty")}</div>
+                    {!isTransportDoc && (
+                      <>
+                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{t("invoice_new.unit_price")}</div>
+                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-center">{t("invoice_new.discount")}</div>
+                      </>
+                    )}
+                    <div></div>
+                  </div>
+
+                  {items.map((item) => (
+                    <div key={item.id} className={cn(
+                      "grid gap-2 items-center",
+                      isTransportDoc ? "grid-cols-[1fr_65px_80px_40px]" : "grid-cols-[1fr_65px_70px_100px_130px_40px]"
+                    )}>
+                      {/* Artigo / Serviço description & catalog selector */}
+                      <div className="space-y-1.5 w-full min-w-0">
+                        <div className="flex gap-1.5 items-center w-full min-w-0">
+                          <select
+                            value={item.variant_id && item.variant_id !== "custom" ? item.variant_id : ""}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (!val) {
+                                updateItem(item.id, "variant_id", "custom");
+                                return;
+                              }
+                              const matched = catalogItems.find(v => v.id === val);
+                              if (matched) {
+                                setItems(items.map(it => it.id === item.id ? {
+                                  ...it,
+                                  variant_id: matched.id,
+                                  type: matched.products?.type === "servico" ? "servico" : "produto",
+                                  description: matched.products?.name + (matched.products?.description ? ` - ${matched.products.description}` : ""),
+                                  unit: matched.products?.unit_of_measure || "un",
+                                  unit_price: matched.price?.toString() || "0",
+                                  quantity: matched.products?.default_quantity?.toString() || "1",
+                                } : it));
+                              }
+                            }}
+                            className="h-9 flex-1 min-w-0 rounded-lg border border-border bg-muted/40 px-2.5 text-xs text-foreground focus:border-primary focus:outline-none truncate"
+                          >
+                            <option value="">{t("invoice_new.select_product")}</option>
+                            {catalogItems.map(v => (
+                              <option key={v.id} value={v.id}>
+                                [{v.products?.type === "servico" ? "Serviço" : "Produto"}] {v.products?.name} - {MT(v.price)} ({v.products?.unit_of_measure || "un"})
+                              </option>
+                            ))}
+                          </select>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setActiveItemRowId(item.id);
+                              setIsProductModalOpen(true);
+                            }}
+                            className="h-9 px-2.5 rounded-lg border border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-semibold flex items-center gap-1 shrink-0 transition"
+                            title="Cadastrar novo artigo ou serviço no catálogo"
+                          >
+                            <Plus className="h-3.5 w-3.5" />
+                            <span>Novo</span>
+                          </button>
+                        </div>
+
+                        <input
+                          type="text"
+                          placeholder={t("invoice_new.service_desc")}
+                          value={item.description}
+                          onChange={(e) => updateItem(item.id, "description", e.target.value)}
+                          className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-sm font-medium focus:border-primary focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Unidade */}
+                      <input
+                        type="text"
+                        placeholder="un"
+                        value={item.unit || "un"}
+                        onChange={(e) => updateItem(item.id, "unit", e.target.value)}
+                        className="h-10 w-full rounded-lg border border-border bg-background px-1 text-center text-xs uppercase focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                        title="Unidade de medida (ex: un, hora, mês, projeto, kg)"
+                      />
+
+                      {/* Quantidade */}
+                      <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        placeholder={t("invoice_new.qty")}
+                        value={item.quantity}
+                        onChange={(e) => updateItem(item.id, "quantity", e.target.value)}
+                        className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                      />
+
+                      {!isTransportDoc && (
+                        <>
+                          {/* Preço Unitário */}
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder={t("invoice_new.price_mt")}
+                            value={item.unit_price}
+                            onChange={(e) => updateItem(item.id, "unit_price", e.target.value)}
+                            className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          />
+
+                          {/* Desconto */}
+                          <div className="flex gap-1">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              placeholder={t("invoice_new.discount")}
+                              value={item.discount_value}
+                              onChange={(e) => updateItem(item.id, "discount_value", e.target.value)}
+                              className="h-10 w-full rounded-lg border border-border bg-background px-2 text-center text-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                            <select
+                              value={item.discount_type}
+                              onChange={(e) => updateItem(item.id, "discount_type", e.target.value as "percentagem" | "valor")}
+                              className="h-10 w-12 shrink-0 rounded-lg border border-border bg-muted/50 px-1 text-center text-xs focus:border-primary focus:outline-none"
+                            >
+                              <option value="percentagem">%</option>
+                              <option value="valor">MT</option>
+                            </select>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Remover Linha */}
+                      <button
+                        type="button"
+                        onClick={() => removeItem(item.id)}
+                        className="h-10 w-10 shrink-0 rounded-lg border border-border bg-muted/50 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center transition-colors"
+                        title="Remover linha"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={addItem}
+                    className="flex items-center gap-2 text-sm font-bold text-primary hover:text-primary/80 transition-colors mt-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    {t("invoice_new.add_item")}
+                  </button>
                 </div>
               </div>
             </div>
