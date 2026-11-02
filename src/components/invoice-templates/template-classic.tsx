@@ -1,10 +1,10 @@
 import { MT } from "@/lib/format";
-import { DOCUMENT_TYPE_LABELS } from "@/types";
 import { StampGenerator } from "@/components/stamp-generator";
-import { QrCode } from "lucide-react";
+import { getInvoiceTranslations } from "@/lib/invoice-translations";
 import type { TemplateProps } from "./types";
 
 export function TemplateClassic({
+  language = "pt",
   company,
   client,
   documentData,
@@ -16,14 +16,16 @@ export function TemplateClassic({
   ispcRate = 3,
   id = "pdf-content",
 }: TemplateProps) {
+  const tr = getInvoiceTranslations(language);
   const primaryColor = company?.primary_color || "#02664D";
-  const docTypeName = DOCUMENT_TYPE_LABELS[documentData.type] || "Documento";
+  const docTypeName = tr.documentTypes[documentData.type] || documentData.type;
   const showFinancials = documentData.type !== "GR";
+  const shouldShowPaymentInfo = ["FT", "CT", "ND"].includes(documentData.type);
 
   return (
     <div 
       id={id} 
-      className="w-[794px] min-h-[1123px] bg-white relative overflow-hidden text-[13px] text-gray-800 shadow-2xl border border-gray-100" 
+      className="w-[794px] min-h-[1123px] bg-white relative overflow-hidden text-[13px] text-gray-800 shadow-2xl border border-gray-100 flex flex-col justify-between" 
       style={{ fontFamily: "'Times New Roman', Times, serif" }}
     >
       
@@ -37,7 +39,7 @@ export function TemplateClassic({
       </div>
 
       {/* --- MAIN CONTENT WRAPPER --- */}
-      <div className="relative z-10 p-10 flex flex-col min-h-[1123px]">
+      <div className="relative z-10 p-10 flex flex-col flex-1">
         
         {/* Header */}
         <div className="flex justify-between items-start mb-8 z-10 relative px-4 mt-8">
@@ -76,13 +78,19 @@ export function TemplateClassic({
             </h2>
             <div className="bg-gray-50 px-4 py-2 rounded-lg border border-gray-100 mt-2 text-right min-w-[200px]">
               <div className="flex justify-between mb-1 gap-8">
-                <span className="text-gray-500 font-medium">Nº Doc:</span>
-                <span className="font-bold text-gray-900">{documentData.number || "Em proc..."}</span>
+                <span className="text-gray-500 font-medium">{tr.labels.invoiceNumber}</span>
+                <span className="font-bold text-gray-900">{documentData.number || "---"}</span>
               </div>
               <div className="flex justify-between gap-8">
-                <span className="text-gray-500 font-medium">Data:</span>
+                <span className="text-gray-500 font-medium">{tr.labels.date}</span>
                 <span className="font-bold text-gray-900">{documentData.date}</span>
               </div>
+              {documentData.reference_invoice && (
+                <div className="flex justify-between gap-8 mt-1 border-t border-gray-200/50 pt-1 text-xs">
+                  <span className="text-gray-500">{tr.labels.referenceDoc}</span>
+                  <span className="font-semibold text-gray-900">{documentData.reference_invoice}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -91,171 +99,149 @@ export function TemplateClassic({
         <div className="flex justify-between items-stretch mb-8 gap-6">
           {/* Client Box */}
           <div className="flex-1 rounded-xl p-5 border-l-4 bg-gray-50/80" style={{ borderLeftColor: primaryColor }}>
-            <h3 className="font-bold text-gray-400 uppercase tracking-wider text-[10px] mb-2">Faturado A</h3>
-            <p className="font-bold text-base text-gray-900 mb-1">{client?.name || "Nome do Cliente"}</p>
+            <h3 className="font-bold text-gray-400 uppercase tracking-wider text-[10px] mb-2">{tr.labels.invoiceTo}</h3>
+            <p className="font-bold text-base text-gray-900 mb-1">{client?.name || tr.labels.clientName}</p>
             {client?.company_name && <p className="text-gray-700 font-medium text-sm mb-1">{client.company_name}</p>}
-            <p className="text-gray-500 mb-1">{client?.address || "Endereço do Cliente"}</p>
-            <p className="text-gray-700"><strong className="text-gray-500 font-medium">NUIT:</strong> {client?.nuit || "—"}</p>
+            <p className="text-gray-500 mb-1">{client?.address || tr.labels.clientAddress}</p>
+            <p className="text-gray-700"><strong className="text-gray-500 font-medium">{tr.labels.clientNuit}</strong> {client?.nuit || "—"}</p>
           </div>
 
-          {/* Conditional Box */}
-          {["RC", "NC", "ND"].includes(documentData.type) && (
-            <div className="flex-1 rounded-xl p-5 border border-gray-100 bg-white shadow-sm">
-              <h3 className="font-bold text-gray-400 uppercase tracking-wider text-[10px] mb-2">Referência Original</h3>
-              <p className="mb-1"><strong className="text-gray-500 font-medium">Documento:</strong> <span className="font-semibold text-gray-900">{documentData.reference_invoice || "—"}</span></p>
-              {documentData.reference_date && <p className="mb-1"><strong className="text-gray-500 font-medium">Data:</strong> {documentData.reference_date}</p>}
-              {documentData.reason && <p className="mt-2 text-gray-600"><strong className="text-gray-500 font-medium">Motivo:</strong> {documentData.reason}</p>}
-            </div>
-          )}
-
+          {/* Transport Info if GR */}
           {documentData.type === "GR" && (
-            <div className="flex-1 rounded-xl p-5 border border-gray-100 bg-white shadow-sm">
-               <h3 className="font-bold text-gray-400 uppercase tracking-wider text-[10px] mb-2">Detalhes de Transporte</h3>
-               <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                 <p><strong className="text-gray-500 font-medium">Origem:</strong> {documentData.origin || "—"}</p>
-                 <p><strong className="text-gray-500 font-medium">Destino:</strong> {documentData.destination || "—"}</p>
-                 <p><strong className="text-gray-500 font-medium">Motorista:</strong> {documentData.driver || "—"}</p>
-                 <p><strong className="text-gray-500 font-medium">Matrícula:</strong> {documentData.vehicle_plate || "—"}</p>
-               </div>
+            <div className="flex-1 rounded-xl p-5 border border-gray-200 bg-gray-50/50 text-xs space-y-1.5">
+              <h3 className="font-bold text-gray-400 uppercase tracking-wider text-[10px] mb-1">Guia de Transporte</h3>
+              <p><strong>{tr.labels.transportOrigin}</strong> {documentData.origin || "—"}</p>
+              <p><strong>{tr.labels.transportDestination}</strong> {documentData.destination || "—"}</p>
+              <p><strong>{tr.labels.driver}</strong> {documentData.driver || "—"}</p>
+              <p><strong>{tr.labels.vehiclePlate}</strong> {documentData.vehicle_plate || "—"}</p>
             </div>
           )}
         </div>
 
-        {/* Table */}
-        <div className="flex-grow">
-          <div className="rounded-lg overflow-hidden border border-gray-200">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr style={{ backgroundColor: primaryColor }} className="text-white">
-                  <th className="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider w-12 text-center">#</th>
-                  <th className="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider">Descrição do Artigo/Serviço</th>
-                  <th className="py-3 px-3 font-semibold text-[11px] uppercase tracking-wider text-center w-16">Un.</th>
-                  <th className="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider text-center w-20">Qtd.</th>
-                  {showFinancials && (
-                    <>
-                      <th className="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider text-right w-28">P. Unit.</th>
-                      <th className="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider text-right w-24">Desc.</th>
-                      <th className="py-3 px-4 font-semibold text-[11px] uppercase tracking-wider text-right w-32">Total</th>
-                    </>
-                  )}
-                </tr>
-              </thead>
-              <tbody className="bg-white">
-                {items.length === 0 && (
-                   <tr>
-                     <td colSpan={showFinancials ? 7 : 4} className="py-8 text-center text-gray-400 italic">
-                        Sem itens
-                     </td>
-                   </tr>
+        {/* Items Table */}
+        <div className="mb-8 flex-1">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="border-b-2 text-left text-xs uppercase tracking-wider text-gray-600 font-bold" style={{ borderColor: primaryColor }}>
+                <th className="py-3 px-3 w-12 text-center">{tr.labels.itemNumber}</th>
+                <th className="py-3 px-3">{tr.labels.description}</th>
+                <th className="py-3 px-3 text-center w-16">{tr.labels.unit}</th>
+                <th className="py-3 px-3 text-center w-16">{tr.labels.quantity}</th>
+                {showFinancials && (
+                  <>
+                    <th className="py-3 px-3 text-right w-28">{tr.labels.unitPrice}</th>
+                    <th className="py-3 px-3 text-center w-20">{tr.labels.discount}</th>
+                    <th className="py-3 px-3 text-right w-32">{tr.labels.total}</th>
+                  </>
                 )}
-                {items.map((item, index) => {
-                  const qty = parseFloat(item.quantity) || 0;
-                  const price = parseFloat(item.unit_price) || 0;
-                  const lineGross = qty * price;
-                  const discountVal = parseFloat(item.discount_value) || 0;
-                  const lineDiscount = item.discount_type === "percentagem" ? lineGross * (discountVal / 100) : discountVal;
-                  const lineTotal = lineGross - lineDiscount;
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {items.map((it, idx) => {
+                const qty = Number(it.quantity) || 0;
+                const price = Number(it.unit_price) || 0;
+                const discVal = Number(it.discount_value) || 0;
+                let sub = qty * price;
+                if (it.discount_type === "percentagem") {
+                  sub -= sub * (discVal / 100);
+                } else {
+                  sub -= discVal;
+                }
 
-                  return (
-                    <tr key={item.id || index} className={`border-b border-gray-100 ${index % 2 !== 0 ? 'bg-gray-50/50' : ''}`}>
-                      <td className="py-3 px-4 text-center text-gray-500">{index + 1}</td>
-                      <td className="py-3 px-4 font-medium text-gray-800">{item.description || <span className="text-gray-300 italic">Item sem descrição...</span>}</td>
-                      <td className="py-3 px-3 text-center text-xs text-gray-500 uppercase">{item.unit || "un"}</td>
-                      <td className="py-3 px-4 text-center">{qty}</td>
-                      {showFinancials && (
-                        <>
-                          <td className="py-3 px-4 text-right text-gray-600">{MT(price)}</td>
-                          <td className="py-3 px-4 text-right text-gray-500">{lineDiscount > 0 ? `-${MT(lineDiscount)}` : "—"}</td>
-                          <td className="py-3 px-4 text-right font-semibold text-gray-900">{MT(lineTotal)}</td>
-                        </>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Financials & Observations */}
-          <div className="flex flex-col md:flex-row justify-between items-start mt-6 gap-8">
-            {/* Observations & Bank */}
-            <div className="flex-1 space-y-3 w-full">
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 min-h-[90px]">
-                <h3 className="font-bold text-gray-400 uppercase tracking-wider text-[10px] mb-2">Observações / Termos</h3>
-                <p className="text-gray-600 text-xs whitespace-pre-wrap leading-relaxed">
-                  {documentData.observations || "Obrigado pela sua preferência."}
-                </p>
-              </div>
-
-              {(company?.bank_name || company?.bank_account || company?.bank_iban) && (
-                <div className="bg-gray-50/60 rounded-lg p-3 border border-gray-100 text-xs text-gray-600">
-                  <span className="font-bold text-gray-700 block mb-1 uppercase text-[10px] tracking-wider">Dados Bancários:</span>
-                  {company.bank_name && <span>Banco: <strong>{company.bank_name}</strong> </span>}
-                  {company.bank_account && <span>| Conta: <strong>{company.bank_account}</strong> </span>}
-                  {company.bank_iban && <span>| NIB/IBAN: <strong>{company.bank_iban}</strong></span>}
-                </div>
-              )}
-            </div>
-
-            {/* Totals */}
-            {showFinancials && (
-              <div className="w-full md:w-[320px] shrink-0">
-                <div className="space-y-3 p-4">
-                  <div className="flex justify-between text-gray-600">
-                    <span>Subtotal</span>
-                    <span className="font-semibold text-gray-900">{MT(calculations.subtotal)}</span>
-                  </div>
-                  {calculations.totalDiscount > 0 && (
-                    <div className="flex justify-between text-red-500">
-                      <span>Desconto Total</span>
-                      <span className="font-semibold">-{MT(calculations.totalDiscount)}</span>
-                    </div>
-                  )}
-                  {hasIva && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>IVA ({ivaRate}%)</span>
-                      <span className="font-semibold text-gray-900">{MT(calculations.totalIva)}</span>
-                    </div>
-                  )}
-                  {hasIspc && (
-                    <div className="flex justify-between text-gray-600">
-                      <span>ISPC ({ispcRate}%)</span>
-                      <span className="font-semibold text-gray-900">{MT(calculations.totalIspc || 0)}</span>
-                    </div>
-                  )}
-                  <div className="border-t border-gray-200 pt-3 flex justify-between items-center text-base">
-                    <span className="font-bold text-gray-900">Total a Pagar:</span>
-                    <span className="font-black text-xl" style={{ color: primaryColor }}>{MT(calculations.total)}</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+                return (
+                  <tr key={idx} className={idx % 2 === 1 ? "bg-gray-50/40" : ""}>
+                    <td className="py-3 px-3 text-center text-gray-400 text-xs font-medium">{idx + 1}</td>
+                    <td className="py-3 px-3">
+                      <p className="font-semibold text-gray-800">{it.description || "Item sem descrição"}</p>
+                    </td>
+                    <td className="py-3 px-3 text-center text-gray-500 uppercase text-xs">{it.unit || "UN"}</td>
+                    <td className="py-3 px-3 text-center font-bold text-gray-700">{it.quantity}</td>
+                    {showFinancials && (
+                      <>
+                        <td className="py-3 px-3 text-right font-mono text-gray-600">{MT(price)}</td>
+                        <td className="py-3 px-3 text-center text-gray-400 text-xs">
+                          {discVal > 0 ? (it.discount_type === "percentagem" ? `${discVal}%` : MT(discVal)) : "—"}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-gray-900">{MT(sub)}</td>
+                      </>
+                    )}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
-        {/* Payment Coordinates Block */}
-        {(company?.bank_name || company?.bank_account || company?.mpesa_number || company?.emola_number) && (
-          <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs text-gray-700">
-            <span className="font-bold uppercase tracking-wider text-[10px] text-gray-900 block mb-1">
-              Coordenadas de Pagamento:
+        {/* Financial Summary & Observations */}
+        <div className="flex justify-between items-start mb-6 gap-8">
+          {/* Notes */}
+          <div className="flex-1 space-y-4">
+            <div className="bg-gray-50/60 rounded-xl p-4 border border-gray-100">
+              <h4 className="font-bold text-gray-700 text-xs mb-1 uppercase tracking-wider">{tr.labels.termsAndConditions}:</h4>
+              <p className="text-gray-600 text-xs whitespace-pre-wrap leading-relaxed">
+                {documentData.observations || tr.labels.defaultTerms}
+              </p>
+            </div>
+          </div>
+
+          {/* Totals */}
+          {showFinancials && (
+            <div className="w-full md:w-[320px] shrink-0">
+              <div className="space-y-3 p-4">
+                <div className="flex justify-between text-gray-600">
+                  <span>{tr.labels.subtotal}</span>
+                  <span className="font-semibold text-gray-900">{MT(calculations.subtotal)}</span>
+                </div>
+                {calculations.totalDiscount > 0 && (
+                  <div className="flex justify-between text-red-500">
+                    <span>{tr.labels.totalDiscount}</span>
+                    <span className="font-semibold">-{MT(calculations.totalDiscount)}</span>
+                  </div>
+                )}
+                {hasIva && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>{tr.labels.vat} ({ivaRate}%)</span>
+                    <span className="font-semibold text-gray-900">{MT(calculations.totalIva)}</span>
+                  </div>
+                )}
+                {hasIspc && (
+                  <div className="flex justify-between text-gray-600">
+                    <span>{tr.labels.ispc} ({ispcRate}%)</span>
+                    <span className="font-semibold text-gray-900">{MT(calculations.totalIspc || 0)}</span>
+                  </div>
+                )}
+                <div className="border-t border-gray-200 pt-3 flex justify-between items-center text-base">
+                  <span className="font-bold text-gray-900">{tr.labels.totalToPay}:</span>
+                  <span className="font-black text-xl" style={{ color: primaryColor }}>{MT(calculations.total)}</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Payment Coordinates Block - ONLY for FT, CT, ND */}
+        {shouldShowPaymentInfo && (company?.bank_name || company?.bank_account || company?.mpesa_number || company?.emola_number) && (
+          <div className="mt-2 p-3.5 bg-gray-50/90 rounded-xl border border-gray-200 text-xs text-gray-700">
+            <span className="font-bold uppercase tracking-wider text-[10px] text-gray-900 block mb-1.5">
+              {tr.labels.paymentInfo}:
             </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
               {company?.bank_name && (
-                <div>
-                  <strong>Banco:</strong> {company.bank_name}
-                  {company?.bank_account && <span> | Conta: <strong>{company.bank_account}</strong></span>}
-                  {company?.bank_iban && <div>NIB/IBAN: <strong>{company.bank_iban}</strong></div>}
+                <div className="space-y-0.5">
+                  <div><strong>{tr.labels.bank}</strong> {company.bank_name}</div>
+                  {company?.bank_account && <div><strong>{tr.labels.accountNumber}</strong> {company.bank_account}</div>}
+                  {company?.bank_iban && <div><strong>{tr.labels.nibIban}</strong> {company.bank_iban}</div>}
                 </div>
               )}
-              <div className="space-y-0.5">
+              <div className="space-y-1">
                 {company?.mpesa_number && (
                   <div>
-                    <span className="font-bold text-red-600">M-Pesa:</span> <strong>{company.mpesa_number}</strong>
+                    <span className="font-bold text-red-600">{tr.labels.mpesa}</span> <strong>{company.mpesa_number}</strong>
                   </div>
                 )}
                 {company?.emola_number && (
                   <div>
-                    <span className="font-bold text-orange-600">e-Mola:</span> <strong>{company.emola_number}</strong>
+                    <span className="font-bold text-orange-600">{tr.labels.emola}</span> <strong>{company.emola_number}</strong>
                   </div>
                 )}
               </div>
@@ -266,22 +252,21 @@ export function TemplateClassic({
         {/* Footer Area with Stamp and Signature */}
         <div className="mt-6 pt-5 border-t border-gray-100 flex justify-between items-end">
           <div className="text-[11px] text-gray-400 space-y-0.5 max-w-xs">
-            <p className="font-semibold text-gray-500">Processado por programa certificado nº 01/AT/2026</p>
+            <p className="font-semibold text-gray-500">{tr.labels.softwareCertification}</p>
             <p>FatureAqui — Sistema Comercial & Faturação</p>
-            <p className="font-mono text-[9px] text-gray-400 mt-1">HASH: {Math.random().toString(36).substring(2, 10).toUpperCase()}-M1</p>
           </div>
 
           <div className="flex items-end gap-6">
-            <StampGenerator company={company} className="h-28 w-28" />
+            <StampGenerator company={company} className="w-20 h-20" />
             <div className="text-center w-44">
               <div className="border-b border-gray-400 pb-1 mb-1 min-h-[30px] flex items-end justify-center">
                 {company?.signature_url ? (
                   <img src={company.signature_url} alt="Assinatura" className="h-10 object-contain" />
                 ) : (
-                  <span className="text-[11px] text-gray-300 italic">Assinatura autorizada</span>
+                  <span className="text-[11px] text-gray-300 italic">{tr.labels.authorisedSignature}</span>
                 )}
               </div>
-              <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Assinatura Autorizada</p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{tr.labels.authorisedSignature}</p>
             </div>
           </div>
         </div>

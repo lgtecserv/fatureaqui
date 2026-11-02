@@ -1,10 +1,11 @@
 import { MT } from "@/lib/format";
-import { DOCUMENT_TYPE_LABELS } from "@/types";
 import { StampGenerator } from "@/components/stamp-generator";
-import { Phone, MapPin, Mail, QrCode } from "lucide-react";
+import { getInvoiceTranslations } from "@/lib/invoice-translations";
+import { Phone, MapPin, Mail } from "lucide-react";
 import type { TemplateProps } from "./types";
 
 export function TemplateModern({
+  language = "pt",
   company,
   client,
   documentData,
@@ -16,9 +17,11 @@ export function TemplateModern({
   ispcRate = 3,
   id = "pdf-content",
 }: TemplateProps) {
+  const tr = getInvoiceTranslations(language);
   const primaryColor = company?.primary_color || "#2A2E35";
-  const docTypeName = DOCUMENT_TYPE_LABELS[documentData.type] || "INVOICE";
+  const docTypeName = tr.documentTypes[documentData.type] || documentData.type;
   const showFinancials = documentData.type !== "GR";
+  const shouldShowPaymentInfo = ["FT", "CT", "ND"].includes(documentData.type);
 
   return (
     <div 
@@ -27,9 +30,8 @@ export function TemplateModern({
       style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" }}
     >
       <div className="p-12 flex-1 flex flex-col">
-        {/* --- HEADER (Square Brand Tag on Left, Bold Clean Title on Right) --- */}
+        {/* --- HEADER --- */}
         <div className="flex justify-between items-start mb-10">
-          {/* Brand Tag Container */}
           <div className="flex items-center gap-3">
             {company?.logo_url ? (
               <img 
@@ -45,87 +47,91 @@ export function TemplateModern({
                   style={{ backgroundColor: primaryColor }}
                 >
                   <span className="font-black text-xl leading-none">{company?.name?.charAt(0) || "K"}</span>
-                  <span className="text-[8px] uppercase tracking-tighter opacity-80 mt-1">Corporate</span>
+                  <span className="text-[8px] uppercase tracking-tighter opacity-80 mt-1">EMPRESA</span>
                 </div>
                 <div>
-                  <h2 className="font-extrabold text-base text-gray-900 tracking-tight">{company?.name || "Corporate Lda"}</h2>
+                  <h2 className="font-extrabold text-base text-gray-900 tracking-tight">{company?.name || "Empresa, Lda"}</h2>
                   <p className="text-[10px] text-gray-400 font-medium">NUIT: {company?.nuit || "000000000"}</p>
                 </div>
               </div>
             )}
           </div>
 
-          {/* INVOICE Title */}
           <h1 className="text-3xl font-black uppercase tracking-[0.25em] text-gray-900">
             {docTypeName}
           </h1>
         </div>
 
-        {/* --- 2-COLUMN METADATA BLOCK --- */}
-        <div className="grid grid-cols-2 gap-10 mb-8 border-b border-gray-100 pb-8 text-xs">
+        {/* --- INVOICE META & CLIENT ADDRESS (2-COLUMN MODERN BAR) --- */}
+        <div className="grid grid-cols-2 gap-8 mb-10 pb-6 border-b border-gray-200">
           {/* Invoice To */}
           <div>
-            <span className="font-bold text-[10px] uppercase tracking-wider text-gray-400 block mb-2">INVOICE TO</span>
-            <p className="font-black text-base text-gray-900 mb-1">{client?.name || "Consumidor Final"}</p>
-            {client?.company_name && <p className="text-gray-600 font-medium mb-1">{client.company_name}</p>}
-            <p className="text-gray-500 mb-2">{client?.address || "Endereço não informado"}</p>
-            
-            <div className="space-y-0.5 text-[11px] text-gray-500">
-              <p>NUIT: <strong className="text-gray-800">{client?.nuit || "—"}</strong></p>
-              {client?.phone && <p>Phone: <strong className="text-gray-800">{client.phone}</strong></p>}
-              {client?.email && <p>E-mail: <strong className="text-gray-800">{client.email}</strong></p>}
+            <span className="text-[10px] font-bold tracking-widest uppercase text-gray-400 block mb-2">
+              {tr.labels.invoiceTo}
+            </span>
+            <h3 className="font-extrabold text-base text-gray-900 mb-1">{client?.name || tr.labels.clientName}</h3>
+            {client?.company_name && <p className="text-gray-600 font-medium">{client.company_name}</p>}
+            <p className="text-gray-500 text-xs mt-1">{client?.address || tr.labels.clientAddress}</p>
+            <div className="flex items-center gap-4 text-xs text-gray-500 mt-2">
+              {client?.nuit && <span><strong>{tr.labels.clientNuit}</strong> {client.nuit}</span>}
+              {client?.phone && <span><strong>{tr.labels.clientPhone}</strong> {client.phone}</span>}
             </div>
           </div>
 
-          {/* Invoice Numbers & Details */}
-          <div className="space-y-1.5 text-right flex flex-col justify-between">
-            <div className="space-y-1">
+          {/* Invoice Summary Data */}
+          <div className="text-right space-y-2">
+            <div className="space-y-1 text-xs">
               <div className="flex justify-between">
-                <span className="text-gray-400 font-medium">Invoice No</span>
-                <span className="font-bold text-gray-900">:{documentData.number || "0000"}</span>
+                <span className="text-gray-400 font-medium">{tr.labels.invoiceNumber}</span>
+                <span className="font-bold text-gray-900">{documentData.number || "0000"}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-400 font-medium">Invoice Date</span>
-                <span className="font-semibold text-gray-900">:{documentData.date}</span>
+                <span className="text-gray-400 font-medium">{tr.labels.date}</span>
+                <span className="font-medium text-gray-900">{documentData.date}</span>
               </div>
               {documentData.reference_invoice && (
                 <div className="flex justify-between">
-                  <span className="text-gray-400 font-medium">Ref. Doc</span>
-                  <span className="text-gray-900">:{documentData.reference_invoice}</span>
+                  <span className="text-gray-400 font-medium">{tr.labels.referenceDoc}</span>
+                  <span className="text-gray-900 font-semibold">{documentData.reference_invoice}</span>
                 </div>
               )}
             </div>
 
-            <div className="border-t border-gray-100 pt-2 space-y-1 text-[11px]">
-              <div className="flex justify-between">
-                <span className="text-gray-400">Payment Method</span>
-                <span className="font-medium text-gray-800">{company?.bank_name || "Transferência / Depósito"}</span>
+            {/* Payment Method - Only for FT, CT, ND */}
+            {shouldShowPaymentInfo && (company?.bank_name || company?.bank_account || company?.mpesa_number || company?.emola_number) && (
+              <div className="border-t border-gray-100 pt-2 space-y-1 text-[11px]">
+                {company?.bank_name && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">{tr.labels.bank}</span>
+                    <span className="font-medium text-gray-800">{company.bank_name}</span>
+                  </div>
+                )}
+                {company?.bank_account && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">{tr.labels.accountNumber}</span>
+                    <span className="font-semibold text-gray-900">{company.bank_account}</span>
+                  </div>
+                )}
+                {company?.bank_iban && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">{tr.labels.nibIban}</span>
+                    <span className="font-semibold text-gray-900">{company.bank_iban}</span>
+                  </div>
+                )}
+                {company?.mpesa_number && (
+                  <div className="flex justify-between">
+                    <span className="text-red-600 font-bold">{tr.labels.mpesa}</span>
+                    <span className="font-bold text-gray-900">{company.mpesa_number}</span>
+                  </div>
+                )}
+                {company?.emola_number && (
+                  <div className="flex justify-between">
+                    <span className="text-orange-600 font-bold">{tr.labels.emola}</span>
+                    <span className="font-bold text-gray-900">{company.emola_number}</span>
+                  </div>
+                )}
               </div>
-              {company?.bank_account && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400">Account ID</span>
-                  <span className="font-semibold text-gray-900">{company.bank_account}</span>
-                </div>
-              )}
-              {company?.bank_iban && (
-                <div className="flex justify-between">
-                  <span className="text-gray-400">IBAN / NIB</span>
-                  <span className="font-semibold text-gray-900">{company.bank_iban}</span>
-                </div>
-              )}
-              {company?.mpesa_number && (
-                <div className="flex justify-between">
-                  <span className="text-red-600 font-bold">M-Pesa</span>
-                  <span className="font-bold text-gray-900">{company.mpesa_number}</span>
-                </div>
-              )}
-              {company?.emola_number && (
-                <div className="flex justify-between">
-                  <span className="text-orange-600 font-bold">e-Mola</span>
-                  <span className="font-bold text-gray-900">{company.emola_number}</span>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
 
@@ -137,17 +143,15 @@ export function TemplateModern({
                 className="text-white text-[10px] uppercase font-bold tracking-widest"
                 style={{ backgroundColor: primaryColor }}
               >
-                <th className="py-3 px-3 w-12 text-center">#</th>
-                <th className="py-3 px-3">DESCRIPTION</th>
-                <th className="py-3 px-2 text-center w-16">UN.</th>
-                {showFinancials && (
-                  <th className="py-3 px-3 text-right w-28">PRICE</th>
-                )}
-                <th className="py-3 px-3 text-center w-20">QUANTITY</th>
+                <th className="py-3 px-3 w-12 text-center">{tr.labels.itemNumber}</th>
+                <th className="py-3 px-3">{tr.labels.description}</th>
+                <th className="py-3 px-2 text-center w-16">{tr.labels.unit}</th>
+                <th className="py-3 px-3 text-center w-20">{tr.labels.quantity}</th>
                 {showFinancials && (
                   <>
-                    <th className="py-3 px-3 text-right w-24">DESC.</th>
-                    <th className="py-3 px-3 text-right w-32">AMOUNT</th>
+                    <th className="py-3 px-3 text-right w-24">{tr.labels.unitPrice}</th>
+                    <th className="py-3 px-3 text-right w-20">{tr.labels.discount}</th>
+                    <th className="py-3 px-3 text-right w-28">{tr.labels.total}</th>
                   </>
                 )}
               </tr>
@@ -156,7 +160,7 @@ export function TemplateModern({
               {items.length === 0 && (
                 <tr>
                   <td colSpan={showFinancials ? 7 : 4} className="py-8 text-center text-gray-400 italic">
-                    Sem itens para apresentar
+                    {tr.labels.noItems}
                   </td>
                 </tr>
               )}
@@ -178,14 +182,14 @@ export function TemplateModern({
                       {item.description || <span className="text-gray-300 italic">Sem descrição...</span>}
                     </td>
                     <td className="py-3 px-2 text-center uppercase text-gray-500 font-medium">{item.unit || "un"}</td>
-                    {showFinancials && (
-                      <td className="py-3 px-3 text-right text-gray-600">{MT(price)}</td>
-                    )}
-                    <td className="py-3 px-3 text-center font-bold text-gray-900">{qty}</td>
+                    <td className="py-3 px-3 text-center font-bold text-gray-800">{item.quantity}</td>
                     {showFinancials && (
                       <>
-                        <td className="py-3 px-3 text-right text-gray-500">{lineDiscount > 0 ? `-${MT(lineDiscount)}` : "—"}</td>
-                        <td className="py-3 px-3 text-right font-black text-gray-900">{MT(lineTotal)}</td>
+                        <td className="py-3 px-3 text-right font-mono text-gray-600">{MT(price)}</td>
+                        <td className="py-3 px-3 text-right text-gray-400">
+                          {discountVal > 0 ? (item.discount_type === "percentagem" ? `${discountVal}%` : MT(discountVal)) : "—"}
+                        </td>
+                        <td className="py-3 px-3 text-right font-mono font-bold text-gray-900">{MT(lineTotal)}</td>
                       </>
                     )}
                   </tr>
@@ -194,18 +198,28 @@ export function TemplateModern({
             </tbody>
           </table>
 
-          {/* --- TOTAL DUE & SUMMARY BREAKDOWN --- */}
-          <div className="flex justify-between items-start mt-8 gap-8">
-            {/* Left Column: Prominent Total Due Display */}
+          {/* Transport Info if GR */}
+          {documentData.type === "GR" && (
+            <div className="mt-6 p-4 rounded-lg bg-gray-50 border border-gray-200 text-xs grid grid-cols-2 gap-4">
+              <p><strong>{tr.labels.transportOrigin}</strong> {documentData.origin || "—"}</p>
+              <p><strong>{tr.labels.transportDestination}</strong> {documentData.destination || "—"}</p>
+              <p><strong>{tr.labels.driver}</strong> {documentData.driver || "—"}</p>
+              <p><strong>{tr.labels.vehiclePlate}</strong> {documentData.vehicle_plate || "—"}</p>
+            </div>
+          )}
+
+          {/* --- TOTAL DUE STRIP & BREAKDOWN --- */}
+          <div className="flex justify-between items-start mt-8 pt-4">
+            {/* Left Column: Bold Total Due Highlight */}
             {showFinancials && (
               <div className="w-64 pt-2">
-                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Total Due</span>
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block mb-1">{tr.labels.totalToPay}</span>
                 <p className="text-2xl font-black text-gray-900 tracking-tight mb-2">
                   {MT(calculations.total)}
                 </p>
                 <div className="w-48 h-0.5 bg-gray-900 mb-2" />
                 <p className="text-[10px] text-gray-400 italic">
-                  Documento processado por computador com validade legal.
+                  {tr.labels.softwareCertification}
                 </p>
               </div>
             )}
@@ -214,24 +228,24 @@ export function TemplateModern({
             {showFinancials && (
               <div className="w-64 text-xs space-y-2">
                 <div className="flex justify-between py-1 text-gray-500 font-medium">
-                  <span>Sub Total</span>
+                  <span>{tr.labels.subtotal}</span>
                   <span className="font-bold text-gray-800">{MT(calculations.subtotal)}</span>
                 </div>
                 {calculations.totalDiscount > 0 && (
                   <div className="flex justify-between py-1 text-red-500 font-medium">
-                    <span>Desconto</span>
+                    <span>{tr.labels.totalDiscount}</span>
                     <span>-{MT(calculations.totalDiscount)}</span>
                   </div>
                 )}
                 {hasIva && (
                   <div className="flex justify-between py-1 text-gray-500 font-medium">
-                    <span>Tax ({ivaRate}%)</span>
+                    <span>{tr.labels.vat} ({ivaRate}%)</span>
                     <span className="font-bold text-gray-800">{MT(calculations.totalIva)}</span>
                   </div>
                 )}
                 {hasIspc && (
                   <div className="flex justify-between py-1 text-gray-500 font-medium">
-                    <span>ISPC ({ispcRate}%)</span>
+                    <span>{tr.labels.ispc} ({ispcRate}%)</span>
                     <span className="font-bold text-gray-800">{MT(calculations.totalIspc)}</span>
                   </div>
                 )}
@@ -240,7 +254,7 @@ export function TemplateModern({
                   className="flex justify-between py-2.5 px-4 rounded text-white font-black text-sm tracking-wide shadow-sm"
                   style={{ backgroundColor: primaryColor }}
                 >
-                  <span className="uppercase tracking-widest text-xs">TOTAL</span>
+                  <span className="uppercase tracking-widest text-xs">{tr.labels.total}</span>
                   <span>{MT(calculations.total)}</span>
                 </div>
               </div>
@@ -250,12 +264,12 @@ export function TemplateModern({
           {/* Terms & Signature Section */}
           <div className="flex justify-between items-end mt-10 pt-6 border-t border-gray-100">
             <div className="max-w-sm space-y-1">
-              <span className="font-bold text-xs uppercase tracking-wider text-gray-900 block">Terms & Conditions</span>
+              <span className="font-bold text-xs uppercase tracking-wider text-gray-900 block">{tr.labels.termsAndConditions}</span>
               <p className="text-[11px] text-gray-500 leading-relaxed">
-                {documentData.observations || "O pagamento deverá ser efetuado de acordo com as condições combinadas. Agradecemos a confiança depositada."}
+                {documentData.observations || tr.labels.defaultTerms}
               </p>
               <div className="pt-2">
-                <StampGenerator company={company} className="h-28 w-28" />
+                <StampGenerator company={company} className="w-20 h-20" />
               </div>
             </div>
 
@@ -264,11 +278,11 @@ export function TemplateModern({
                 {company?.signature_url ? (
                   <img src={company.signature_url} alt="Assinatura" className="h-10 object-contain" />
                 ) : (
-                  <span className="text-[11px] text-gray-300 italic font-serif">Kazuma J.</span>
+                  <span className="text-[11px] text-gray-300 italic">{tr.labels.authorisedSignature}</span>
                 )}
               </div>
               <p className="font-bold text-xs text-gray-900">{company?.name || "Responsável"}</p>
-              <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Diretor Comercial</p>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">{tr.labels.authorisedSignature}</p>
             </div>
           </div>
         </div>
@@ -283,7 +297,6 @@ export function TemplateModern({
             </div>
             <div>
               <p className="font-semibold text-gray-800">{company?.phone || "+258 84 000 0000"}</p>
-              <p className="text-[9px] text-gray-400">Atendimento Geral</p>
             </div>
           </div>
 
@@ -293,7 +306,6 @@ export function TemplateModern({
             </div>
             <div>
               <p className="font-semibold text-gray-800 truncate">{company?.address || "Maputo, Moçambique"}</p>
-              <p className="text-[9px] text-gray-400">Escritório Central</p>
             </div>
           </div>
 
@@ -303,7 +315,6 @@ export function TemplateModern({
             </div>
             <div>
               <p className="font-semibold text-gray-800 truncate">{company?.email || "info@empresa.com"}</p>
-              <p className="text-[9px] text-gray-400">{company?.website || "Website Oficial"}</p>
             </div>
           </div>
         </div>

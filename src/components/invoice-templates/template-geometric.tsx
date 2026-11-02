@@ -1,10 +1,11 @@
 import { MT } from "@/lib/format";
-import { DOCUMENT_TYPE_LABELS } from "@/types";
 import { StampGenerator } from "@/components/stamp-generator";
-import { QrCode, Phone, MapPin, Mail, Globe } from "lucide-react";
+import { getInvoiceTranslations } from "@/lib/invoice-translations";
+import { Phone, MapPin, Mail, Globe } from "lucide-react";
 import type { TemplateProps } from "./types";
 
 export function TemplateGeometric({
+  language = "pt",
   company,
   client,
   documentData,
@@ -16,10 +17,12 @@ export function TemplateGeometric({
   ispcRate = 3,
   id = "pdf-content",
 }: TemplateProps) {
-  const primaryColor = company?.primary_color || "#F59E0B"; // Yellow/amber or company color
-  const darkNavy = "#1E2238"; // Deep complementary navy from Image 3
-  const docTypeName = DOCUMENT_TYPE_LABELS[documentData.type] || "INVOICE";
+  const tr = getInvoiceTranslations(language);
+  const primaryColor = company?.primary_color || "#F59E0B"; // Yellow/amber default
+  const darkNavy = "#1E2238"; // Complementary navy accent
+  const docTypeName = tr.documentTypes[documentData.type] || documentData.type;
   const showFinancials = documentData.type !== "GR";
+  const shouldShowPaymentInfo = ["FT", "CT", "ND"].includes(documentData.type);
 
   return (
     <div 
@@ -27,12 +30,10 @@ export function TemplateGeometric({
       className="w-[794px] min-h-[1123px] bg-white relative overflow-hidden text-[12px] text-gray-800 shadow-2xl border border-gray-100 flex flex-col justify-between" 
       style={{ fontFamily: "Arial, sans-serif" }}
     >
-      {/* --- TOP-RIGHT ANGULAR DIAGONAL BANNER (Exact Image 3 Style) --- */}
+      {/* --- TOP-RIGHT ANGULAR DIAGONAL BANNER --- */}
       <div className="absolute top-0 right-0 w-[420px] h-28 pointer-events-none z-0">
         <svg viewBox="0 0 420 120" className="w-full h-full" preserveAspectRatio="none">
-          {/* Main Diagonal Primary Color Block */}
           <polygon points="50,0 420,0 420,100 20,100" fill={primaryColor} />
-          {/* Dark Accent Triangle Wedge */}
           <polygon points="0,0 60,0 30,100 0,100" fill={darkNavy} />
         </svg>
 
@@ -41,7 +42,7 @@ export function TemplateGeometric({
           <p className="flex items-center justify-end gap-1.5"><MapPin className="h-3 w-3" /> {company?.address || "Endereço da Empresa"}</p>
           <p className="flex items-center justify-end gap-1.5"><Mail className="h-3 w-3" /> {company?.email || "contacto@empresa.com"}</p>
           <p className="flex items-center justify-end gap-1.5"><Phone className="h-3 w-3" /> {company?.phone || "+258 000 000 000"}</p>
-          <p className="flex items-center justify-end gap-1.5"><Globe className="h-3 w-3" /> {company?.website || "NUIT: " + (company?.nuit || "000000000")}</p>
+          <p className="flex items-center justify-end gap-1.5"><Globe className="h-3 w-3" /> {company?.website || (tr.labels.clientNuit + " " + (company?.nuit || "000000000"))}</p>
         </div>
       </div>
 
@@ -64,14 +65,14 @@ export function TemplateGeometric({
                 {company?.name?.charAt(0) || "G"}
               </div>
               <div>
-                <span className="font-black text-lg tracking-wider text-gray-900 uppercase block">{company?.name || "LOGO HERE"}</span>
-                <span className="text-[10px] text-gray-400 font-semibold tracking-widest uppercase">EMPRESA COMERCIAL</span>
+                <span className="font-black text-lg tracking-wider text-gray-900 uppercase block">{company?.name || "EMPRESA"}</span>
+                <span className="text-[10px] text-gray-400 font-semibold tracking-widest uppercase">COMÉRCIO & SERVIÇOS</span>
               </div>
             </div>
           )}
         </div>
 
-        {/* --- INVOICE TITLE (Centered / Right-aligned) --- */}
+        {/* --- INVOICE TITLE --- */}
         <div className="text-right mb-8">
           <h1 className="text-2xl font-black uppercase tracking-widest text-gray-900">
             {docTypeName}
@@ -80,196 +81,199 @@ export function TemplateGeometric({
 
         {/* --- TWO-COLUMN DETAILS GRID --- */}
         <div className="grid grid-cols-2 gap-10 mb-8 text-xs">
-          {/* Invoice Details */}
+          {/* Document Details */}
           <div>
-            <h3 className="font-black text-xs uppercase tracking-wider text-gray-900 mb-2">INVOICE DETAILS</h3>
+            <h3 className="font-black text-xs uppercase tracking-wider text-gray-900 mb-2">
+              {tr.labels.invoiceNumber.replace(":", "")}
+            </h3>
             <div className="space-y-1.5 text-gray-700">
-              <p className="border-b border-gray-200 pb-1">INVOICE NUMBER : <strong className="text-gray-900">{documentData.number || "0000"}</strong></p>
-              <p className="border-b border-gray-200 pb-1">INVOICE DATE : <strong className="text-gray-900">{documentData.date}</strong></p>
+              <p className="border-b border-gray-200 pb-1">
+                {tr.labels.invoiceNumber} <strong className="text-gray-900">{documentData.number || "0000"}</strong>
+              </p>
+              <p className="border-b border-gray-200 pb-1">
+                {tr.labels.date} <strong className="text-gray-900">{documentData.date}</strong>
+              </p>
               {documentData.reference_invoice && (
-                <p className="border-b border-gray-200 pb-1">REF. DOCUMENTO : <strong className="text-gray-900">{documentData.reference_invoice}</strong></p>
+                <p className="border-b border-gray-200 pb-1">
+                  {tr.labels.referenceDoc} <strong className="text-gray-900">{documentData.reference_invoice}</strong>
+                </p>
               )}
             </div>
           </div>
 
-          {/* Invoice To */}
+          {/* Client Details */}
           <div>
-            <h3 className="font-black text-xs uppercase tracking-wider text-gray-900 mb-2">INVOICE TO</h3>
+            <h3 className="font-black text-xs uppercase tracking-wider text-gray-900 mb-2">
+              {tr.labels.invoiceTo}
+            </h3>
             <div className="space-y-1.5 text-gray-700">
-              <p className="border-b border-gray-200 pb-1">NAME : <strong className="text-gray-900">{client?.name || "Consumidor Final"}</strong></p>
-              <p className="border-b border-gray-200 pb-1">PHONE : <strong className="text-gray-900">{client?.phone || "—"}</strong></p>
-              <p className="border-b border-gray-200 pb-1">ADDRESS : <span className="text-gray-800">{client?.address || "—"}</span></p>
-              <p className="border-b border-gray-200 pb-1">NUIT : <strong className="text-gray-900">{client?.nuit || "—"}</strong></p>
+              <p className="border-b border-gray-200 pb-1">
+                {tr.labels.clientName}: <strong className="text-gray-900">{client?.name || tr.labels.clientName}</strong>
+              </p>
+              <p className="border-b border-gray-200 pb-1">
+                {tr.labels.clientPhone} <strong className="text-gray-900">{client?.phone || "—"}</strong>
+              </p>
+              <p className="border-b border-gray-200 pb-1">
+                {tr.labels.clientAddress}: <span className="text-gray-600">{client?.address || "—"}</span>
+              </p>
+              <p className="border-b border-gray-200 pb-1">
+                {tr.labels.clientNuit} <strong className="text-gray-900">{client?.nuit || "—"}</strong>
+              </p>
             </div>
           </div>
         </div>
 
-        {/* --- STRUCTURED TABLE WITH CELL BORDERS (Exact Image 3 Style) --- */}
-        <div className="flex-1">
+        {/* --- TABLE (Dark Navy Header, Clean Bordered Grid) --- */}
+        <div className="mb-8 flex-1">
           <table className="w-full border-collapse border border-gray-900 text-left">
             <thead>
-              <tr 
-                className="text-white text-[11px] uppercase font-bold tracking-wider"
-                style={{ backgroundColor: darkNavy }}
-              >
-                <th className="border border-gray-900 py-2.5 px-3 w-14 text-center">SL NO</th>
-                <th className="border border-gray-900 py-2.5 px-3">ITEM DESCRIPTION</th>
-                <th className="border border-gray-900 py-2.5 px-2 text-center w-16">UN.</th>
-                <th className="border border-gray-900 py-2.5 px-3 text-center w-20">QUANTITY</th>
+              <tr className="bg-[#1E2238] text-white text-[11px] uppercase font-bold tracking-wider">
+                <th className="border border-gray-900 py-2.5 px-3 w-12 text-center">{tr.labels.itemNumber}</th>
+                <th className="border border-gray-900 py-2.5 px-3">{tr.labels.description}</th>
+                <th className="border border-gray-900 py-2.5 px-3 text-center w-16">{tr.labels.unit}</th>
+                <th className="border border-gray-900 py-2.5 px-3 text-center w-16">{tr.labels.quantity}</th>
                 {showFinancials && (
                   <>
-                    <th className="border border-gray-900 py-2.5 px-3 text-right w-28">UNIT PRICE</th>
-                    <th className="border border-gray-900 py-2.5 px-3 text-right w-24">DESC.</th>
-                    <th className="border border-gray-900 py-2.5 px-3 text-right w-32">TOTAL</th>
+                    <th className="border border-gray-900 py-2.5 px-3 text-right w-24">{tr.labels.unitPrice}</th>
+                    <th className="border border-gray-900 py-2.5 px-3 text-center w-16">{tr.labels.discount}</th>
+                    <th className="border border-gray-900 py-2.5 px-3 text-right w-28">{tr.labels.total}</th>
                   </>
                 )}
               </tr>
             </thead>
             <tbody>
-              {items.length === 0 && (
-                <tr>
-                  <td colSpan={showFinancials ? 7 : 4} className="border border-gray-900 py-6 text-center text-gray-400 italic">
-                    Sem itens
-                  </td>
-                </tr>
-              )}
-              {items.map((item, index) => {
-                const qty = parseFloat(item.quantity) || 0;
-                const price = parseFloat(item.unit_price) || 0;
-                const lineGross = qty * price;
-                const discountVal = parseFloat(item.discount_value) || 0;
-                const lineDiscount = item.discount_type === "percentagem" ? lineGross * (discountVal / 100) : discountVal;
-                const lineTotal = lineGross - lineDiscount;
+              {items.map((it, idx) => {
+                const qty = Number(it.quantity) || 0;
+                const price = Number(it.unit_price) || 0;
+                const discVal = Number(it.discount_value) || 0;
+                let sub = qty * price;
+                if (it.discount_type === "percentagem") {
+                  sub -= sub * (discVal / 100);
+                } else {
+                  sub -= discVal;
+                }
 
                 return (
-                  <tr key={item.id || index} className="text-xs">
-                    <td className="border border-gray-900 py-2 px-3 text-center text-gray-600 font-semibold">{index + 1}</td>
-                    <td className="border border-gray-900 py-2 px-3 font-semibold text-gray-900">
-                      {item.description || <span className="text-gray-300 italic">Sem descrição...</span>}
-                    </td>
-                    <td className="border border-gray-900 py-2 px-2 text-center uppercase text-gray-600">{item.unit || "un"}</td>
-                    <td className="border border-gray-900 py-2 px-3 text-center font-bold text-gray-900">{qty}</td>
+                  <tr key={idx} className="border-b border-gray-400">
+                    <td className="border-r border-gray-400 py-2.5 px-3 text-center font-bold text-gray-700">{idx + 1}</td>
+                    <td className="border-r border-gray-400 py-2.5 px-3 font-semibold text-gray-900">{it.description || "—"}</td>
+                    <td className="border-r border-gray-400 py-2.5 px-3 text-center uppercase text-gray-600">{it.unit || "UN"}</td>
+                    <td className="border-r border-gray-400 py-2.5 px-3 text-center font-bold text-gray-900">{it.quantity}</td>
                     {showFinancials && (
                       <>
-                        <td className="border border-gray-900 py-2 px-3 text-right text-gray-700">{MT(price)}</td>
-                        <td className="border border-gray-900 py-2 px-3 text-right text-gray-500">{lineDiscount > 0 ? `-${MT(lineDiscount)}` : "—"}</td>
-                        <td className="border border-gray-900 py-2 px-3 text-right font-black text-gray-900">{MT(lineTotal)}</td>
+                        <td className="border-r border-gray-400 py-2.5 px-3 text-right font-mono text-gray-700">{MT(price)}</td>
+                        <td className="border-r border-gray-400 py-2.5 px-3 text-center text-gray-500">
+                          {discVal > 0 ? (it.discount_type === "percentagem" ? `${discVal}%` : MT(discVal)) : "—"}
+                        </td>
+                        <td className="border-r border-gray-900 py-2.5 px-3 text-right font-mono font-bold text-gray-900">{MT(sub)}</td>
                       </>
                     )}
                   </tr>
                 );
               })}
-
-              {/* Extra spacing rows to maintain structure */}
-              {items.length < 5 && Array.from({ length: 5 - items.length }).map((_, i) => (
-                <tr key={`geo-empty-${i}`} className="h-6">
-                  <td className="border border-gray-900 py-1.5 px-3">&nbsp;</td>
-                  <td className="border border-gray-900 py-1.5 px-3">&nbsp;</td>
-                  <td className="border border-gray-900 py-1.5 px-2">&nbsp;</td>
-                  <td className="border border-gray-900 py-1.5 px-3">&nbsp;</td>
-                  {showFinancials && (
-                    <>
-                      <td className="border border-gray-900 py-1.5 px-3">&nbsp;</td>
-                      <td className="border border-gray-900 py-1.5 px-3">&nbsp;</td>
-                      <td className="border border-gray-900 py-1.5 px-3">&nbsp;</td>
-                    </>
-                  )}
-                </tr>
-              ))}
             </tbody>
           </table>
+        </div>
 
-          {/* --- TOTALS BOX & TERMS --- */}
-          <div className="flex justify-between items-start mt-4 gap-8">
-            {/* Left: Payment Info & Thanks */}
-            <div className="flex-1 space-y-3 text-xs">
-              <div>
-                <h4 className="font-bold text-gray-900 text-xs mb-1">PAYMENT INFO</h4>
-                <div className="text-[11px] text-gray-600 space-y-0.5">
-                  {company?.bank_account && <p>ACCOUNT NUMBER : <span className="text-gray-900 font-semibold">{company.bank_account}</span></p>}
-                  {company?.bank_holder && <p>A/C NAME : <span className="text-gray-900 font-semibold">{company.bank_holder}</span></p>}
-                  {company?.bank_name && <p>BANK DETAILS : <span className="text-gray-900 font-semibold">{company.bank_name} {company?.bank_iban && `(${company.bank_iban})`}</span></p>}
-                  {company?.mpesa_number && <p><span className="text-red-600 font-bold">M-PESA :</span> <span className="text-gray-900 font-bold">{company.mpesa_number}</span></p>}
-                  {company?.emola_number && <p><span className="text-orange-600 font-bold">E-MOLA :</span> <span className="text-gray-900 font-bold">{company.emola_number}</span></p>}
-                  {!company?.bank_account && !company?.mpesa_number && (
-                    <p>DETAILS : <span className="text-gray-900 font-medium">Transferência / Depósito</span></p>
+        {/* --- LOWER SECTION: PAYMENT INFO & TOTALS --- */}
+        <div className="flex justify-between items-start gap-8 mb-6">
+          {/* Left: Payment Info + Notes + Stamp */}
+          <div className="flex-1 space-y-3.5 max-w-sm">
+            {shouldShowPaymentInfo && (company?.bank_name || company?.bank_account || company?.mpesa_number || company?.emola_number) && (
+              <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-200">
+                <h4 className="font-bold text-gray-900 text-xs mb-1 uppercase tracking-wider">{tr.labels.paymentInfo}</h4>
+                <div className="text-[11px] text-gray-700 space-y-0.5">
+                  {company?.bank_account && (
+                    <p>{tr.labels.accountNumber} <strong className="text-gray-900">{company.bank_account}</strong></p>
                   )}
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-gray-900 text-xs mb-0.5">Terms & Conditions / Note</h4>
-                <p className="text-[11px] text-gray-500 leading-relaxed max-w-sm">
-                  {documentData.observations || "Documento emitido ao abrigo da legislação fiscal em vigor. Obrigado pela preferência."}
-                </p>
-              </div>
-
-              <div className="pt-2">
-                <StampGenerator company={company} className="h-28 w-28" />
-              </div>
-
-              <div className="pt-3">
-                <p className="font-black text-sm uppercase tracking-wider text-gray-900">
-                  THANKS FOR YOUR BUSINESS
-                </p>
-              </div>
-            </div>
-
-            {/* Right: Totals Box & Signature */}
-            {showFinancials && (
-              <div className="w-64 shrink-0 text-xs">
-                <div className="border border-gray-900 divide-y divide-gray-900">
-                  <div className="flex justify-between py-2 px-3 bg-white font-medium">
-                    <span>Sub Total</span>
-                    <span className="font-bold">{MT(calculations.subtotal)}</span>
-                  </div>
-                  {calculations.totalDiscount > 0 && (
-                    <div className="flex justify-between py-2 px-3 bg-white text-red-600">
-                      <span>Desconto</span>
-                      <span>-{MT(calculations.totalDiscount)}</span>
-                    </div>
+                  {company?.name && (
+                    <p>{tr.labels.accountHolder} <strong className="text-gray-900">{company.name}</strong></p>
                   )}
-                  {hasIva && (
-                    <div className="flex justify-between py-2 px-3 bg-white font-medium">
-                      <span>Tax ({ivaRate}%)</span>
-                      <span>{MT(calculations.totalIva)}</span>
-                    </div>
+                  {company?.bank_name && (
+                    <p>{tr.labels.bank} <span className="text-gray-900 font-medium">{company.bank_name}</span></p>
                   )}
-                  {hasIspc && (
-                    <div className="flex justify-between py-2 px-3 bg-white font-medium">
-                      <span>ISPC ({ispcRate}%)</span>
-                      <span>{MT(calculations.totalIspc)}</span>
-                    </div>
+                  {company?.mpesa_number && (
+                    <p><strong className="text-red-600">{tr.labels.mpesa}</strong> {company.mpesa_number}</p>
                   )}
-                  <div 
-                    className="flex justify-between py-2 px-3 font-black text-gray-900 text-sm"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    <span>Total</span>
-                    <span>{MT(calculations.total)}</span>
-                  </div>
-                </div>
-
-                <div className="mt-12 text-center">
-                  <div className="border-b border-gray-900 pb-1 mb-1 min-h-[35px] flex items-end justify-center">
-                    {company?.signature_url ? (
-                      <img src={company.signature_url} alt="Assinatura" className="h-9 object-contain" />
-                    ) : null}
-                  </div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-600">Authorised Signature</span>
+                  {company?.emola_number && (
+                    <p><strong className="text-orange-600">{tr.labels.emola}</strong> {company.emola_number}</p>
+                  )}
                 </div>
               </div>
             )}
+
+            <div>
+              <h4 className="font-bold text-gray-900 text-xs mb-0.5">{tr.labels.termsAndConditions}</h4>
+              <p className="text-[11px] text-gray-500 leading-relaxed max-w-sm">
+                {documentData.observations || tr.labels.defaultTerms}
+              </p>
+            </div>
+
+            <div className="pt-1">
+              <StampGenerator company={company} className="w-20 h-20" />
+            </div>
+
+            <div className="pt-2">
+              <p className="font-black text-xs uppercase tracking-wider text-gray-900">
+                {tr.labels.thanksForBusiness}
+              </p>
+            </div>
           </div>
+
+          {/* Right: Totals Box & Signature */}
+          {showFinancials && (
+            <div className="w-64 shrink-0 text-xs">
+              <div className="border border-gray-900 divide-y divide-gray-900">
+                <div className="flex justify-between py-2 px-3 bg-white font-medium">
+                  <span>{tr.labels.subtotal}</span>
+                  <span className="font-bold">{MT(calculations.subtotal)}</span>
+                </div>
+                {calculations.totalDiscount > 0 && (
+                  <div className="flex justify-between py-2 px-3 bg-white text-red-600">
+                    <span>{tr.labels.totalDiscount}</span>
+                    <span>-{MT(calculations.totalDiscount)}</span>
+                  </div>
+                )}
+                {hasIva && (
+                  <div className="flex justify-between py-2 px-3 bg-white font-medium">
+                    <span>{tr.labels.vat} ({ivaRate}%)</span>
+                    <span>{MT(calculations.totalIva)}</span>
+                  </div>
+                )}
+                {hasIspc && (
+                  <div className="flex justify-between py-2 px-3 bg-white font-medium">
+                    <span>{tr.labels.ispc} ({ispcRate}%)</span>
+                    <span>{MT(calculations.totalIspc)}</span>
+                  </div>
+                )}
+                {/* Total Box */}
+                <div 
+                  className="flex justify-between py-2.5 px-3 font-black text-sm text-white"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  <span className="uppercase tracking-wider">{tr.labels.total}</span>
+                  <span>{MT(calculations.total)}</span>
+                </div>
+              </div>
+
+              {/* Authorised Signature Line */}
+              <div className="mt-8 text-center">
+                <div className="border-b border-gray-900 pb-1 mb-1 min-h-[30px] flex items-end justify-center">
+                  {company?.signature_url ? (
+                    <img src={company.signature_url} alt="Assinatura" className="h-8 object-contain" />
+                  ) : null}
+                </div>
+                <span className="text-[10px] uppercase font-bold tracking-wider text-gray-600">{tr.labels.authorisedSignature}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* --- BOTTOM-LEFT ANGULAR GEOMETRIC ACCENT (Exact Image 3 Style) --- */}
-      <div className="relative w-full h-10 pointer-events-none z-0">
-        <svg viewBox="0 0 794 40" className="w-full h-full" preserveAspectRatio="none">
-          <polygon points="0,0 240,0 200,40 0,40" fill={primaryColor} />
-          <polygon points="200,10 320,10 300,40 180,40" fill={darkNavy} />
-        </svg>
+      {/* --- BOTTOM DECORATIVE COLOR STRIP --- */}
+      <div className="h-4 w-full flex">
+        <div className="h-full flex-1" style={{ backgroundColor: primaryColor }} />
+        <div className="h-full w-24" style={{ backgroundColor: darkNavy }} />
       </div>
     </div>
   );

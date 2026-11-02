@@ -8,6 +8,8 @@ import { Download, Printer, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Company, InvoiceTemplateId } from "@/types";
 import { useProPlan } from "@/hooks/use-pro-plan";
+import { InvoiceLanguageSelector } from "@/components/invoice-language-selector";
+import type { InvoiceLanguage } from "@/lib/invoice-translations";
 
 interface InvoiceViewModalProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ interface InvoiceViewModalProps {
 export function InvoiceViewModal({ isOpen, onClose, documentId, company }: InvoiceViewModalProps) {
   const { isPro } = useProPlan();
   const [isExporting, setIsExporting] = useState(false);
+  const [documentLanguage, setDocumentLanguage] = useState<InvoiceLanguage>("pt");
   const [selectedTemplate, setSelectedTemplate] = useState<InvoiceTemplateId>(
     (company?.invoice_template as InvoiceTemplateId) || "classic"
   );
@@ -181,15 +184,23 @@ export function InvoiceViewModal({ isOpen, onClose, documentId, company }: Invoi
           </div>
         </div>
 
-        {/* Template Selector Bar */}
-        <div className="bg-muted/40 border-b border-border px-4 py-2 sm:px-6 flex items-center justify-between gap-3">
-          <span className="text-xs font-semibold text-muted-foreground shrink-0 hidden sm:inline">
-            Modelo:
-          </span>
-          <InvoiceTemplateSelector
-            selectedTemplate={selectedTemplate}
-            onSelectTemplate={setSelectedTemplate}
-            isPro={isPro}
+        {/* Template & Language Selector Bar */}
+        <div className="bg-muted/40 border-b border-border px-4 py-2 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-xs font-semibold text-muted-foreground shrink-0 hidden sm:inline">
+              Modelo:
+            </span>
+            <InvoiceTemplateSelector
+              selectedTemplate={selectedTemplate}
+              onSelectTemplate={setSelectedTemplate}
+              isPro={isPro}
+              primaryColor={company?.primary_color}
+            />
+          </div>
+
+          <InvoiceLanguageSelector
+            language={documentLanguage}
+            onLanguageChange={setDocumentLanguage}
             primaryColor={company?.primary_color}
           />
         </div>
@@ -205,6 +216,7 @@ export function InvoiceViewModal({ isOpen, onClose, documentId, company }: Invoi
             <div className="scale-90 sm:scale-100 origin-top shadow-xl rounded-lg overflow-hidden bg-white">
               <DocumentPreview
                 id="modal-pdf-content"
+                language={documentLanguage}
                 template={selectedTemplate}
                 company={company}
                 client={clientData}

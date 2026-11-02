@@ -1,6 +1,8 @@
 import type { Company, DocumentType, DocumentItemFormState } from "@/types";
+import type { InvoiceLanguage } from "@/lib/invoice-translations";
 
 export interface TemplateProps {
+  language?: InvoiceLanguage;
   company: Company | null;
   client: any;
   documentData: {

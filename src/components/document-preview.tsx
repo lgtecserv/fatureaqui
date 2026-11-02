@@ -1,4 +1,5 @@
 import type { Company, DocumentType, DocumentItemFormState, InvoiceTemplateId } from "@/types";
+import type { InvoiceLanguage } from "@/lib/invoice-translations";
 import { TemplateClassic } from "./invoice-templates/template-classic";
 import { TemplateCorporate } from "./invoice-templates/template-corporate";
 import { TemplateModern } from "./invoice-templates/template-modern";
@@ -6,6 +7,7 @@ import { TemplateGeometric } from "./invoice-templates/template-geometric";
 import { TemplateBoutique } from "./invoice-templates/template-boutique";
 
 export interface DocumentPreviewProps {
+  language?: InvoiceLanguage;
   company: Company | null;
   client: any;
   documentData: {

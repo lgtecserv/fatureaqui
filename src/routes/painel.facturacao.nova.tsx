@@ -12,6 +12,8 @@ import { ClientModal } from "@/components/client-modal";
 import { ProductModal } from "@/components/product-modal";
 import { DocumentPreview } from "@/components/document-preview";
 import { InvoiceTemplateSelector } from "@/components/invoice-template-selector";
+import { InvoiceLanguageSelector } from "@/components/invoice-language-selector";
+import type { InvoiceLanguage } from "@/lib/invoice-translations";
 import { SuccessModal } from "@/components/success-modal";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "react-i18next";
@@ -44,8 +46,9 @@ function NovaFacturaPage() {
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [lastGeneratedNumber, setLastGeneratedNumber] = useState("");
 
-  // Template State
+  // Template & Language State
   const [selectedTemplate, setSelectedTemplate] = useState<InvoiceTemplateId>("classic");
+  const [documentLanguage, setDocumentLanguage] = useState<InvoiceLanguage>("pt");
 
   // Core Document State
   const [docType, setDocType] = useState<DocumentType>("FT");
@@ -1103,6 +1106,15 @@ function NovaFacturaPage() {
                   isPro={isPro}
                   primaryColor={company?.primary_color}
                 />
+
+                {/* Document Language Selector */}
+                <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                  <InvoiceLanguageSelector
+                    language={documentLanguage}
+                    onLanguageChange={setDocumentLanguage}
+                    primaryColor={company?.primary_color}
+                  />
+                </div>
              </div>
              
              {/* The Auto-Scaled Preview */}
@@ -1126,6 +1138,7 @@ function NovaFacturaPage() {
                    }}
                  >
                    <DocumentPreview 
+                      language={documentLanguage}
                      template={selectedTemplate}
                      company={company}
                      client={clientId === "ocasional" ? ocasionalClient as any : selectedClient}

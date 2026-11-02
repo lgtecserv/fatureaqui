@@ -218,7 +218,7 @@ function FeedView({ user, onOpenChat }: { user: any, onOpenChat?: (chat: any) =>
                 ))}
               </div>
             )}
-            <div className="flex items-center justify-between border-t border-border pt-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
               <input 
                 type="file" 
                 multiple
@@ -227,24 +227,31 @@ function FeedView({ user, onOpenChat }: { user: any, onOpenChat?: (chat: any) =>
                 ref={fileInputRef}
                 onChange={handleImageSelect}
               />
+              <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+                <button 
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-muted-foreground hover:text-primary flex items-center gap-1.5 text-xs sm:text-sm font-semibold transition py-1"
+                >
+                  <ImageIcon className="w-4 h-4 shrink-0" />
+                  <span>Anexar<span className="hidden sm:inline"> Panfleto</span></span>
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => setAiModalOpen(true)}
+                  className="text-primary hover:text-primary/80 flex items-center gap-1.5 text-xs sm:text-sm font-bold transition py-1"
+                >
+                  <Sparkles className="w-4 h-4 shrink-0" />
+                  <span>Gerar<span className="hidden sm:inline"> com IA</span></span>
+                </button>
+              </div>
               <button 
-                onClick={() => fileInputRef.current?.click()}
-                className="text-muted-foreground hover:text-primary flex items-center gap-1.5 text-sm font-semibold transition"
-              >
-                <ImageIcon className="w-4 h-4" /> Anexar Panfleto
-              </button>
-              <button 
-                onClick={() => setAiModalOpen(true)}
-                className="text-primary hover:text-primary/80 flex items-center gap-1.5 text-sm font-bold transition ml-4 mr-auto"
-              >
-                <Sparkles className="w-4 h-4" /> Gerar com IA
-              </button>
-              <button 
+                type="button"
                 onClick={() => createPost.mutate()}
                 disabled={(!content.trim() && imageFiles.length === 0) || createPost.isPending}
-                className="bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-sm font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50"
+                className="bg-primary text-primary-foreground px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold flex items-center gap-2 hover:opacity-90 disabled:opacity-50 ml-auto shrink-0 shadow-sm"
               >
-                {createPost.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                {createPost.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
                 Publicar
               </button>
             </div>
@@ -536,9 +543,9 @@ function PostCard({ post, currentUser, onOpenChat }: { post: any, currentUser: a
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-soft">
       <div className="p-4 sm:p-5">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/5 border flex items-center justify-center overflow-hidden">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div className="w-10 h-10 rounded-lg bg-primary/5 border flex items-center justify-center shrink-0 overflow-hidden">
               {post.company_id === null ? (
                 <img src="/logo.png" className="w-full h-full object-contain p-1" />
               ) : post.companies?.logo_url ? (
@@ -547,21 +554,21 @@ function PostCard({ post, currentUser, onOpenChat }: { post: any, currentUser: a
                 <Building2 className="w-5 h-5 text-primary" />
               )}
             </div>
-            <div>
-              <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
-                {post.company_id === null ? "Equipa FatureAqui" : (post.companies?.name || "Empresa")}
-                {post.company_id === null && <span className="bg-primary text-white text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">Oficial</span>}
+            <div className="min-w-0 flex-1">
+              <h4 className="font-bold text-sm text-foreground flex items-center gap-2 truncate">
+                <span className="truncate">{post.company_id === null ? "Equipa FatureAqui" : (post.companies?.name || "Empresa")}</span>
+                {post.company_id === null && <span className="bg-primary text-white text-[10px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider shrink-0">Oficial</span>}
               </h4>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground block truncate">
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true, locale: pt })}
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {post.user_id !== currentUser?.id && post.company_id !== null && (
               <button 
                 onClick={startChat}
-                className="text-xs bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary px-2.5 py-1 rounded-md font-semibold transition"
+                className="text-xs bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary px-2.5 py-1 rounded-md font-semibold transition shrink-0"
               >
                 Mensagem
               </button>
@@ -795,17 +802,20 @@ function ChatsView({ user, initialChat, setInitialChat }: { user: any; initialCh
   });
 
   if (!chats?.length && !isSearching) {
-    return <div className="text-center p-12 flex flex-col items-center text-muted-foreground border border-dashed rounded-2xl">
-      Você ainda não tem conversas. 
-      <button onClick={() => setIsSearching(true)} className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:opacity-90 transition">
-         Pesquisar e iniciar uma conversa
-      </button>
-    </div>;
+    return (
+      <div className="text-center p-12 flex flex-col items-center text-muted-foreground border border-dashed rounded-2xl">
+        Você ainda não tem conversas. 
+        <button onClick={() => setIsSearching(true)} className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded-full text-sm font-semibold hover:opacity-90 transition">
+           Pesquisar e iniciar uma conversa
+        </button>
+      </div>
+    );
   }
 
   return (
     <div className="bg-card border border-border rounded-2xl flex h-[600px] overflow-hidden shadow-soft">
-      <div className="w-1/3 border-r border-border overflow-y-auto flex flex-col">
+      {/* Conversations List - Hidden on mobile if chat is open */}
+      <div className={`border-r border-border overflow-y-auto flex flex-col ${activeChat ? 'hidden md:flex md:w-1/3' : 'w-full md:w-1/3'}`}>
         <div className="p-4 border-b border-border font-bold sticky top-0 bg-card z-10 shadow-sm flex flex-col gap-3">
           <div className="flex justify-between items-center">
              <span>Conversas</span>
@@ -865,10 +875,19 @@ function ChatsView({ user, initialChat, setInitialChat }: { user: any; initialCh
           })
         )}
       </div>
-      <div className="flex-1 flex flex-col bg-muted/10 relative">
+      {/* Active Conversation or Empty State - Hidden on mobile if no active chat */}
+      <div className={`flex-1 flex flex-col bg-muted/10 relative ${!activeChat ? 'hidden md:flex' : 'flex'}`}>
         {activeChat ? (
           <>
-            <div className="p-4 border-b border-border bg-card flex items-center gap-3 shadow-sm z-10">
+            <div className="p-3 sm:p-4 border-b border-border bg-card flex items-center gap-3 shadow-sm z-10">
+               <button
+                 type="button"
+                 onClick={() => setActiveChat(null)}
+                 className="md:hidden p-1.5 -ml-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition"
+                 title="Voltar às conversas"
+               >
+                 <ChevronLeft className="w-5 h-5" />
+               </button>
                {(() => {
                  const otherCompany = activeChat.participant1_id === user.id ? activeChat.company2 : activeChat.company1;
                  return (

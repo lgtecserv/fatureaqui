@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase";
 import { differenceInDays } from "date-fns";
 import { PageTransition } from "@/components/ui/page-transition";
 import { useTranslation } from "react-i18next";
+import { AiAssistantWidget } from "@/components/ai-assistant-widget";
 
 export const Route = createFileRoute("/painel")({
   component: PainelLayout,
@@ -21,6 +22,7 @@ function PainelLayout() {
   const [initializing, setInitializing] = useState(true);
   const [isBlocked, setIsBlocked] = useState(false);
   const [blockReason, setBlockReason] = useState("");
+  const [company, setCompany] = useState<any>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -76,6 +78,7 @@ function PainelLayout() {
       }
 
       // Set colors
+      setCompany(company);
       if (company?.primary_color) {
         const root = document.documentElement;
         const p = company.primary_color;
@@ -229,6 +232,8 @@ function PainelLayout() {
           <PageTransition>
             <Outlet />
           </PageTransition>
+
+          <AiAssistantWidget company={company} />
         </SidebarInset>
       </div>
     </SidebarProvider>
